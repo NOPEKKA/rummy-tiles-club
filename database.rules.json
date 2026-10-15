@@ -1,0 +1,49 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rk": {
+      "lobby": {
+        ".read": "auth != null",
+        "$code": {
+          ".write": "auth != null && $code.matches(/^[a-z0-9]{4}$/) && (!data.exists() || data.child('uid').val() === auth.uid)",
+          ".validate": "!newData.exists() || (newData.child('uid').val() === auth.uid && newData.child('host').isString() && newData.child('host').val().length <= 16)"
+        }
+      },
+      "rooms": {
+        "$code": {
+          ".read": "auth != null && $code.matches(/^[a-z0-9]{4}$/)",
+          ".write": "auth != null && !newData.exists() && data.child('host').val() === auth.uid",
+          "host": {
+            ".write": "auth != null && $code.matches(/^[a-z0-9]{4}$/) && (!data.exists() || data.val() === auth.uid)",
+            ".validate": "newData.isString() && newData.val() === auth.uid"
+          },
+          "state": {
+            ".write": "auth != null && root.child('rk/rooms/' + $code + '/host').val() === auth.uid",
+            ".validate": "newData.hasChildren(['c', 'h', 's', 'v'])"
+          },
+          "hello": {
+            "$uid": {
+              ".write": "auth != null && $uid === auth.uid"
+            }
+          },
+          "acts": {
+            "$id": {
+              ".write": "auth != null && ((!data.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && root.child('rk/rooms/' + $code + '/host').val() === auth.uid))"
+            }
+          },
+          "err": {
+            "$uid": {
+              ".write": "auth != null && root.child('rk/rooms/' + $code + '/host').val() === auth.uid"
+            }
+          },
+          "presence": {
+            "$uid": {
+              ".write": "auth != null && $uid === auth.uid"
+            }
+          }
+        }
+      }
+    }
+  }
+}
