@@ -1,11 +1,9 @@
-// Firebase settings for online play on GitHub Pages.
-// Copy the "firebaseConfig" values from Firebase console → Project settings → Your apps (Web app).
+// Firebase settings for online play on GitHub Pages (project: germangame-2c0cf).
 // These values are not secret: access is controlled by database.rules.json and Anonymous sign-in.
-// Leave the placeholders in place and the game still runs, with bots only.
 window.RK_FIREBASE = {
-  apiKey: 'PASTE_API_KEY',
-  authDomain: 'PASTE_PROJECT_ID.firebaseapp.com',
-  databaseURL: 'https://PASTE_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app',
-  projectId: 'PASTE_PROJECT_ID',
-  appId: 'PASTE_APP_ID'
+  apiKey: 'AIzaSyB8FMUkT3ECFbW76XKthV9HKogoVYShaOY',
+  authDomain: 'germangame-2c0cf.firebaseapp.com',
+  databaseURL: 'https://germangame-2c0cf-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'germangame-2c0cf',
+  appId: '1:195937184744:web:c3bd75a96d65a46fd8525d'
 };
