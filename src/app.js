@@ -188,8 +188,11 @@
       if (S.draftKey !== turnKey) { S.draft = viewGrid(); S.draftKey = turnKey; }
     } else { S.draft = null; S.draftKey = null; }
     syncRack(true);
-    if (v.status === 'lobby') S.screen = 'lobby';
-    else S.screen = 'game';
+    const screen = v.status === 'lobby' ? 'lobby' : 'game';
+    const key = JSON.stringify([v.code, v.v, v.status, v.players.map(p => (p.online ? 1 : 0) + p.name), S.hand, S.meIdx, screen]);
+    if (key === S.lastStateKey && S.screen === screen && !S.pendingMove && !S.pendingBanner && !S.dealing) return;
+    S.lastStateKey = key;
+    S.screen = screen;
     render();
   }
 
@@ -198,7 +201,7 @@
   function enterEngine(mode, G, myId) {
     S.mode = mode; S.G = G; S.myId = myId; S.hostId = G.hostId;
     S.rack = null; S.rackRound = null; S.draft = null; S.draftKey = null; S.tnSeen = null; S.endClosed = null;
-    S.mvSeen = null; S.bannerKey = null; S.endAt = 0;
+    S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     engineChanged();
   }
   function engineChanged() {
@@ -248,7 +251,7 @@
   }
   function netError(e) {
     const code = e && e.code;
-    toast(code === 'not_permitted' ? t('r_not_permitted') : t('r_no_room'), true);
+    toast(code === 'not_permitted' ? t('r_not_permitted') : code === 'taken' ? t('r_taken') : t('r_no_room'), true);
   }
 
   // ---------- host networking ----------
@@ -346,7 +349,7 @@
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
     S.mode = 'client'; S.myId = myId; S.view = null; S.hostId = null; S.code = code; S.gotHand = false;
     S.rack = null; S.rackRound = null; S.tnSeen = null; S.endClosed = null;
-    S.mvSeen = null; S.bannerKey = null; S.endAt = 0;
+    S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     try {
       await Net.joinTable(code, {
         state: msg => { stateChain = stateChain.then(() => handleState(msg)).catch(() => {}); },
@@ -390,7 +393,7 @@
     S.view = Host.readView(d);
     S.hand = S.view.players.some(p => p.id === S.myId) ? hand : [];
     if (S.view.players.some(p => p.id === S.myId) && !box) { S.gotHand = false; }
-    store.set('rk.last', JSON.stringify({ code: S.view.code, role: 'client' }));
+    store.set('rk.last', JSON.stringify({ code: S.view.code, role: 'client', tab: Net.tab }));
     onState();
   }
 
@@ -400,7 +403,7 @@
     if (S.mode === 'host') Net.announceTable(null);
     if (S.mode === 'host' || S.mode === 'client') await Net.leaveTable();
     if (S.mode === 'client') store.del('rk.last');
-    Object.assign(S, { mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1, rack: null, draft: null, sel: null, screen: 'home', pending: false });
+    Object.assign(S, { mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1, rack: null, draft: null, sel: null, screen: 'home', pending: false, lastStateKey: null });
     render();
   }
 
@@ -586,13 +589,12 @@
   function tableCellAt(x, y, el) {
     const tc = el.closest('[data-tc]');
     if (tc) return tc;
-    let best = null, bd = Infinity;
-    document.querySelectorAll('.tgrid [data-tc]').forEach(c => {
-      const r = c.getBoundingClientRect();
-      const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
-      if (d < bd) { bd = d; best = c; }
-    });
-    return best;
+    const g = $('.tgrid');
+    if (!g) return null;
+    const r = g.getBoundingClientRect(), cols = +g.dataset.cols, rows = +g.dataset.rows;
+    const c = Math.max(0, Math.min(cols - 1, Math.floor((x - r.left) / r.width * cols)));
+    const rr = Math.max(0, Math.min(rows - 1, Math.floor((y - r.top) / r.height * rows)));
+    return g.querySelector('[data-tc="' + rr + ',' + c + '"]');
   }
   function dropTargetAt(x, y) {
     const el = document.elementFromPoint(x, y);
@@ -651,8 +653,10 @@
       if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) < 6) return;
       const r = p.el.getBoundingClientRect();
       const g = p.el.cloneNode(true);
-      g.classList.add('drag-ghost'); g.classList.remove('sel', 'fresh');
+      g.classList.add('drag-ghost'); g.classList.remove('sel', 'fresh', 'fx-pop', 'fx-land', 'fx-steal');
       g.style.setProperty('--tw', r.width + 'px');
+      g.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
+      Drag.hoverKey = null;
       document.body.append(g);
       p.el.classList.add('lifting');
       Drag.active = p; Drag.ghost = g; Drag.pending = null; S.sel = null;
@@ -661,10 +665,17 @@
     const a = Drag.active;
     if (!a || e.pointerId !== a.pid) return;
     e.preventDefault();
-    Drag.ghost.style.left = e.clientX + 'px';
-    Drag.ghost.style.top = e.clientY + 'px';
-    showHover(dropTargetAt(e.clientX, e.clientY));
-    autoScroll(e.clientX, e.clientY);
+    Drag.x = e.clientX; Drag.y = e.clientY;
+    if (!Drag.raf) Drag.raf = requestAnimationFrame(dragFrame);
+  }
+  function dragFrame() {
+    Drag.raf = 0;
+    if (!Drag.active || !Drag.ghost) return;
+    Drag.ghost.style.transform = 'translate3d(' + Drag.x + 'px,' + Drag.y + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
+    const tgt = dropTargetAt(Drag.x, Drag.y);
+    const k = tgt ? tgt.kind + (tgt.r === undefined ? '' : tgt.r + ',' + tgt.c) : '';
+    if (k !== Drag.hoverKey) { Drag.hoverKey = k; showHover(tgt); }
+    autoScroll(Drag.x, Drag.y);
   }
   function autoScroll(x, y) {
     const tbl = $('.table');
@@ -953,17 +964,10 @@
     target = Math.round(Math.min(target, z.cap) * 2) / 2;
     z.cap = target;
     const ease = z.ts && Math.abs(z.ts - target) > 0.4 && animate !== false && FX.tier() > 0;
-    if (ease) {
-      g.style.setProperty('--ts', z.ts + 'px');
-      void getComputedStyle(g).getPropertyValue('--ts');
-      g.style.setProperty('--ts', target + 'px');
-    } else {
-      // first size of the round, or a resize: snap, don't animate from a placeholder
-      g.style.transition = 'none';
-      g.style.setProperty('--ts', target + 'px');
-      void getComputedStyle(g).getPropertyValue('--ts');
-      g.style.transition = '';
-    }
+    g.style.setProperty('--ts', target + 'px');
+    // The grid is laid out once at the new size; a scale animation from the old size makes it
+    // look like a camera easing out, without re-laying out every cell on every frame.
+    if (ease) g.animate([{ scale: String(z.ts / target) }, { scale: '1' }], { duration: 650, easing: 'cubic-bezier(.3,.7,.2,1)' });
     z.ts = target;
   }
   let resizeT = null;
@@ -1150,7 +1154,7 @@
       if (last.role === 'client' || (G && G.code === last.code)) {
         out.push(h('div', { class: 'row' },
           h('span', { class: 'grow', text: t(last.role === 'host' ? 'resumeHost' : 'resumeClient', { code: last.code }) }),
-          h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => last.role === 'host' ? hostOnline(G) : joinOnline(last.code) }),
+          h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => { if (last.role === 'host') hostOnline(G); else { Net.adoptTab(last.tab); joinOnline(last.code); } } }),
           h('button', { type: 'button', class: 'btn small ghost', text: t('discard'), onclick: () => { store.del('rk.last'); store.del('rk.host.' + last.code); render(); } })));
       }
     }
@@ -1282,17 +1286,18 @@
         h('button', { type: 'button', class: 'btn small icon ghost', 'aria-label': t('zoomIn'), text: '+', onclick: () => setZoom(S.zoomUser * 1.15, true) }),
         h('button', { type: 'button', class: 'btn small ghost', text: t('zoomFit'), onclick: () => setZoom(1, false) }));
       dock.append(h('div', { class: 'actions' },
+        h('span', { class: 'agroup' },
         h('button', { type: 'button', class: 'btn small', id: 'undo', disabled: !S.undo.length, text: t('undo'), onclick: undo }),
         h('button', { type: 'button', class: 'btn small', id: 'reset-turn', disabled: !changed, text: t('resetTurn'), onclick: resetTurn }),
-        h('button', { type: 'button', class: 'btn small', id: 'tidy-table', disabled: !myTurn || !TG.toSets(S.draft).table.length, text: t('tidyTable'), onclick: tidyTable }),
-        h('span', { class: 'sep' }),
+        h('button', { type: 'button', class: 'btn small', id: 'tidy-table', disabled: !myTurn || !TG.toSets(S.draft).table.length, text: t('tidyTable'), onclick: tidyTable })),
+        h('span', { class: 'agroup' },
         h('button', { type: 'button', class: 'btn small', id: 'sort-777', text: t('sort777'), onclick: () => sortRack('number') }),
         h('button', { type: 'button', class: 'btn small', id: 'sort-789', text: t('sort789'), onclick: () => sortRack('color') }),
-        h('button', { type: 'button', class: 'btn small', id: 'compact', text: t('resetLayout'), onclick: compactRack }),
-        h('span', { class: 'sep' }), zoom,
-        h('span', { class: 'sep' }),
+        h('button', { type: 'button', class: 'btn small', id: 'compact', text: t('resetLayout'), onclick: compactRack })),
+        h('span', { class: 'agroup' }, zoom),
+        h('span', { class: 'agroup main' },
         h('button', { type: 'button', class: 'btn', id: 'draw', disabled: !myTurn || S.pending, text: v.pool ? (changed ? t('drawReset') : t('draw')) : t('pass'), onclick: drawTile }),
-        h('button', { type: 'button', class: 'btn primary', id: 'play', disabled: !myTurn || !playOk || S.pending, title: hint || null, text: t('play'), onclick: submitPlay })));
+        h('button', { type: 'button', class: 'btn primary', id: 'play', disabled: !myTurn || !playOk || S.pending, title: hint || null, text: t('play'), onclick: submitPlay }))));
       // one line that is always there, so the panel never changes height between turns
       dock.append(h('p', { class: 'note dock-hint', 'aria-live': 'polite', text: S.pending ? t('sent') : (myTurn && hint && fresh.size ? hint : '') }));
       dock.append(h('div', { id: 'board-slot', style: { maxWidth: '100%' } }));
@@ -1674,7 +1679,8 @@
   document.body.append(h('div', { id: 'settings-root' }));
   applyPrefs(S.prefs);
   render();
-  Net.init(() => render());
+  // The open-tables list and the connection state only show on the menu; mid-game they must not redraw the table.
+  Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 
   // Handle for automated checks (harmless for players).
   window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl };

@@ -39,7 +39,8 @@ body {
   font: 15px/1.5 var(--font-body);
   -webkit-tap-highlight-color: transparent;
 }
-#app { height: 100%; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+#app { height: 100%; height: 100dvh; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+html, body { overscroll-behavior: none; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
@@ -106,7 +107,7 @@ button { cursor: pointer; }
 .tile.sel { transform: translateY(-14%); --ring: 0 0 0 3px var(--brass); --lift: 0 calc(var(--tw) * .06) 0 var(--edge), 0 calc(var(--tw) * .24) calc(var(--tw) * .32) rgba(0,0,0,.48); }
 .tile.lifting { opacity: .25; }
 .tile.static { cursor: default; }
-.drag-ghost { position: fixed; z-index: 100; pointer-events: none; transform: translate(-50%, -55%) rotate(-3deg) scale(1.1); filter: drop-shadow(0 14px 18px rgba(0,0,0,.5)); }
+.drag-ghost { position: fixed; left: 0; top: 0; z-index: 100; pointer-events: none; will-change: transform; filter: drop-shadow(0 14px 18px rgba(0,0,0,.5)); }
 
 /* Ivory: polished bakelite, engraved numerals */
 .tile.sk-ivory { --edge: #d3c29b; --face: inset 0 1px 0 #fff, inset 0 -2px 4px rgba(150,120,60,.18); }
@@ -471,8 +472,7 @@ input[type="color"] { width: 44px; height: 32px; border: 1px solid var(--line); 
 .pchip.turn { animation: chippulse 1.7s ease-in-out infinite; }
 @keyframes chippulse { 50% { box-shadow: 0 0 0 1px var(--brass) inset, 0 0 16px rgba(220,165,69,.6); } }
 @property --ts { syntax: '<length>'; inherits: true; initial-value: 40px; }
-.tgrid { transition: --ts .9s cubic-bezier(.3,.7,.2,1); }
-html[data-fx="off"] .tgrid { transition: none; }
+.tgrid { transform-origin: 50% 0; }
 
 /* ---------- effects layer ---------- */
 #fx-layer { position: fixed; inset: 0; z-index: 80; pointer-events: none; overflow: hidden; }
@@ -566,6 +566,37 @@ html[data-fx="off"] .tgrid { transition: none; }
   .tgrid { transition: none; }
 }
 
+
+/* ---------- action groups: buttons that belong together never split across lines ---------- */
+.actions .agroup { display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.actions .agroup.main { gap: 8px; }
+
+/* ---------- tablets & touch ---------- */
+.game, .board, .tray, .menu-fan { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulation; }
+@media (hover: none) {
+  .mbtn::after { display: none; }
+  .btn:hover { border-color: var(--line); }
+}
+@media (pointer: coarse) {
+  .btn { min-height: 46px; padding: 0 18px; font-size: 15px; }
+  .btn.small { min-height: 42px; padding: 0 14px; font-size: 14px; }
+  .btn.small.icon { width: 42px; }
+  .zoom output { min-width: 46px; }
+  .seg button { min-height: 40px; padding: 6px 14px; }
+  .actions { gap: 8px 10px; }
+  /* blur behind moving glass is costly on tablets: use a solid tint instead */
+  .fx-card, .turn-banner { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(13, 22, 26, .94); }
+}
+/* tablet portrait and small laptops: player chips get their own row instead of being cut off */
+@media (max-width: 1100px) {
+  .players { order: 5; flex-basis: 100%; }
+}
+/* tablet portrait: the table uses the tall screen, the dock stays compact */
+@media (min-width: 700px) and (max-width: 1100px) and (orientation: portrait) {
+  .dock { padding-block: 10px 14px; }
+  .status { padding-block: 10px; font-size: 15px; }
+}
 
 </style>
 <div id="app"></div>
@@ -1991,7 +2022,7 @@ html[data-fx="off"] .tgrid { transition: none; }
       sConfirmTitle: 'บอร์ดใหม่มีช่องไม่พอ', sConfirmBody: 'ไพ่ {n} ใบจะถูกย้ายไปไว้ใน “ถาดพัก” ใต้บอร์ด ไม่มีใบไหนหาย และย้ายกลับเข้าช่องได้ทุกเมื่อ', sConfirmApply: 'ยืนยันใช้บอร์ดใหม่', sConfirmBack: 'กลับไปแก้',
       sPan: 'บอร์ดใหญ่กว่าจอ: เลื่อนหรือซูมดูได้ ไทล์ไม่เล็กกว่า {px}px', sZoom: 'ซูม {z}%', sTilePx: 'ไทล์จริง {px}px', sFrame: 'กรอบ {w}×{h}px',
       log_start: 'เริ่มรอบ — {name} ลงก่อน', log_play: '{name} ลงไพ่ {n} ใบ', log_meld: '{name} ลงแรก {n} ใบ ({v} แต้ม)', log_draw: '{name} จั่วไพ่', log_pass: '{name} ผ่าน (กองหมด)', log_skip: 'โฮสต์ข้ามตา {name}', log_win: '{name} ชนะรอบนี้', log_join: '{name} เข้าโต๊ะ',
-      r_short: 'ชุดต้องมีอย่างน้อย 3 ใบ', r_duplicate: 'มีไพ่ซ้ำ', r_mixed: 'ไม่ใช่ชุดหรือเรียง', r_long: 'ยาวเกิน 13 ใบ', r_malformed: 'ข้อมูลไม่ถูกต้อง', r_table_tile_taken: 'ไพ่บนโต๊ะหายไป', r_no_tiles: 'ต้องลงไพ่จากมืออย่างน้อย 1 ใบ', r_not_your_tile: 'มีไพ่ที่ไม่ใช่ของคุณ', r_invalid_set: 'มีชุดที่ไม่ถูกต้อง', r_meld_touches_table: 'ตาลงแรกแตะชุดเดิมบนโต๊ะไม่ได้', r_meld_too_low: 'ลงแรกต้องได้ {min} แต้มขึ้นไป', r_not_your_turn: 'ยังไม่ถึงตาคุณ', r_stale: 'โต๊ะเปลี่ยนไปแล้ว ลองใหม่อีกครั้ง', r_not_playing: 'เกมยังไม่เริ่ม', r_host_only: 'เฉพาะโฮสต์', r_no_player: 'ไม่พบผู้เล่น', r_full: 'โต๊ะเต็มแล้ว (4 คน)', r_in_progress: 'เกมกำลังเล่นอยู่ เข้าร่วมได้เมื่อจบรอบ', r_need_players: 'ต้องมีอย่างน้อย 2 คน', r_not_permitted: 'บัญชีนี้ไม่มีสิทธิ์ส่งการเล่น ขอให้เจ้าของแชร์แบบ Contributor', r_no_room: 'ยังเชื่อมต่อห้องไม่ได้', r_bad_code: 'รหัสโต๊ะต้องเป็นตัวอักษรหรือตัวเลข 4 ตัว', r_no_host: 'ไม่พบโต๊ะนี้ หรือโฮสต์ออฟไลน์อยู่',
+      r_short: 'ชุดต้องมีอย่างน้อย 3 ใบ', r_duplicate: 'มีไพ่ซ้ำ', r_mixed: 'ไม่ใช่ชุดหรือเรียง', r_long: 'ยาวเกิน 13 ใบ', r_malformed: 'ข้อมูลไม่ถูกต้อง', r_table_tile_taken: 'ไพ่บนโต๊ะหายไป', r_no_tiles: 'ต้องลงไพ่จากมืออย่างน้อย 1 ใบ', r_not_your_tile: 'มีไพ่ที่ไม่ใช่ของคุณ', r_invalid_set: 'มีชุดที่ไม่ถูกต้อง', r_meld_touches_table: 'ตาลงแรกแตะชุดเดิมบนโต๊ะไม่ได้', r_meld_too_low: 'ลงแรกต้องได้ {min} แต้มขึ้นไป', r_not_your_turn: 'ยังไม่ถึงตาคุณ', r_stale: 'โต๊ะเปลี่ยนไปแล้ว ลองใหม่อีกครั้ง', r_not_playing: 'เกมยังไม่เริ่ม', r_host_only: 'เฉพาะโฮสต์', r_no_player: 'ไม่พบผู้เล่น', r_full: 'โต๊ะเต็มแล้ว (4 คน)', r_in_progress: 'เกมกำลังเล่นอยู่ เข้าร่วมได้เมื่อจบรอบ', r_need_players: 'ต้องมีอย่างน้อย 2 คน', r_not_permitted: 'บัญชีนี้ไม่มีสิทธิ์ส่งการเล่น ขอให้เจ้าของแชร์แบบ Contributor', r_no_room: 'ยังเชื่อมต่อห้องไม่ได้', r_bad_code: 'รหัสโต๊ะต้องเป็นตัวอักษรหรือตัวเลข 4 ตัว', r_no_host: 'ไม่พบโต๊ะนี้ หรือโฮสต์ออฟไลน์อยู่', r_taken: 'โต๊ะนี้มีโฮสต์คนอื่นแล้ว (โฮสต์เดิมปิดแท็บไป) เปิดโต๊ะใหม่ได้เลย',
       offNoConfig: 'ยังไม่ได้ตั้งค่า Firebase ตอนนี้เล่นกับบอทได้ก่อน (วิธีตั้งอยู่ใน README)', offFbAuth: 'Firebase ยังไม่ได้เปิด Anonymous sign-in', offFbError: 'ต่อ Firebase ไม่ได้ ตรวจ databaseURL และ Rules อีกครั้ง',
       settings: 'ตั้งค่า', botsN: 'บอท {n} ตัว', onlineOffShort: 'เล่นออนไลน์ได้เมื่อเปิดหน้านี้ใน claude.ai',
       turnBanner: 'ถึงตาคุณแล้ว!', turnSub: 'ลากไพ่ลงโต๊ะ หรือจั่ว 1 ใบ', turnSubMeld: 'ลงแรกให้ได้ {min} แต้ม หรือจั่ว 1 ใบ',
@@ -2044,7 +2075,7 @@ html[data-fx="off"] .tgrid { transition: none; }
       sConfirmTitle: 'The new board has fewer cells than tiles', sConfirmBody: '{n} tiles will move to the tray under the board. None are lost, and you can drag them back into cells any time.', sConfirmApply: 'Apply new board', sConfirmBack: 'Keep editing',
       sPan: 'Board is wider than the screen: scroll or zoom. Tiles never go below {px}px.', sZoom: 'Zoom {z}%', sTilePx: 'Tile {px}px', sFrame: 'Frame {w}×{h}px',
       log_start: 'Round started — {name} goes first', log_play: '{name} played {n} tiles', log_meld: '{name} opened with {n} tiles ({v} pts)', log_draw: '{name} drew', log_pass: '{name} passed (pool empty)', log_skip: 'Host skipped {name}', log_win: '{name} won the round', log_join: '{name} joined',
-      r_short: 'A set needs at least 3 tiles', r_duplicate: 'Duplicate tile', r_mixed: 'Not a group or a run', r_long: 'Longer than 13', r_malformed: 'Malformed move', r_table_tile_taken: 'A table tile went missing', r_no_tiles: 'Play at least one tile from your hand', r_not_your_tile: 'That tile isn’t yours', r_invalid_set: 'Some sets are invalid', r_meld_touches_table: 'First meld can’t change table sets', r_meld_too_low: 'First meld needs {min}+ points', r_not_your_turn: 'Not your turn', r_stale: 'The table changed. Try again.', r_not_playing: 'The game hasn’t started', r_host_only: 'Host only', r_no_player: 'Player not found', r_full: 'Table is full (4 players)', r_in_progress: 'Game in progress. You can join when the round ends.', r_need_players: 'Needs at least 2 players', r_not_permitted: 'This account can’t send moves. Ask the owner to share as Contributor.', r_no_room: 'Not connected to the room yet', r_bad_code: 'A table code is 4 letters or digits', r_no_host: 'Table not found, or its host is offline',
+      r_short: 'A set needs at least 3 tiles', r_duplicate: 'Duplicate tile', r_mixed: 'Not a group or a run', r_long: 'Longer than 13', r_malformed: 'Malformed move', r_table_tile_taken: 'A table tile went missing', r_no_tiles: 'Play at least one tile from your hand', r_not_your_tile: 'That tile isn’t yours', r_invalid_set: 'Some sets are invalid', r_meld_touches_table: 'First meld can’t change table sets', r_meld_too_low: 'First meld needs {min}+ points', r_not_your_turn: 'Not your turn', r_stale: 'The table changed. Try again.', r_not_playing: 'The game hasn’t started', r_host_only: 'Host only', r_no_player: 'Player not found', r_full: 'Table is full (4 players)', r_in_progress: 'Game in progress. You can join when the round ends.', r_need_players: 'Needs at least 2 players', r_not_permitted: 'This account can’t send moves. Ask the owner to share as Contributor.', r_no_room: 'Not connected to the room yet', r_bad_code: 'A table code is 4 letters or digits', r_no_host: 'Table not found, or its host is offline', r_taken: 'This table belongs to another host now (the original tab was closed). Open a new table.',
       offNoConfig: 'Firebase isn’t set up yet. You can play bots meanwhile (setup steps are in the README).', offFbAuth: 'Firebase: turn on Anonymous sign-in', offFbError: 'Can’t reach Firebase. Check the databaseURL and Rules.',
       settings: 'Settings', botsN: '{n} bots', onlineOffShort: 'Online play works when this page is open on claude.ai',
       turnBanner: 'Your turn!', turnSub: 'Lay tiles on the table, or draw one', turnSubMeld: 'Open with {min} points, or draw one',
@@ -2298,7 +2329,7 @@ html[data-fx="off"] .tgrid { transition: none; }
     }
     function size() {
       if (!cv) return;
-      const d = Math.min(2, root.devicePixelRatio || 1);
+      const d = Math.min(1.5, root.devicePixelRatio || 1);
       cv.width = root.innerWidth * d; cv.height = root.innerHeight * d;
       cv.style.width = root.innerWidth + 'px'; cv.style.height = root.innerHeight + 'px';
       if (ctx) ctx.setTransform(d, 0, 0, d, 0, 0);
@@ -2619,8 +2650,23 @@ html[data-fx="off"] .tgrid { transition: none; }
     }
   };
 
+  // A key for this tab that survives reloads of the tab (sessionStorage), so two tabs of one
+  // account are two players, and a reload keeps your seat.
+  function tabKey() {
+    if (typeof root.__RK_TAB === 'string' && /^[a-z0-9]{6}$/.test(root.__RK_TAB)) return root.__RK_TAB;   // test hook
+    let k = null;
+    try { k = sessionStorage.getItem('rk.tab'); } catch (e) {}
+    if (!k || !/^[a-z0-9]{6}$/.test(k)) {
+      k = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+      try { sessionStorage.setItem('rk.tab', k); } catch (e) {}
+    }
+    return k;
+  }
+  const TAB_RE = /^[a-z0-9]{6}$/;
+
   const Net = {
     TOPICS, Crypto,
+    tab: tabKey(),
     room: null, user: null, myId: null, myPeer: null,
     state: 'init',            // 'init' | 'on' | 'off'
     reason: '',               // why it is off: 'no-config' | 'artifact-off' | 'fb-auth' | 'fb-error'
@@ -2665,16 +2711,34 @@ html[data-fx="off"] .tgrid { transition: none; }
       onChange();
     },
 
-    /** Our id as other pages will see it in msg.by (or a per-tab fallback). */
-    selfId() {
-      if (this.myId) return this.myId;
-      if (this.myPeer) return 'p:' + this.myPeer;
-      return null;
+    /** Rejoin as the tab you played in before (claude.ai rooms; a Firebase sign-in is per tab already). */
+    adoptTab(k) {
+      if (this.transport === 'firebase' || !TAB_RE.test(k || '')) return;
+      this.tab = k;
+      try { sessionStorage.setItem('rk.tab', k); } catch (e) {}
     },
-    senderId(msg) { return msg.by || ('p:' + msg.peer); },
+    /** Our player id: the account (msg.by, which the platform vouches for) plus this tab's key. */
+    selfId() {
+      const base = this.myId || (this.myPeer ? 'p:' + this.myPeer : null);
+      return base ? base + '~' + this.tab : null;
+    },
+    /**
+     * Who sent this, as a player id. The account part comes from the platform and can't be faked;
+     * the tab part is the sender's own claim, so one account can only ever speak for its own tabs.
+     */
+    senderId(msg) {
+      const base = msg.by || ('p:' + msg.peer);
+      const d = msg.data && typeof msg.data === 'object' ? msg.data : null;
+      if (d && typeof d.h === 'string' && d.h.startsWith(base + '~')) return d.h;      // the host's state / replies
+      const tab = (d && d.tab) || (msg.presence && msg.presence.tab);
+      return base + '~' + (TAB_RE.test(tab || '') ? tab : '?');
+    },
 
     async announceTable(info) {
       if (!this.room) return;
+      const ann = info ? JSON.stringify([info.code, info.host, info.n, info.st]) : '';
+      if (ann === this._ann) return;          // unchanged: don't wake every page in the lobby
+      this._ann = ann;
       try { await this.room.presence(info ? { tbl: info.code, hn: info.host, n: info.n, st: info.st } : { tbl: null, hn: null, n: null, st: null }); } catch (e) { /* presence is best-effort */ }
     },
 
@@ -2683,6 +2747,7 @@ html[data-fx="off"] .tgrid { transition: none; }
       await this.leaveTable();
       const t = await this.room.join('rk-' + code);
       this.table = t;
+      try { await t.presence({ tab: this.tab }); } catch (e) { /* best-effort */ }
       const offs = [];
       Object.keys(handlers).forEach(k => {
         if (TOPICS[k]) offs.push(t.on(TOPICS[k], handlers[k], e => handlers.error && handlers.error(e)));
@@ -2702,6 +2767,8 @@ html[data-fx="off"] .tgrid { transition: none; }
 
     async send(topic, data) {
       if (!this.table) throw Object.assign(new Error('no_room'), { code: 'no_room' });
+      if (topic === 'hello' || topic === 'act') data = Object.assign({}, data, { tab: this.tab });
+      if (topic === 'err') data = Object.assign({}, data, { h: this.selfId() });
       return this.table.emit(TOPICS[topic], data);
     }
   };
@@ -2750,8 +2817,14 @@ html[data-fx="off"] .tgrid { transition: none; }
     try {
       fb = await loadSdk();
       app = fb.initializeApp(cfg, 'rummy-tiles');
-      const auth = fb.getAuth(app);
-      await fb.signInAnonymously(auth);
+      // One player per TAB: session persistence keeps the sign-in for reloads of this tab only.
+      // (Shared persistence makes a second tab replace the first tab's player, and the host's
+      // writes then get refused.)
+      const auth = fb.initializeAuth && fb.browserSessionPersistence
+        ? fb.initializeAuth(app, { persistence: fb.browserSessionPersistence })
+        : fb.getAuth(app);
+      if (auth.authStateReady) await auth.authStateReady();
+      if (!auth.currentUser) await fb.signInAnonymously(auth);
       uid = auth.currentUser && auth.currentUser.uid;
       if (!uid) throw Object.assign(new Error('no uid'), { code: 'auth' });
       db = fb.getDatabase(app);
@@ -2785,9 +2858,14 @@ html[data-fx="off"] .tgrid { transition: none; }
     Net.selfId = () => uid;
     Net.senderId = msg => msg.by;
 
+    let lastAnn = '', lastAnnAt = 0;
     Net.announceTable = async info => {
-      if (!info) { if (lobbyOn && code) { lobbyOn = false; try { await fb.remove(R('lobby/' + code)); } catch (e) {} } return; }
+      if (!info) { if (lobbyOn && code) { lobbyOn = false; lastAnn = ''; try { await fb.remove(R('lobby/' + code)); } catch (e) {} } return; }
       if (!CODE_RE.test(info.code)) return;
+      // only write when something changed (or every 10 min to keep the entry fresh): every write wakes every menu
+      const ann = JSON.stringify([info.code, info.host, info.n, info.st]);
+      if (ann === lastAnn && Date.now() - lastAnnAt < 600e3) return;
+      lastAnn = ann; lastAnnAt = Date.now();
       try {
         const r = R('lobby/' + info.code);
         if (!lobbyOn) { lobbyOn = true; fb.onDisconnect(r).remove(); }
@@ -3082,8 +3160,11 @@ html[data-fx="off"] .tgrid { transition: none; }
       if (S.draftKey !== turnKey) { S.draft = viewGrid(); S.draftKey = turnKey; }
     } else { S.draft = null; S.draftKey = null; }
     syncRack(true);
-    if (v.status === 'lobby') S.screen = 'lobby';
-    else S.screen = 'game';
+    const screen = v.status === 'lobby' ? 'lobby' : 'game';
+    const key = JSON.stringify([v.code, v.v, v.status, v.players.map(p => (p.online ? 1 : 0) + p.name), S.hand, S.meIdx, screen]);
+    if (key === S.lastStateKey && S.screen === screen && !S.pendingMove && !S.pendingBanner && !S.dealing) return;
+    S.lastStateKey = key;
+    S.screen = screen;
     render();
   }
 
@@ -3092,7 +3173,7 @@ html[data-fx="off"] .tgrid { transition: none; }
   function enterEngine(mode, G, myId) {
     S.mode = mode; S.G = G; S.myId = myId; S.hostId = G.hostId;
     S.rack = null; S.rackRound = null; S.draft = null; S.draftKey = null; S.tnSeen = null; S.endClosed = null;
-    S.mvSeen = null; S.bannerKey = null; S.endAt = 0;
+    S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     engineChanged();
   }
   function engineChanged() {
@@ -3142,7 +3223,7 @@ html[data-fx="off"] .tgrid { transition: none; }
   }
   function netError(e) {
     const code = e && e.code;
-    toast(code === 'not_permitted' ? t('r_not_permitted') : t('r_no_room'), true);
+    toast(code === 'not_permitted' ? t('r_not_permitted') : code === 'taken' ? t('r_taken') : t('r_no_room'), true);
   }
 
   // ---------- host networking ----------
@@ -3240,7 +3321,7 @@ html[data-fx="off"] .tgrid { transition: none; }
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
     S.mode = 'client'; S.myId = myId; S.view = null; S.hostId = null; S.code = code; S.gotHand = false;
     S.rack = null; S.rackRound = null; S.tnSeen = null; S.endClosed = null;
-    S.mvSeen = null; S.bannerKey = null; S.endAt = 0;
+    S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     try {
       await Net.joinTable(code, {
         state: msg => { stateChain = stateChain.then(() => handleState(msg)).catch(() => {}); },
@@ -3284,7 +3365,7 @@ html[data-fx="off"] .tgrid { transition: none; }
     S.view = Host.readView(d);
     S.hand = S.view.players.some(p => p.id === S.myId) ? hand : [];
     if (S.view.players.some(p => p.id === S.myId) && !box) { S.gotHand = false; }
-    store.set('rk.last', JSON.stringify({ code: S.view.code, role: 'client' }));
+    store.set('rk.last', JSON.stringify({ code: S.view.code, role: 'client', tab: Net.tab }));
     onState();
   }
 
@@ -3294,7 +3375,7 @@ html[data-fx="off"] .tgrid { transition: none; }
     if (S.mode === 'host') Net.announceTable(null);
     if (S.mode === 'host' || S.mode === 'client') await Net.leaveTable();
     if (S.mode === 'client') store.del('rk.last');
-    Object.assign(S, { mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1, rack: null, draft: null, sel: null, screen: 'home', pending: false });
+    Object.assign(S, { mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1, rack: null, draft: null, sel: null, screen: 'home', pending: false, lastStateKey: null });
     render();
   }
 
@@ -3480,13 +3561,12 @@ html[data-fx="off"] .tgrid { transition: none; }
   function tableCellAt(x, y, el) {
     const tc = el.closest('[data-tc]');
     if (tc) return tc;
-    let best = null, bd = Infinity;
-    document.querySelectorAll('.tgrid [data-tc]').forEach(c => {
-      const r = c.getBoundingClientRect();
-      const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
-      if (d < bd) { bd = d; best = c; }
-    });
-    return best;
+    const g = $('.tgrid');
+    if (!g) return null;
+    const r = g.getBoundingClientRect(), cols = +g.dataset.cols, rows = +g.dataset.rows;
+    const c = Math.max(0, Math.min(cols - 1, Math.floor((x - r.left) / r.width * cols)));
+    const rr = Math.max(0, Math.min(rows - 1, Math.floor((y - r.top) / r.height * rows)));
+    return g.querySelector('[data-tc="' + rr + ',' + c + '"]');
   }
   function dropTargetAt(x, y) {
     const el = document.elementFromPoint(x, y);
@@ -3545,8 +3625,10 @@ html[data-fx="off"] .tgrid { transition: none; }
       if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) < 6) return;
       const r = p.el.getBoundingClientRect();
       const g = p.el.cloneNode(true);
-      g.classList.add('drag-ghost'); g.classList.remove('sel', 'fresh');
+      g.classList.add('drag-ghost'); g.classList.remove('sel', 'fresh', 'fx-pop', 'fx-land', 'fx-steal');
       g.style.setProperty('--tw', r.width + 'px');
+      g.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
+      Drag.hoverKey = null;
       document.body.append(g);
       p.el.classList.add('lifting');
       Drag.active = p; Drag.ghost = g; Drag.pending = null; S.sel = null;
@@ -3555,10 +3637,17 @@ html[data-fx="off"] .tgrid { transition: none; }
     const a = Drag.active;
     if (!a || e.pointerId !== a.pid) return;
     e.preventDefault();
-    Drag.ghost.style.left = e.clientX + 'px';
-    Drag.ghost.style.top = e.clientY + 'px';
-    showHover(dropTargetAt(e.clientX, e.clientY));
-    autoScroll(e.clientX, e.clientY);
+    Drag.x = e.clientX; Drag.y = e.clientY;
+    if (!Drag.raf) Drag.raf = requestAnimationFrame(dragFrame);
+  }
+  function dragFrame() {
+    Drag.raf = 0;
+    if (!Drag.active || !Drag.ghost) return;
+    Drag.ghost.style.transform = 'translate3d(' + Drag.x + 'px,' + Drag.y + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
+    const tgt = dropTargetAt(Drag.x, Drag.y);
+    const k = tgt ? tgt.kind + (tgt.r === undefined ? '' : tgt.r + ',' + tgt.c) : '';
+    if (k !== Drag.hoverKey) { Drag.hoverKey = k; showHover(tgt); }
+    autoScroll(Drag.x, Drag.y);
   }
   function autoScroll(x, y) {
     const tbl = $('.table');
@@ -3847,17 +3936,10 @@ html[data-fx="off"] .tgrid { transition: none; }
     target = Math.round(Math.min(target, z.cap) * 2) / 2;
     z.cap = target;
     const ease = z.ts && Math.abs(z.ts - target) > 0.4 && animate !== false && FX.tier() > 0;
-    if (ease) {
-      g.style.setProperty('--ts', z.ts + 'px');
-      void getComputedStyle(g).getPropertyValue('--ts');
-      g.style.setProperty('--ts', target + 'px');
-    } else {
-      // first size of the round, or a resize: snap, don't animate from a placeholder
-      g.style.transition = 'none';
-      g.style.setProperty('--ts', target + 'px');
-      void getComputedStyle(g).getPropertyValue('--ts');
-      g.style.transition = '';
-    }
+    g.style.setProperty('--ts', target + 'px');
+    // The grid is laid out once at the new size; a scale animation from the old size makes it
+    // look like a camera easing out, without re-laying out every cell on every frame.
+    if (ease) g.animate([{ scale: String(z.ts / target) }, { scale: '1' }], { duration: 650, easing: 'cubic-bezier(.3,.7,.2,1)' });
     z.ts = target;
   }
   let resizeT = null;
@@ -4044,7 +4126,7 @@ html[data-fx="off"] .tgrid { transition: none; }
       if (last.role === 'client' || (G && G.code === last.code)) {
         out.push(h('div', { class: 'row' },
           h('span', { class: 'grow', text: t(last.role === 'host' ? 'resumeHost' : 'resumeClient', { code: last.code }) }),
-          h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => last.role === 'host' ? hostOnline(G) : joinOnline(last.code) }),
+          h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => { if (last.role === 'host') hostOnline(G); else { Net.adoptTab(last.tab); joinOnline(last.code); } } }),
           h('button', { type: 'button', class: 'btn small ghost', text: t('discard'), onclick: () => { store.del('rk.last'); store.del('rk.host.' + last.code); render(); } })));
       }
     }
@@ -4176,17 +4258,18 @@ html[data-fx="off"] .tgrid { transition: none; }
         h('button', { type: 'button', class: 'btn small icon ghost', 'aria-label': t('zoomIn'), text: '+', onclick: () => setZoom(S.zoomUser * 1.15, true) }),
         h('button', { type: 'button', class: 'btn small ghost', text: t('zoomFit'), onclick: () => setZoom(1, false) }));
       dock.append(h('div', { class: 'actions' },
+        h('span', { class: 'agroup' },
         h('button', { type: 'button', class: 'btn small', id: 'undo', disabled: !S.undo.length, text: t('undo'), onclick: undo }),
         h('button', { type: 'button', class: 'btn small', id: 'reset-turn', disabled: !changed, text: t('resetTurn'), onclick: resetTurn }),
-        h('button', { type: 'button', class: 'btn small', id: 'tidy-table', disabled: !myTurn || !TG.toSets(S.draft).table.length, text: t('tidyTable'), onclick: tidyTable }),
-        h('span', { class: 'sep' }),
+        h('button', { type: 'button', class: 'btn small', id: 'tidy-table', disabled: !myTurn || !TG.toSets(S.draft).table.length, text: t('tidyTable'), onclick: tidyTable })),
+        h('span', { class: 'agroup' },
         h('button', { type: 'button', class: 'btn small', id: 'sort-777', text: t('sort777'), onclick: () => sortRack('number') }),
         h('button', { type: 'button', class: 'btn small', id: 'sort-789', text: t('sort789'), onclick: () => sortRack('color') }),
-        h('button', { type: 'button', class: 'btn small', id: 'compact', text: t('resetLayout'), onclick: compactRack }),
-        h('span', { class: 'sep' }), zoom,
-        h('span', { class: 'sep' }),
+        h('button', { type: 'button', class: 'btn small', id: 'compact', text: t('resetLayout'), onclick: compactRack })),
+        h('span', { class: 'agroup' }, zoom),
+        h('span', { class: 'agroup main' },
         h('button', { type: 'button', class: 'btn', id: 'draw', disabled: !myTurn || S.pending, text: v.pool ? (changed ? t('drawReset') : t('draw')) : t('pass'), onclick: drawTile }),
-        h('button', { type: 'button', class: 'btn primary', id: 'play', disabled: !myTurn || !playOk || S.pending, title: hint || null, text: t('play'), onclick: submitPlay })));
+        h('button', { type: 'button', class: 'btn primary', id: 'play', disabled: !myTurn || !playOk || S.pending, title: hint || null, text: t('play'), onclick: submitPlay }))));
       // one line that is always there, so the panel never changes height between turns
       dock.append(h('p', { class: 'note dock-hint', 'aria-live': 'polite', text: S.pending ? t('sent') : (myTurn && hint && fresh.size ? hint : '') }));
       dock.append(h('div', { id: 'board-slot', style: { maxWidth: '100%' } }));
@@ -4568,7 +4651,8 @@ html[data-fx="off"] .tgrid { transition: none; }
   document.body.append(h('div', { id: 'settings-root' }));
   applyPrefs(S.prefs);
   render();
-  Net.init(() => render());
+  // The open-tables list and the connection state only show on the menu; mid-game they must not redraw the table.
+  Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 
   // Handle for automated checks (harmless for players).
   window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl };

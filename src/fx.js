@@ -54,7 +54,7 @@
     }
     function size() {
       if (!cv) return;
-      const d = Math.min(2, root.devicePixelRatio || 1);
+      const d = Math.min(1.5, root.devicePixelRatio || 1);
       cv.width = root.innerWidth * d; cv.height = root.innerHeight * d;
       cv.style.width = root.innerWidth + 'px'; cv.style.height = root.innerHeight + 'px';
       if (ctx) ctx.setTransform(d, 0, 0, d, 0, 0);

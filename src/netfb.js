@@ -37,8 +37,14 @@
     try {
       fb = await loadSdk();
       app = fb.initializeApp(cfg, 'rummy-tiles');
-      const auth = fb.getAuth(app);
-      await fb.signInAnonymously(auth);
+      // One player per TAB: session persistence keeps the sign-in for reloads of this tab only.
+      // (Shared persistence makes a second tab replace the first tab's player, and the host's
+      // writes then get refused.)
+      const auth = fb.initializeAuth && fb.browserSessionPersistence
+        ? fb.initializeAuth(app, { persistence: fb.browserSessionPersistence })
+        : fb.getAuth(app);
+      if (auth.authStateReady) await auth.authStateReady();
+      if (!auth.currentUser) await fb.signInAnonymously(auth);
       uid = auth.currentUser && auth.currentUser.uid;
       if (!uid) throw Object.assign(new Error('no uid'), { code: 'auth' });
       db = fb.getDatabase(app);
@@ -72,9 +78,14 @@
     Net.selfId = () => uid;
     Net.senderId = msg => msg.by;
 
+    let lastAnn = '', lastAnnAt = 0;
     Net.announceTable = async info => {
-      if (!info) { if (lobbyOn && code) { lobbyOn = false; try { await fb.remove(R('lobby/' + code)); } catch (e) {} } return; }
+      if (!info) { if (lobbyOn && code) { lobbyOn = false; lastAnn = ''; try { await fb.remove(R('lobby/' + code)); } catch (e) {} } return; }
       if (!CODE_RE.test(info.code)) return;
+      // only write when something changed (or every 10 min to keep the entry fresh): every write wakes every menu
+      const ann = JSON.stringify([info.code, info.host, info.n, info.st]);
+      if (ann === lastAnn && Date.now() - lastAnnAt < 600e3) return;
+      lastAnn = ann; lastAnnAt = Date.now();
       try {
         const r = R('lobby/' + info.code);
         if (!lobbyOn) { lobbyOn = true; fb.onDisconnect(r).remove(); }

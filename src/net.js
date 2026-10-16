@@ -39,8 +39,23 @@
     }
   };
 
+  // A key for this tab that survives reloads of the tab (sessionStorage), so two tabs of one
+  // account are two players, and a reload keeps your seat.
+  function tabKey() {
+    if (typeof root.__RK_TAB === 'string' && /^[a-z0-9]{6}$/.test(root.__RK_TAB)) return root.__RK_TAB;   // test hook
+    let k = null;
+    try { k = sessionStorage.getItem('rk.tab'); } catch (e) {}
+    if (!k || !/^[a-z0-9]{6}$/.test(k)) {
+      k = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+      try { sessionStorage.setItem('rk.tab', k); } catch (e) {}
+    }
+    return k;
+  }
+  const TAB_RE = /^[a-z0-9]{6}$/;
+
   const Net = {
     TOPICS, Crypto,
+    tab: tabKey(),
     room: null, user: null, myId: null, myPeer: null,
     state: 'init',            // 'init' | 'on' | 'off'
     reason: '',               // why it is off: 'no-config' | 'artifact-off' | 'fb-auth' | 'fb-error'
@@ -85,16 +100,34 @@
       onChange();
     },
 
-    /** Our id as other pages will see it in msg.by (or a per-tab fallback). */
-    selfId() {
-      if (this.myId) return this.myId;
-      if (this.myPeer) return 'p:' + this.myPeer;
-      return null;
+    /** Rejoin as the tab you played in before (claude.ai rooms; a Firebase sign-in is per tab already). */
+    adoptTab(k) {
+      if (this.transport === 'firebase' || !TAB_RE.test(k || '')) return;
+      this.tab = k;
+      try { sessionStorage.setItem('rk.tab', k); } catch (e) {}
     },
-    senderId(msg) { return msg.by || ('p:' + msg.peer); },
+    /** Our player id: the account (msg.by, which the platform vouches for) plus this tab's key. */
+    selfId() {
+      const base = this.myId || (this.myPeer ? 'p:' + this.myPeer : null);
+      return base ? base + '~' + this.tab : null;
+    },
+    /**
+     * Who sent this, as a player id. The account part comes from the platform and can't be faked;
+     * the tab part is the sender's own claim, so one account can only ever speak for its own tabs.
+     */
+    senderId(msg) {
+      const base = msg.by || ('p:' + msg.peer);
+      const d = msg.data && typeof msg.data === 'object' ? msg.data : null;
+      if (d && typeof d.h === 'string' && d.h.startsWith(base + '~')) return d.h;      // the host's state / replies
+      const tab = (d && d.tab) || (msg.presence && msg.presence.tab);
+      return base + '~' + (TAB_RE.test(tab || '') ? tab : '?');
+    },
 
     async announceTable(info) {
       if (!this.room) return;
+      const ann = info ? JSON.stringify([info.code, info.host, info.n, info.st]) : '';
+      if (ann === this._ann) return;          // unchanged: don't wake every page in the lobby
+      this._ann = ann;
       try { await this.room.presence(info ? { tbl: info.code, hn: info.host, n: info.n, st: info.st } : { tbl: null, hn: null, n: null, st: null }); } catch (e) { /* presence is best-effort */ }
     },
 
@@ -103,6 +136,7 @@
       await this.leaveTable();
       const t = await this.room.join('rk-' + code);
       this.table = t;
+      try { await t.presence({ tab: this.tab }); } catch (e) { /* best-effort */ }
       const offs = [];
       Object.keys(handlers).forEach(k => {
         if (TOPICS[k]) offs.push(t.on(TOPICS[k], handlers[k], e => handlers.error && handlers.error(e)));
@@ -122,6 +156,8 @@
 
     async send(topic, data) {
       if (!this.table) throw Object.assign(new Error('no_room'), { code: 'no_room' });
+      if (topic === 'hello' || topic === 'act') data = Object.assign({}, data, { tab: this.tab });
+      if (topic === 'err') data = Object.assign({}, data, { h: this.selfId() });
       return this.table.emit(TOPICS[topic], data);
     }
   };
