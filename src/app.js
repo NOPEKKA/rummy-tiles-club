@@ -657,6 +657,7 @@
       g.style.setProperty('--tw', r.width + 'px');
       g.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
       Drag.hoverKey = null;
+      Drag.pace = FX.pacer();
       document.body.append(g);
       p.el.classList.add('lifting');
       Drag.active = p; Drag.ghost = g; Drag.pending = null; S.sel = null;
@@ -668,9 +669,10 @@
     Drag.x = e.clientX; Drag.y = e.clientY;
     if (!Drag.raf) Drag.raf = requestAnimationFrame(dragFrame);
   }
-  function dragFrame() {
+  function dragFrame(now) {
     Drag.raf = 0;
     if (!Drag.active || !Drag.ghost) return;
+    if (!Drag.pace(now)) { Drag.raf = requestAnimationFrame(dragFrame); return; }   // frame cap
     Drag.ghost.style.transform = 'translate3d(' + Drag.x + 'px,' + Drag.y + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
     const tgt = dropTargetAt(Drag.x, Drag.y);
     const k = tgt ? tgt.kind + (tgt.r === undefined ? '' : tgt.r + ',' + tgt.c) : '';
@@ -791,6 +793,8 @@
   // ---------- motion & effects glue ----------
   function applyPrefs(p) {
     FX.setLevel(p.fx);
+    FX.setFps(p.fps);
+    FX.meter(p.showFps);
     SFX.setEnabled(p.sound);
     SFX.setVolume(p.volume);
     document.documentElement.dataset.skin = p.skin;
@@ -1432,6 +1436,20 @@
     setTimeout(() => { if (S.settings) { FX.setLevel(S.prefs.fx); SFX.setEnabled(S.prefs.sound); SFX.setVolume(S.prefs.volume); } }, 2800);
   }
 
+  /** Frame-rate cap: 30 / 60 / 90 / 120, with what this screen can actually show. */
+  function fpsCtl(pr) {
+    const seg = h('div', { class: 'seg', role: 'group', 'aria-label': t('sFps'), id: 's-fps' },
+      Prefs.FPS.map(n => h('button', { type: 'button', 'aria-pressed': pr.fps === n ? 'true' : 'false', text: String(n), onclick: () => setPref('fps', n, true) })));
+    const show = h('input', { type: 'checkbox', id: 's-showfps', checked: pr.showFps });
+    show.addEventListener('change', () => setPref('showFps', show.checked));
+    const hz = S.displayHz;
+    return h('div', { class: 'ctl' },
+      h('div', { class: 'ctl-head' }, h('span', { class: 'lbl', text: t('sFps') })),
+      seg,
+      hz ? h('p', { class: 'note' + (pr.fps > hz ? ' warn' : ''), id: 's-fps-note', text: t(pr.fps > hz ? 'sFpsOver' : 'sFpsScreen', { hz }) }) : null,
+      h('label', { class: 'toggle', for: 's-showfps' }, show, t('sShowFps')));
+  }
+
   function rangeCtl(o) {
     const cur = o.get();
     const auto = o.auto && cur === 0;
@@ -1488,6 +1506,7 @@
     controls.append(h('section', { class: 'group' }, h('h3', { text: t('sFxSound') }),
       h('div', { class: 'ctl' }, h('div', { class: 'ctl-head' }, h('span', { class: 'lbl', text: t('sFx') })), fxSeg),
       h('div', { class: 'ctl' }, h('label', { class: 'toggle', for: 's-sound' }, snd, t('sSound')), h('div', { class: 'ctl-line' }, vol)),
+      fpsCtl(pr),
       h('div', null, h('button', { type: 'button', class: 'btn small', id: 's-demo', text: t('sDemo'), onclick: demoFx }))));
 
     // rules for tables you open
@@ -1679,6 +1698,8 @@
   document.body.append(h('div', { id: 'settings-root' }));
   applyPrefs(S.prefs);
   render();
+  // how many frames this screen can show (for the FPS setting)
+  FX.measureHz().then(hz => { S.displayHz = hz; if (S.settings) renderSettings(); });
   // The open-tables list and the connection state only show on the menu; mid-game they must not redraw the table.
   Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 

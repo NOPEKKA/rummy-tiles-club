@@ -598,6 +598,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   .status { padding-block: 10px; font-size: 15px; }
 }
 
+/* ---------- FPS counter ---------- */
+.fps-meter {
+  position: fixed; left: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 95; pointer-events: none;
+  padding: 3px 8px; border-radius: 8px; background: rgba(0,0,0,.62); color: #8dffc9;
+  font: 700 12px/1.3 var(--font-mono); font-variant-numeric: tabular-nums;
+}
+
 </style>
 <div id="app"></div>
 <script src="firebase-config.js"></script>
@@ -815,7 +822,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
   const SKINS = Object.freeze(['ivory', 'arcane', 'crystal', 'gilded']);
   const FX_LEVELS = Object.freeze(['full', 'lite', 'off']);
-  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true });
+  const FPS = Object.freeze([30, 60, 90, 120]);
+  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false });
   const KEY = 'rk.prefs.v1';
 
   function sanitize(input) {
@@ -826,7 +834,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       fx: FX_LEVELS.includes(src.fx) ? src.fx : DEFAULTS.fx,
       sound: src.sound === undefined ? DEFAULTS.sound : !!src.sound,
       volume: Number.isFinite(vol) ? Math.max(0, Math.min(1, Math.round(vol * 100) / 100)) : DEFAULTS.volume,
-      wrap: src.wrap === undefined ? DEFAULTS.wrap : !!src.wrap
+      wrap: src.wrap === undefined ? DEFAULTS.wrap : !!src.wrap,
+      fps: FPS.includes(Number(src.fps)) ? Number(src.fps) : DEFAULTS.fps,
+      showFps: !!src.showFps
     };
   }
 
@@ -845,7 +855,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     catch (e) { return false; }
   }
 
-  const api = { SKINS, FX_LEVELS, DEFAULTS, KEY, sanitize, load, save };
+  const api = { SKINS, FX_LEVELS, FPS, DEFAULTS, KEY, sanitize, load, save };
   root.RK = root.RK || {};
   root.RK.Prefs = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -2030,6 +2040,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       fxLong: 'เรียงยาว {n} ใบ!', fxWrap: 'ข้ามวง 13 → 1!', fxGroup4: 'ครบสี่สี!', fxMeld: 'ลงแรก {n} แต้ม', fxExtend: 'ต่อ +{n}', fxExtendBig: 'ต่อไพ่!', fxWin: 'ชนะ!',
       sSkin: 'สไตล์ไพ่', skin_ivory: 'งาช้าง', skin_arcane: 'มนตรา', skin_crystal: 'คริสตัล', skin_gilded: 'ราชสำนัก',
       sFxSound: 'เอฟเฟกต์และเสียง', sFx: 'ระดับเอฟเฟกต์', fx_full: 'เต็ม', fx_lite: 'เบา', fx_off: 'ปิด', sSound: 'เปิดเสียง', sVolume: 'ระดับเสียง', sDemo: 'ลองเอฟเฟกต์',
+      sFps: 'อัตราเฟรมสูงสุด (FPS)', sFpsScreen: 'จอนี้แสดงได้ประมาณ {hz} FPS', sFpsOver: 'จอนี้แสดงได้ประมาณ {hz} FPS ตั้งสูงกว่านี้ได้ แต่จะเห็นจริงแค่ {hz}', sShowFps: 'แสดงตัวนับ FPS',
       sRules: 'กติกาโต๊ะที่คุณเปิด', sBoardHead: 'บอร์ดของคุณ (รางไพ่)',
       colors: ['ดำ', 'แดง', 'น้ำเงิน', 'เหลือง'], joker: 'โจ๊กเกอร์'
     },
@@ -2083,6 +2094,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       fxLong: 'Run of {n}!', fxWrap: 'Round the bend 13 → 1!', fxGroup4: 'All four colours!', fxMeld: 'Opened with {n}', fxExtend: '+{n}', fxExtendBig: 'Extended!', fxWin: 'Victory!',
       sSkin: 'Tile style', skin_ivory: 'Ivory', skin_arcane: 'Arcane', skin_crystal: 'Crystal', skin_gilded: 'Royal',
       sFxSound: 'Effects and sound', sFx: 'Effects', fx_full: 'Full', fx_lite: 'Light', fx_off: 'Off', sSound: 'Sound on', sVolume: 'Volume', sDemo: 'Try the effects',
+      sFps: 'Max frame rate (FPS)', sFpsScreen: 'This screen shows about {hz} FPS', sFpsOver: 'This screen shows about {hz} FPS. You can set more, but you will see {hz}.', sShowFps: 'Show FPS counter',
       sRules: 'Rules for tables you open', sBoardHead: 'Your board (rack)',
       colors: ['black', 'red', 'blue', 'yellow'], joker: 'joker'
     }
@@ -2300,6 +2312,64 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   const busyFor = () => Math.max(0, busyUntil - Date.now());
   const mid = r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
 
+  // ---- frame rate ----
+  // The cap applies to the frame loops this page drives itself (particles, the dragged tile, the
+  // counter). A screen can't show more frames than it refreshes: 120 needs a 120 Hz display.
+  let fpsCap = 120;
+  function setFps(n) { fpsCap = [30, 60, 90, 120].includes(+n) ? +n : 120; }
+  const fps = () => fpsCap;
+  /**
+   * A frame pacer for one loop: call it with the rAF timestamp, draw when it says true.
+   * It keeps a fixed schedule (next += interval), so the average rate is exactly the cap even when
+   * frames arrive irregularly, and a little tolerance stops normal jitter from dropping frames.
+   */
+  function pacer() {
+    let next = 0;
+    return now => {
+      const iv = 1000 / fpsCap;
+      if (!next || now - next > iv * 2) { next = now + iv; return true; }     // first frame, or fell far behind
+      if (now >= next - Math.min(2, iv * 0.25)) { next += iv; return true; }
+      return false;
+    };
+  }
+  /** The screen's refresh rate, rounded to a common value (0 when unknown, e.g. a hidden tab). */
+  function measureHz() {
+    return new Promise(res => {
+      if (!root.requestAnimationFrame) { res(0); return; }
+      const ts = [];
+      const step = now => {
+        ts.push(now);
+        if (ts.length < 61) { requestAnimationFrame(step); return; }
+        const d = [];
+        for (let i = 1; i < ts.length; i++) d.push(ts[i] - ts[i - 1]);
+        d.sort((a, b) => a - b);
+        const hz = 1000 / d[d.length >> 1];
+        res([30, 50, 60, 75, 90, 100, 120, 144, 165, 240].reduce((b, c) => (Math.abs(c - hz) < Math.abs(b - hz) ? c : b), 60));
+      };
+      requestAnimationFrame(step);
+      setTimeout(() => res(0), 3000);
+    });
+  }
+  /** A small live frame counter in the corner. */
+  let meterEl = null, meterRaf = 0;
+  function meter(on) {
+    if (!on) { if (meterRaf) cancelAnimationFrame(meterRaf); meterRaf = 0; if (meterEl) meterEl.remove(); meterEl = null; return; }
+    if (meterEl || !root.requestAnimationFrame) return;
+    meterEl = document.createElement('div');
+    meterEl.className = 'fps-meter'; meterEl.setAttribute('aria-hidden', 'true');
+    meterEl.textContent = '— FPS';
+    document.body.append(meterEl);
+    let frames = 0, t0 = performance.now();
+    const due = pacer();
+    const loop = now => {
+      meterRaf = requestAnimationFrame(loop);
+      if (!due(now)) return;
+      frames++;
+      if (now - t0 >= 500) { meterEl.textContent = Math.round(frames * 1000 / (now - t0)) + ' FPS'; frames = 0; t0 = now; }
+    };
+    meterRaf = requestAnimationFrame(loop);
+  }
+
   const TONE = { gold: '#ffc94d', violet: '#b98cff', cyan: '#5cc8ff', mint: '#49e3a6', rose: '#ff5d7a' };
 
   // ---- layer ----
@@ -2373,8 +2443,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       kick();
     }
     const qp = (tr, k) => { const u = 1 - k; return { x: u * u * tr.a.x + 2 * u * k * tr.m.x + k * k * tr.b.x, y: u * u * tr.a.y + 2 * u * k * tr.m.y + k * k * tr.b.y }; };
+    let drawn = 0;
+    const due = pacer();
     function tick(now) {
       raf = 0;
+      // under the frame cap: skip this screen frame, draw on a later one
+      if (!due(now)) { raf = requestAnimationFrame(tick); return; }
+      drawn++;
       let dt = now - last; last = now;
       if (dt > 250) { parts.length = 0; trails.length = 0; }
       dt = Math.max(0, Math.min(dt, 40)); const ds = dt / 1000;
@@ -2421,7 +2496,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       if (parts.length || trails.length) raf = requestAnimationFrame(tick);
     }
-    return { sparkle, confetti, arc, get live() { return parts.length + trails.length; } };
+    return { sparkle, confetti, arc, get live() { return parts.length + trails.length; }, get drawn() { return drawn; } };
   })();
 
   // ---- glass cards ----
@@ -2605,7 +2680,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   function clear() { busyUntil = 0; timers.forEach(clearTimeout); timers.clear(); }
 
   root.RK = root.RK || {};
-  root.RK.FX = { setLevel, tier, log, note, busyFor, hold, TONE, P, card, turnBanner, punch, wash, deny, playMove, victory, pickHeadline, clear };
+  root.RK.FX = { setLevel, setFps, fps, pacer, measureHz, meter, tier, log, note, busyFor, hold, TONE, P, card, turnBanner, punch, wash, deny, playMove, victory, pickHeadline, clear };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 // ---- net.js ----
@@ -3629,6 +3704,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       g.style.setProperty('--tw', r.width + 'px');
       g.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
       Drag.hoverKey = null;
+      Drag.pace = FX.pacer();
       document.body.append(g);
       p.el.classList.add('lifting');
       Drag.active = p; Drag.ghost = g; Drag.pending = null; S.sel = null;
@@ -3640,9 +3716,10 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     Drag.x = e.clientX; Drag.y = e.clientY;
     if (!Drag.raf) Drag.raf = requestAnimationFrame(dragFrame);
   }
-  function dragFrame() {
+  function dragFrame(now) {
     Drag.raf = 0;
     if (!Drag.active || !Drag.ghost) return;
+    if (!Drag.pace(now)) { Drag.raf = requestAnimationFrame(dragFrame); return; }   // frame cap
     Drag.ghost.style.transform = 'translate3d(' + Drag.x + 'px,' + Drag.y + 'px,0) translate(-50%,-55%) rotate(-3deg) scale(1.1)';
     const tgt = dropTargetAt(Drag.x, Drag.y);
     const k = tgt ? tgt.kind + (tgt.r === undefined ? '' : tgt.r + ',' + tgt.c) : '';
@@ -3763,6 +3840,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   // ---------- motion & effects glue ----------
   function applyPrefs(p) {
     FX.setLevel(p.fx);
+    FX.setFps(p.fps);
+    FX.meter(p.showFps);
     SFX.setEnabled(p.sound);
     SFX.setVolume(p.volume);
     document.documentElement.dataset.skin = p.skin;
@@ -4404,6 +4483,20 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     setTimeout(() => { if (S.settings) { FX.setLevel(S.prefs.fx); SFX.setEnabled(S.prefs.sound); SFX.setVolume(S.prefs.volume); } }, 2800);
   }
 
+  /** Frame-rate cap: 30 / 60 / 90 / 120, with what this screen can actually show. */
+  function fpsCtl(pr) {
+    const seg = h('div', { class: 'seg', role: 'group', 'aria-label': t('sFps'), id: 's-fps' },
+      Prefs.FPS.map(n => h('button', { type: 'button', 'aria-pressed': pr.fps === n ? 'true' : 'false', text: String(n), onclick: () => setPref('fps', n, true) })));
+    const show = h('input', { type: 'checkbox', id: 's-showfps', checked: pr.showFps });
+    show.addEventListener('change', () => setPref('showFps', show.checked));
+    const hz = S.displayHz;
+    return h('div', { class: 'ctl' },
+      h('div', { class: 'ctl-head' }, h('span', { class: 'lbl', text: t('sFps') })),
+      seg,
+      hz ? h('p', { class: 'note' + (pr.fps > hz ? ' warn' : ''), id: 's-fps-note', text: t(pr.fps > hz ? 'sFpsOver' : 'sFpsScreen', { hz }) }) : null,
+      h('label', { class: 'toggle', for: 's-showfps' }, show, t('sShowFps')));
+  }
+
   function rangeCtl(o) {
     const cur = o.get();
     const auto = o.auto && cur === 0;
@@ -4460,6 +4553,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     controls.append(h('section', { class: 'group' }, h('h3', { text: t('sFxSound') }),
       h('div', { class: 'ctl' }, h('div', { class: 'ctl-head' }, h('span', { class: 'lbl', text: t('sFx') })), fxSeg),
       h('div', { class: 'ctl' }, h('label', { class: 'toggle', for: 's-sound' }, snd, t('sSound')), h('div', { class: 'ctl-line' }, vol)),
+      fpsCtl(pr),
       h('div', null, h('button', { type: 'button', class: 'btn small', id: 's-demo', text: t('sDemo'), onclick: demoFx }))));
 
     // rules for tables you open
@@ -4651,6 +4745,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   document.body.append(h('div', { id: 'settings-root' }));
   applyPrefs(S.prefs);
   render();
+  // how many frames this screen can show (for the FPS setting)
+  FX.measureHz().then(hz => { S.displayHz = hz; if (S.settings) renderSettings(); });
   // The open-tables list and the connection state only show on the menu; mid-game they must not redraw the table.
   Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 

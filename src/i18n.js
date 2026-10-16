@@ -52,6 +52,7 @@
       fxLong: 'เรียงยาว {n} ใบ!', fxWrap: 'ข้ามวง 13 → 1!', fxGroup4: 'ครบสี่สี!', fxMeld: 'ลงแรก {n} แต้ม', fxExtend: 'ต่อ +{n}', fxExtendBig: 'ต่อไพ่!', fxWin: 'ชนะ!',
       sSkin: 'สไตล์ไพ่', skin_ivory: 'งาช้าง', skin_arcane: 'มนตรา', skin_crystal: 'คริสตัล', skin_gilded: 'ราชสำนัก',
       sFxSound: 'เอฟเฟกต์และเสียง', sFx: 'ระดับเอฟเฟกต์', fx_full: 'เต็ม', fx_lite: 'เบา', fx_off: 'ปิด', sSound: 'เปิดเสียง', sVolume: 'ระดับเสียง', sDemo: 'ลองเอฟเฟกต์',
+      sFps: 'อัตราเฟรมสูงสุด (FPS)', sFpsScreen: 'จอนี้แสดงได้ประมาณ {hz} FPS', sFpsOver: 'จอนี้แสดงได้ประมาณ {hz} FPS ตั้งสูงกว่านี้ได้ แต่จะเห็นจริงแค่ {hz}', sShowFps: 'แสดงตัวนับ FPS',
       sRules: 'กติกาโต๊ะที่คุณเปิด', sBoardHead: 'บอร์ดของคุณ (รางไพ่)',
       colors: ['ดำ', 'แดง', 'น้ำเงิน', 'เหลือง'], joker: 'โจ๊กเกอร์'
     },
@@ -105,6 +106,7 @@
       fxLong: 'Run of {n}!', fxWrap: 'Round the bend 13 → 1!', fxGroup4: 'All four colours!', fxMeld: 'Opened with {n}', fxExtend: '+{n}', fxExtendBig: 'Extended!', fxWin: 'Victory!',
       sSkin: 'Tile style', skin_ivory: 'Ivory', skin_arcane: 'Arcane', skin_crystal: 'Crystal', skin_gilded: 'Royal',
       sFxSound: 'Effects and sound', sFx: 'Effects', fx_full: 'Full', fx_lite: 'Light', fx_off: 'Off', sSound: 'Sound on', sVolume: 'Volume', sDemo: 'Try the effects',
+      sFps: 'Max frame rate (FPS)', sFpsScreen: 'This screen shows about {hz} FPS', sFpsOver: 'This screen shows about {hz} FPS. You can set more, but you will see {hz}.', sShowFps: 'Show FPS counter',
       sRules: 'Rules for tables you open', sBoardHead: 'Your board (rack)',
       colors: ['black', 'red', 'blue', 'yellow'], joker: 'joker'
     }

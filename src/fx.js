@@ -25,6 +25,64 @@
   const busyFor = () => Math.max(0, busyUntil - Date.now());
   const mid = r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
 
+  // ---- frame rate ----
+  // The cap applies to the frame loops this page drives itself (particles, the dragged tile, the
+  // counter). A screen can't show more frames than it refreshes: 120 needs a 120 Hz display.
+  let fpsCap = 120;
+  function setFps(n) { fpsCap = [30, 60, 90, 120].includes(+n) ? +n : 120; }
+  const fps = () => fpsCap;
+  /**
+   * A frame pacer for one loop: call it with the rAF timestamp, draw when it says true.
+   * It keeps a fixed schedule (next += interval), so the average rate is exactly the cap even when
+   * frames arrive irregularly, and a little tolerance stops normal jitter from dropping frames.
+   */
+  function pacer() {
+    let next = 0;
+    return now => {
+      const iv = 1000 / fpsCap;
+      if (!next || now - next > iv * 2) { next = now + iv; return true; }     // first frame, or fell far behind
+      if (now >= next - Math.min(2, iv * 0.25)) { next += iv; return true; }
+      return false;
+    };
+  }
+  /** The screen's refresh rate, rounded to a common value (0 when unknown, e.g. a hidden tab). */
+  function measureHz() {
+    return new Promise(res => {
+      if (!root.requestAnimationFrame) { res(0); return; }
+      const ts = [];
+      const step = now => {
+        ts.push(now);
+        if (ts.length < 61) { requestAnimationFrame(step); return; }
+        const d = [];
+        for (let i = 1; i < ts.length; i++) d.push(ts[i] - ts[i - 1]);
+        d.sort((a, b) => a - b);
+        const hz = 1000 / d[d.length >> 1];
+        res([30, 50, 60, 75, 90, 100, 120, 144, 165, 240].reduce((b, c) => (Math.abs(c - hz) < Math.abs(b - hz) ? c : b), 60));
+      };
+      requestAnimationFrame(step);
+      setTimeout(() => res(0), 3000);
+    });
+  }
+  /** A small live frame counter in the corner. */
+  let meterEl = null, meterRaf = 0;
+  function meter(on) {
+    if (!on) { if (meterRaf) cancelAnimationFrame(meterRaf); meterRaf = 0; if (meterEl) meterEl.remove(); meterEl = null; return; }
+    if (meterEl || !root.requestAnimationFrame) return;
+    meterEl = document.createElement('div');
+    meterEl.className = 'fps-meter'; meterEl.setAttribute('aria-hidden', 'true');
+    meterEl.textContent = '— FPS';
+    document.body.append(meterEl);
+    let frames = 0, t0 = performance.now();
+    const due = pacer();
+    const loop = now => {
+      meterRaf = requestAnimationFrame(loop);
+      if (!due(now)) return;
+      frames++;
+      if (now - t0 >= 500) { meterEl.textContent = Math.round(frames * 1000 / (now - t0)) + ' FPS'; frames = 0; t0 = now; }
+    };
+    meterRaf = requestAnimationFrame(loop);
+  }
+
   const TONE = { gold: '#ffc94d', violet: '#b98cff', cyan: '#5cc8ff', mint: '#49e3a6', rose: '#ff5d7a' };
 
   // ---- layer ----
@@ -98,8 +156,13 @@
       kick();
     }
     const qp = (tr, k) => { const u = 1 - k; return { x: u * u * tr.a.x + 2 * u * k * tr.m.x + k * k * tr.b.x, y: u * u * tr.a.y + 2 * u * k * tr.m.y + k * k * tr.b.y }; };
+    let drawn = 0;
+    const due = pacer();
     function tick(now) {
       raf = 0;
+      // under the frame cap: skip this screen frame, draw on a later one
+      if (!due(now)) { raf = requestAnimationFrame(tick); return; }
+      drawn++;
       let dt = now - last; last = now;
       if (dt > 250) { parts.length = 0; trails.length = 0; }
       dt = Math.max(0, Math.min(dt, 40)); const ds = dt / 1000;
@@ -146,7 +209,7 @@
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       if (parts.length || trails.length) raf = requestAnimationFrame(tick);
     }
-    return { sparkle, confetti, arc, get live() { return parts.length + trails.length; } };
+    return { sparkle, confetti, arc, get live() { return parts.length + trails.length; }, get drawn() { return drawn; } };
   })();
 
   // ---- glass cards ----
@@ -330,5 +393,5 @@
   function clear() { busyUntil = 0; timers.forEach(clearTimeout); timers.clear(); }
 
   root.RK = root.RK || {};
-  root.RK.FX = { setLevel, tier, log, note, busyFor, hold, TONE, P, card, turnBanner, punch, wash, deny, playMove, victory, pickHeadline, clear };
+  root.RK.FX = { setLevel, setFps, fps, pacer, measureHz, meter, tier, log, note, busyFor, hold, TONE, P, card, turnBanner, punch, wash, deny, playMove, victory, pickHeadline, clear };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
