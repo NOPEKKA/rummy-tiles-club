@@ -87,7 +87,7 @@
           ch.peers.forEach(p => {
             const pr = p.presence || {};
             if (typeof pr.tbl === 'string' && /^[a-z0-9]{4}$/.test(pr.tbl) && !p.sameTab) {
-              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby' });
+              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby', g: pr.g === 'math' ? 'math' : 'rummy' });
             }
           });
           this.lobby = [...seen.values()];
@@ -125,10 +125,10 @@
 
     async announceTable(info) {
       if (!this.room) return;
-      const ann = info ? JSON.stringify([info.code, info.host, info.n, info.st]) : '';
+      const ann = info ? JSON.stringify([info.code, info.host, info.n, info.st, info.g]) : '';
       if (ann === this._ann) return;          // unchanged: don't wake every page in the lobby
       this._ann = ann;
-      try { await this.room.presence(info ? { tbl: info.code, hn: info.host, n: info.n, st: info.st } : { tbl: null, hn: null, n: null, st: null }); } catch (e) { /* presence is best-effort */ }
+      try { await this.room.presence(info ? { tbl: info.code, hn: info.host, n: info.n, st: info.st, g: info.g || 'rummy' } : { tbl: null, hn: null, n: null, st: null, g: null }); } catch (e) { /* presence is best-effort */ }
     },
 
     async joinTable(code, handlers) {

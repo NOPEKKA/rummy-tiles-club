@@ -1,4 +1,4 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Rummikub-style tile game for 2–4 players. Play friends online or practise against bots."><meta name="theme-color" content="#163a33"><style>html{color-scheme:dark}</style></head><body><title>Rummy Tiles Club</title>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Two tile games for 2–4 players: Rummikub-style Rummy and Math Crossword. Play friends online or practise against bots."><meta name="theme-color" content="#163a33"><style>html{color-scheme:dark}</style></head><body><title>Rummy Tiles Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Cinzel:wght@700;900&family=Playfair+Display:wght@800;900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
@@ -605,6 +605,193 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   font: 700 12px/1.3 var(--font-mono); font-variant-numeric: tabular-nums;
 }
 
+/* ---------- menu: game picker ---------- */
+.game-pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.gp-card {
+  display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; min-width: 0; text-align: left;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); transition: border-color .15s, background .15s;
+}
+.gp-card[aria-checked="true"] { border-color: var(--brass); background: rgba(220,165,69,.09); box-shadow: inset 0 0 0 1px var(--brass), 0 0 18px rgba(220,165,69,.18); }
+.gp-ico {
+  flex: none; width: 34px; height: 40px; border-radius: 8px; display: grid; place-items: center;
+  background: linear-gradient(180deg, #fffbf2, #eadcbc); box-shadow: 0 3px 0 #d3c29b; color: #d3122f; font: 800 21px/1 var(--font-display);
+}
+.gp-ico.gp-math { width: 38px; height: 38px; color: #1559c7; }
+.gp-txt { display: grid; gap: 1px; min-width: 0; }
+.gp-txt b { font: 700 15px/1.25 var(--font-body); }
+.gp-txt small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-fan .mtile {
+  --cs: 58px; position: absolute; left: 50%; bottom: 30px; margin-left: calc(var(--tw) * -.5);
+  transform-origin: 50% 100%; transform: translateX(calc(var(--i) * 44px)) rotate(calc(var(--i) * 9deg)) translateY(calc(var(--i) * var(--i) * 5px));
+  animation: fanfloat 5.5s ease-in-out infinite; animation-delay: calc(var(--i) * .35s);
+}
+.lobby-rules { display: grid; gap: 12px; }
+.settings-body.solo { grid-template-columns: minmax(0, 620px); justify-content: center; }
+.settings-body.solo .controls { border-right: 0; }
+
+/* ---------- math crossword: tiles ---------- */
+.mtile {
+  --tw: calc(var(--cs, 40px) - 3px);
+  --mt-bg: linear-gradient(180deg, #fffbf2 0%, #f7efdc 55%, #eadcbc 100%); --mt-edge: #cdbb92;
+  --mt-face: inset 0 1px 0 #fff, inset 0 -2px 4px rgba(150,120,60,.18);
+  --mt-ink: #1b1c22; --mt-op: #1559c7; --mt-eq: #d3122f; --mt-blank: #0b8a7c; --mt-font: var(--font-display);
+  --mt-ring: 0 0 0 0 transparent;
+  position: relative; box-sizing: border-box; width: var(--tw); height: var(--tw); flex: none;
+  border-radius: calc(var(--tw) * .17); background: var(--mt-bg); color: var(--mt-ink);
+  box-shadow: var(--mt-face), var(--mt-ring), 0 calc(var(--tw) * .05) 0 var(--mt-edge), 0 calc(var(--tw) * .09) calc(var(--tw) * .14) rgba(0,0,0,.35);
+  display: grid; place-items: center; line-height: 1;
+  font: 800 calc(var(--tw) * .5)/1 var(--mt-font); font-variant-numeric: lining-nums tabular-nums;
+  user-select: none; -webkit-user-select: none; touch-action: none;
+}
+.mtile[data-src] { cursor: grab; }
+.mtile .mt-s { position: relative; z-index: 1; transform: translateY(-3%); }
+.mtile.w2 .mt-s { font-size: .86em; letter-spacing: -.05em; }
+.mtile.w3 .mt-s { font-size: .6em; letter-spacing: -.02em; }
+.mtile .mt-p { position: absolute; right: 9%; bottom: 7%; font: 700 calc(var(--tw) * .2)/1 var(--font-mono); opacity: .62; }
+.mtile.s-op .mt-s { color: var(--mt-op); }
+.mtile.s-eq .mt-s { color: var(--mt-eq); }
+.mtile.k-dual::before { content: ''; position: absolute; left: 9%; top: 9%; width: 16%; height: 16%; border-radius: 50%; background: var(--mt-op); opacity: .55; }
+.mtile.k-blank::before { content: ''; position: absolute; inset: 14%; border-radius: calc(var(--tw) * .1); border: 1.5px dashed currentColor; opacity: .28; }
+.mtile.k-blank .mt-s { color: var(--mt-blank); }
+.mtile.draft { --mt-ring: 0 0 0 2px var(--brass); }
+.mtile.draft.open { --mt-ring: 0 0 0 2px #5cc8ff; animation: mopen 1.2s ease-in-out infinite; }
+@keyframes mopen { 50% { box-shadow: var(--mt-face), 0 0 0 3px #5cc8ff, 0 0 14px rgba(92,200,255,.7), 0 calc(var(--tw) * .05) 0 var(--mt-edge); } }
+.mtile.last { --mt-ring: 0 0 0 2px rgba(255,236,190,.75); }
+.mtile.sel { transform: translateY(-16%); --mt-ring: 0 0 0 3px var(--brass); }
+.mtile.swapsel { transform: translateY(-12%); --mt-ring: 0 0 0 3px #5cc8ff; }
+.mtile.swapsel::after { content: '\21BB'; position: absolute; right: -6px; top: -8px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font: 800 12px/1 var(--font-body); color: #062033; background: #5cc8ff; }
+.mtile.lifting { opacity: .25; }
+.mtile.drag-ghost { position: fixed; left: 0; top: 0; z-index: 100; pointer-events: none; }
+
+[data-skin="arcane"] .mtile {
+  --mt-bg: radial-gradient(120% 90% at 50% 12%, #3f2574 0%, #1c1037 55%, #0d071c 100%); --mt-edge: #07040f;
+  --mt-face: inset 0 0 0 1px rgba(255,214,120,.75), inset 0 calc(var(--tw) * .2) calc(var(--tw) * .3) rgba(150,100,255,.2);
+  --mt-ink: #f1ecff; --mt-op: #6fc0ff; --mt-eq: #ffd21f; --mt-blank: #7dffd4; --mt-font: 'Cinzel', var(--font-display);
+}
+[data-skin="arcane"] .mtile .mt-s { text-shadow: 0 0 calc(var(--tw) * .12) currentColor, 0 1px 1px rgba(0,0,0,.9); }
+[data-skin="crystal"] .mtile {
+  --mt-bg: linear-gradient(155deg, #ffffff 0%, #eef4ff 40%, #d4e2f6 100%); --mt-edge: #9fb3d3;
+  --mt-face: inset 0 0 0 1px rgba(255,255,255,.95), inset 0 -4px 8px rgba(110,140,200,.3), inset 0 3px 4px rgba(255,255,255,.85);
+  --mt-ink: #1e2236; --mt-op: #1f78ff; --mt-eq: #ff1f4b; --mt-blank: #00897b;
+}
+[data-skin="gilded"] .mtile {
+  --mt-bg: radial-gradient(130% 100% at 50% 0%, #fffaf0, #f3e4c2 70%, #e9d3a3); --mt-edge: #b08a47;
+  --mt-face: inset 0 0 0 1.5px #c99b3c, inset 0 0 0 3px #fbf3df, inset 0 0 0 4px rgba(201,155,60,.6);
+  --mt-ink: #1b1a20; --mt-op: #164fb5; --mt-eq: #c8102e; --mt-font: 'Playfair Display', Georgia, serif;
+}
+
+/* ---------- math crossword: screen ---------- */
+.mgame { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.mgame > * { min-width: 0; }
+.mgame .pchip .wins { color: var(--brass); }
+.bagicon { width: 12px; height: 14px; border-radius: 3px 3px 6px 6px; background: var(--ivory); display: inline-block; box-shadow: inset 0 3px 0 rgba(0,0,0,.18); }
+.mmain { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); gap: 16px; padding: 8px 16px 10px; }
+.mplay { min-height: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; container-type: inline-size; }
+.mstatus { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 10px; font-size: 14px; min-height: 28px; max-width: 100%; text-align: center; }
+.mstatus .turnflag { font-weight: 700; color: var(--brass); }
+.mstatus .logline { color: var(--muted); }
+.mcheck { font: 600 13.5px/1.35 var(--font-body); padding: 3px 10px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mcheck.ok { color: var(--ok); border-color: rgba(99,201,147,.6); }
+.mcheck.bad { color: var(--bad); border-color: rgba(255,114,98,.6); }
+.mtimer { font: 700 14px/1.3 var(--font-mono); padding: 2px 10px; border-radius: 99px; background: var(--panel-2); border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.mtimer.low { color: #fff; background: #9e2a42; border-color: #ff5d7a; animation: tbeat 1s ease-in-out infinite; }
+@keyframes tbeat { 50% { scale: 1.07; } }
+
+.mboard-box { position: relative; flex: 1; min-height: 0; width: 100%; display: flex; }
+.mboard-wrap { flex: 1; min-width: 0; min-height: 0; display: flex; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.mzoom { position: absolute; right: 4px; top: 4px; z-index: 4; min-width: 34px; padding: 0 8px; background: rgba(9,26,22,.82); }
+.mboard {
+  --cs: 32px; flex: none; margin: auto; position: relative;
+  display: grid; grid-template-columns: repeat(15, var(--cs)); grid-template-rows: repeat(15, var(--cs));
+  padding: calc(var(--cs) * .2); border-radius: calc(var(--cs) * .4);
+  background: linear-gradient(180deg, #123630, #0b241f);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), inset 0 2px 0 rgba(255,255,255,.05), 0 18px 40px rgba(0,0,0,.45);
+}
+.mcell { position: relative; display: grid; place-items: center; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.35); background: rgba(239,231,212,.045); }
+.mcell .pl { display: grid; justify-items: center; gap: 1px; line-height: 1; pointer-events: none; }
+.mcell .pl b { font: 800 calc(var(--cs) * .32)/1 var(--font-display); letter-spacing: -.02em; }
+.mcell .pl small { display: none; font: 700 calc(var(--cs) * .18)/1 var(--font-body); opacity: .85; }
+.mboard.roomy .mcell .pl small { display: block; }
+.mcell.pe3 { background: #8e2238; color: #ffd6de; }
+.mcell.pe2 { background: #94621a; color: #ffe6b8; }
+.mcell.pt3 { background: #22508c; color: #d6e8ff; }
+.mcell.pt2 { background: #1b6d67; color: #cdf5ef; }
+.mcell.pstar { background: #5a4313; }
+.mcell .star { color: #ffd36b; font-size: calc(var(--cs) * .62); text-shadow: 0 0 calc(var(--cs) * .3) rgba(255,211,107,.6); }
+.mcell.start .star { animation: starpulse 1.8s ease-in-out infinite; }
+@keyframes starpulse { 50% { scale: 1.18; text-shadow: 0 0 calc(var(--cs) * .5) rgba(255,211,107,.9); } }
+.mboard.placing.mine .mcell:not(:has(.mtile)) { cursor: pointer; }
+.mboard.placing.mine .mcell:not(:has(.mtile)):hover { box-shadow: inset 0 0 0 2px rgba(220,165,69,.7); }
+.mcell.drop { box-shadow: inset 0 0 0 2px var(--brass); background-color: rgba(220,165,69,.35); }
+.mcell.drop-bad { box-shadow: inset 0 0 0 2px var(--bad); }
+.mcell.good::after, .mcell.bad::after { content: ''; position: absolute; inset: 0; border-radius: 3px; pointer-events: none; z-index: 2; }
+.mcell.good::after { box-shadow: inset 0 0 0 2px rgba(99,201,147,.85); background: rgba(99,201,147,.1); }
+.mcell.bad::after { box-shadow: inset 0 0 0 2px var(--bad); background: rgba(255,114,98,.14); }
+
+.mdock { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+.mrack {
+  --rs: clamp(36px, calc((100cqi - 64px) / 8), 58px); --cs: var(--rs);
+  display: flex; gap: 6px; padding: 8px 10px; border-radius: 16px; max-width: 100%; box-sizing: border-box;
+  background: repeating-linear-gradient(92deg, rgba(0,0,0,.07) 0 3px, transparent 3px 11px), linear-gradient(180deg, #7a4b2a, #4d2e17);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -3px 0 rgba(0,0,0,.35), 0 10px 26px rgba(0,0,0,.4);
+}
+.mrack.swapping { box-shadow: 0 0 0 2px #5cc8ff, 0 10px 26px rgba(0,0,0,.4); }
+.mslot { width: var(--rs); height: var(--rs); border-radius: 10px; background: rgba(0,0,0,.2); display: grid; place-items: center; }
+.mslot.drop { background: rgba(220,165,69,.35); }
+.mdock .dock-hint { min-height: 1.2em; }
+.btn.armed { background: #8a2a3b; border-color: #ff5d7a; color: #fff; }
+
+.mside { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 6px; }
+.mcard { background: rgba(11,31,27,.78); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+.mlog { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13.5px; }
+.mlog li { padding: 6px 10px; border-radius: 10px; background: var(--panel); overflow-wrap: anywhere; }
+.mlog li:first-child { border: 1px solid var(--line); }
+.mlog li.bingo { color: var(--brass); font-weight: 700; }
+.mlegend { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; font-size: 13px; }
+.mlegend .lg { display: flex; align-items: center; gap: 8px; }
+.mlegend i { flex: none; width: 16px; height: 16px; border-radius: 4px; }
+.mlegend i.pe3 { background: #8e2238; } .mlegend i.pe2 { background: #94621a; } .mlegend i.pt3 { background: #22508c; } .mlegend i.pt2 { background: #1b6d67; }
+.mrules { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--muted); font-size: 12.5px; }
+
+.mpicker {
+  position: fixed; z-index: 70; left: 50%; top: 40%; width: max-content; max-width: calc(100vw - 16px); box-sizing: border-box;
+  padding: 10px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0,0,0,.55);
+  display: grid; gap: 8px; animation: pop .16s ease-out;
+}
+.mp-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 13px; }
+.mp-grid { display: flex; gap: 6px; justify-content: center; }
+.mpicker.blank .mp-grid { display: grid; grid-template-columns: repeat(7, 40px); }
+.mp-opt { width: 48px; height: 48px; border-radius: 10px; border: 0; background: linear-gradient(180deg, #fffbf2, #eadcbc); color: #1b1c22; font: 800 21px/1 var(--font-display); box-shadow: 0 3px 0 #cdbb92; }
+.mpicker.blank .mp-opt { width: 40px; height: 40px; font-size: 17px; }
+.mp-opt.op { color: #1559c7; }
+.mp-opt.on { box-shadow: 0 0 0 3px var(--brass), 0 3px 0 #cdbb92; }
+
+.mscore-pop {
+  position: fixed; z-index: 85; pointer-events: none; transform: translate(-50%, 0);
+  font: 900 28px/1 var(--font-display); color: #fff3c4; letter-spacing: -.01em;
+  text-shadow: 0 2px 0 rgba(0,0,0,.45), 0 0 18px rgba(255,201,77,.85);
+}
+.mscore-pop.big { font-size: 42px; color: #ffe08a; }
+
+@media (max-width: 980px) {
+  .mmain { grid-template-columns: minmax(0, 1fr); padding: 4px 8px 8px; gap: 8px; }
+  .mside { display: none; }
+}
+@media (max-width: 560px) {
+  .mstatus { font-size: 13px; min-height: 24px; }
+  .mcheck { font-size: 12.5px; }
+  .mrack { padding: 6px 8px; gap: 5px; }
+  .mdock .actions .btn.small { padding: 0 10px; }
+}
+@media (pointer: coarse) {
+  .mzoom { min-height: 38px; min-width: 42px; }
+}
+/* the board is big enough to read from tablet size up; zoom is for phones */
+@media (min-width: 700px) { .mzoom { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .mtimer.low, .mcell.start .star, .mtile.draft.open, .menu-fan .mtile { animation: none !important; }
+}
+
 </style>
 <div id="app"></div>
 <script src="firebase-config.js"></script>
@@ -823,7 +1010,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   const SKINS = Object.freeze(['ivory', 'arcane', 'crystal', 'gilded']);
   const FX_LEVELS = Object.freeze(['full', 'lite', 'off']);
   const FPS = Object.freeze([30, 60, 90, 120]);
-  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false });
+  const MATH_TIMERS = Object.freeze([0, 60, 90, 120, 180]);
+  const BOT_LEVELS = Object.freeze(['easy', 'normal', 'hard']);
+  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal' });
   const KEY = 'rk.prefs.v1';
 
   function sanitize(input) {
@@ -836,7 +1025,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       volume: Number.isFinite(vol) ? Math.max(0, Math.min(1, Math.round(vol * 100) / 100)) : DEFAULTS.volume,
       wrap: src.wrap === undefined ? DEFAULTS.wrap : !!src.wrap,
       fps: FPS.includes(Number(src.fps)) ? Number(src.fps) : DEFAULTS.fps,
-      showFps: !!src.showFps
+      showFps: !!src.showFps,
+      mathTimer: MATH_TIMERS.includes(Number(src.mathTimer)) ? Number(src.mathTimer) : DEFAULTS.mathTimer,
+      mathBot: BOT_LEVELS.includes(src.mathBot) ? src.mathBot : DEFAULTS.mathBot
     };
   }
 
@@ -855,7 +1046,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     catch (e) { return false; }
   }
 
-  const api = { SKINS, FX_LEVELS, FPS, DEFAULTS, KEY, sanitize, load, save };
+  const api = { SKINS, FX_LEVELS, FPS, MATH_TIMERS, BOT_LEVELS, DEFAULTS, KEY, sanitize, load, save };
   root.RK = root.RK || {};
   root.RK.Prefs = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -1985,6 +2176,855 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
+// ---- mathrules.js ----
+// Math crossword engine: tiles, the 15 × 15 board, equations and scoring.
+// Pure (no DOM). The host uses it to rule on moves, every screen uses it for
+// hints, and the bot uses it to check what it finds.
+(function (root) {
+  'use strict';
+
+  const SIZE = 15, CELLS = SIZE * SIZE, CENTER = 7 * SIZE + 7, RACK = 8, BINGO = 40;
+
+  // face, points, how many in the bag (100 tiles)
+  const KINDS = [
+    ['0', 1, 5], ['1', 1, 6], ['2', 1, 6], ['3', 1, 5], ['4', 2, 5], ['5', 2, 4], ['6', 2, 4], ['7', 2, 4], ['8', 2, 4], ['9', 2, 4],
+    ['10', 3, 2], ['11', 4, 1], ['12', 3, 2], ['13', 6, 1], ['14', 4, 1], ['15', 4, 1], ['16', 4, 1], ['17', 6, 1], ['18', 4, 1], ['19', 7, 1], ['20', 5, 1],
+    ['+', 2, 4], ['-', 2, 4], ['*', 2, 4], ['/', 2, 4], ['+-', 1, 5], ['*/', 1, 4], ['=', 1, 11], ['?', 0, 4]
+  ];
+  const TILES = [];
+  KINDS.forEach(([face, pts, n]) => { for (let i = 0; i < n; i++) TILES.push({ id: TILES.length, face, pts }); });
+  const TILE_COUNT = TILES.length;
+
+  // A symbol is what a tile stands for on the board: 0–20, + − × ÷ or =.
+  const NUMS = Array.from({ length: 21 }, (_, i) => String(i));
+  const OPS = ['+', '-', '*', '/'];
+  const SYMS = NUMS.concat(OPS, ['=']);
+  const SYM_SET = new Set(SYMS);
+  const DIGIT = new Set(NUMS.slice(0, 10));
+  const BIG = new Set(NUMS.slice(10));
+  const OPSET = new Set(OPS);
+  const SYM_CH = '0123456789abcdefghijk+-*/=';
+
+  const tile = id => TILES[id];
+  /** What a tile may stand for: a choice tile picks one, a blank anything. */
+  function options(face) {
+    if (face === '?') return SYMS;
+    if (face === '+-') return ['+', '-'];
+    if (face === '*/') return ['*', '/'];
+    return [face];
+  }
+  const canBe = (face, sym) => options(face).indexOf(sym) >= 0;
+  const needsChoice = face => face === '?' || face === '+-' || face === '*/';
+  const isNumFace = face => DIGIT.has(face) || BIG.has(face);
+
+  // ---- the board ----
+  // Bonus squares, one quarter (rows/cols 0–7) mirrored to the other three.
+  // E = equation ×3, e = equation ×2, T = tile ×3, t = tile ×2, * = the centre star.
+  const QUARTER = [
+    'E..t...E',
+    '.e...T..',
+    '..e...t.',
+    't..e...t',
+    '....T...',
+    '.T...t..',
+    '..t...e.',
+    'E..t...*'
+  ];
+  const rc = cell => [Math.floor(cell / SIZE), cell % SIZE];
+  const at = (r, c) => r * SIZE + c;
+  function premium(cell) {
+    let [r, c] = rc(cell);
+    if (r > 7) r = 14 - r;
+    if (c > 7) c = 14 - c;
+    const ch = QUARTER[r][c];
+    return ch === '.' ? '' : ch;
+  }
+  function neighbours(cell) {
+    const [r, c] = rc(cell), out = [];
+    if (r > 0) out.push(cell - SIZE);
+    if (r < SIZE - 1) out.push(cell + SIZE);
+    if (c > 0) out.push(cell - 1);
+    if (c < SIZE - 1) out.push(cell + 1);
+    return out;
+  }
+  const emptyBoard = () => new Array(CELLS).fill(null);
+  const isEmpty = board => board.every(x => !x);
+
+  /** The run of filled cells through `cell` along `dir` (0 = across, 1 = down). */
+  function lineThrough(board, cell, dir) {
+    const [r, c] = rc(cell);
+    const get = k => board[dir ? at(k, c) : at(r, k)];
+    let k0 = dir ? r : c, k1 = k0;
+    while (k0 > 0 && get(k0 - 1)) k0--;
+    while (k1 < SIZE - 1 && get(k1 + 1)) k1++;
+    const out = [];
+    for (let k = k0; k <= k1; k++) out.push(dir ? at(k, c) : at(r, k));
+    return out;
+  }
+
+  // ---- equations ----
+  // A number is a run of 0–9 tiles (1 to 3 digits, no leading zero) or one 10–20 tile on its own.
+  // Each side may start with a minus. × and ÷ go before + and −. Every side has the same value.
+  const bad = reason => ({ ok: false, reason });
+  function parse(syms) {
+    const sides = [[]];
+    let i = 0, eqs = 0, expectNum = true;
+    while (i < syms.length) {
+      const side = sides[sides.length - 1];
+      if (expectNum) {
+        let neg = false;
+        if (syms[i] === '-' && !side.length) { neg = true; i++; if (i >= syms.length) return bad('eq_ops'); }
+        const x = syms[i];
+        if (BIG.has(x)) {
+          i++;
+          if (i < syms.length && (DIGIT.has(syms[i]) || BIG.has(syms[i]))) return bad('eq_big');
+          side.push({ v: +x, neg });
+        } else if (DIGIT.has(x)) {
+          let d = '';
+          while (i < syms.length && DIGIT.has(syms[i])) d += syms[i++];
+          if (i < syms.length && BIG.has(syms[i])) return bad('eq_big');
+          if (d.length > 3) return bad('eq_digits');
+          if (d.length > 1 && d[0] === '0') return bad('eq_lead0');
+          if (neg && +d === 0) return bad('eq_neg0');
+          side.push({ v: +d, neg });
+        } else return bad('eq_ops');
+        expectNum = false;
+      } else {
+        const s = syms[i++];
+        if (s === '=') { eqs++; sides.push([]); }
+        else if (OPSET.has(s)) side.push(s);
+        else return bad('eq_ops');
+        expectNum = true;
+      }
+    }
+    if (expectNum) return bad(syms.length ? 'eq_ops' : 'eq_none');
+    if (!eqs) return bad('eq_none');
+    return { ok: true, sides };
+  }
+
+  // exact fractions on BigInt, so 999 × 999 × 999 … never rounds
+  const babs = a => (a < 0n ? -a : a);
+  function gcd(a, b) { a = babs(a); b = babs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1n; }
+  function frac(n, d) { if (d < 0n) { n = -n; d = -d; } const g = gcd(n, d); return [n / g, d / g]; }
+  function sideValue(side) {
+    let sum = [0n, 1n], term = null, sign = 1n, mul = null;
+    const flush = () => { sum = frac(sum[0] * term[1] + sign * term[0] * sum[1], sum[1] * term[1]); };
+    for (const tk of side) {
+      if (typeof tk === 'string') {
+        if (tk === '+' || tk === '-') { flush(); sign = tk === '-' ? -1n : 1n; term = null; mul = null; }
+        else mul = tk;
+        continue;
+      }
+      const v = BigInt(tk.neg ? -tk.v : tk.v);
+      if (!term) term = [v, 1n];
+      else if (mul === '*') term = frac(term[0] * v, term[1]);
+      else { if (v === 0n) return null; term = frac(term[0], term[1] * v); }
+    }
+    flush();
+    return sum;
+  }
+  function fracText(f) { return f[1] === 1n ? String(f[0]) : f[0] + '/' + f[1]; }
+
+  /** Is this run of symbols a true equation? → {ok, reason?, values?} */
+  function checkLine(syms) {
+    const p = parse(syms);
+    if (!p.ok) return p;
+    const vals = [];
+    for (const side of p.sides) {
+      const v = sideValue(side);
+      if (!v) return bad('eq_div0');
+      vals.push(v);
+    }
+    const values = vals.map(fracText);
+    for (let i = 1; i < vals.length; i++) {
+      if (vals[i][0] !== vals[0][0] || vals[i][1] !== vals[0][1]) return { ok: false, reason: 'eq_false', values };
+    }
+    return { ok: true, values };
+  }
+
+  /** Symbols as people write them: 12×3=36 */
+  function lineText(syms) {
+    return syms.map(s => (s === '*' ? '×' : s === '/' ? '÷' : s === '-' ? '−' : s)).join('');
+  }
+
+  // ---- a move ----
+  const fail = (reason, extra) => Object.assign({ ok: false, reason }, extra || {});
+  /**
+   * Check a move and score it.
+   * board: CELLS entries of [tileId, sym] or null. placements: [{c: cell, id, s: sym}].
+   * Every line of two or more tiles that the move touches must be a true equation.
+   * Score per line: tile points (tile bonuses on new tiles) × equation bonuses on new tiles;
+   * all eight tiles in one move adds BINGO.
+   */
+  function evaluatePlay(board, placements) {
+    if (!Array.isArray(placements) || !placements.length) return fail('no_tiles');
+    if (placements.length > RACK) return fail('malformed');
+    const cells = new Set(), ids = new Set();
+    for (const p of placements) {
+      if (!p || !Number.isInteger(p.c) || p.c < 0 || p.c >= CELLS || cells.has(p.c)) return fail('malformed');
+      if (!Number.isInteger(p.id) || !TILES[p.id] || ids.has(p.id)) return fail('malformed');
+      if (board[p.c]) return fail('cell_taken');
+      if (!SYM_SET.has(p.s)) return fail('need_choice', { bad: [p.c] });
+      if (!canBe(TILES[p.id].face, p.s)) return fail('malformed');
+      cells.add(p.c); ids.add(p.id);
+    }
+    const n = placements.length;
+    const rows = new Set(placements.map(p => rc(p.c)[0])), cols = new Set(placements.map(p => rc(p.c)[1]));
+    let dir = -1;
+    if (n > 1) {
+      if (rows.size === 1) dir = 0;
+      else if (cols.size === 1) dir = 1;
+      else return fail('not_line', { bad: [...cells] });
+    }
+    const next = board.slice();
+    placements.forEach(p => { next[p.c] = [p.id, p.s]; });
+    if (dir >= 0) {
+      const ks = placements.map(p => rc(p.c)[dir === 0 ? 1 : 0]);
+      const fixed = rc(placements[0].c)[dir === 0 ? 0 : 1];
+      for (let k = Math.min.apply(null, ks); k <= Math.max.apply(null, ks); k++) {
+        if (!next[dir === 0 ? at(fixed, k) : at(k, fixed)]) return fail('gap', { bad: [...cells] });
+      }
+    }
+    if (isEmpty(board)) { if (!cells.has(CENTER)) return fail('center', { bad: [...cells] }); }
+    else if (!placements.some(p => neighbours(p.c).some(q => board[q]))) return fail('not_connected', { bad: [...cells] });
+
+    const lines = [], seen = new Set();
+    placements.forEach(p => [0, 1].forEach(d => {
+      const L = lineThrough(next, p.c, d);
+      if (L.length < 2 || seen.has(d + ':' + L[0])) return;
+      seen.add(d + ':' + L[0]);
+      lines.push({ d, cells: L, syms: L.map(c => next[c][1]) });
+    }));
+    if (!lines.length) return fail('eq_short', { bad: [...cells] });
+    for (const L of lines) {
+      const chk = checkLine(L.syms);
+      if (!chk.ok) return fail(chk.reason, { bad: L.cells, text: lineText(L.syms), values: chk.values });
+    }
+    let score = 0;
+    for (const L of lines) {
+      let pts = 0, mult = 1;
+      for (const c of L.cells) {
+        let v = TILES[next[c][0]].pts;
+        if (cells.has(c)) {
+          const pr = premium(c);
+          if (pr === 't') v *= 2; else if (pr === 'T') v *= 3;
+          else if (pr === 'e') mult *= 2; else if (pr === 'E') mult *= 3;
+        }
+        pts += v;
+      }
+      L.mult = mult;
+      L.score = pts * mult;
+      L.text = lineText(L.syms);
+      score += L.score;
+    }
+    const bingo = n === RACK;
+    if (bingo) score += BINGO;
+    // the main line is the one along the move (or the longest, for a single tile)
+    const main = lines.slice().sort((a, b) => (b.d === dir) - (a.d === dir) || b.cells.length - a.cells.length)[0];
+    return { ok: true, score, lines, bingo, dir, main: main.text };
+  }
+
+  // ---- compact text for the network ----
+  const b36 = (n, w) => n.toString(36).padStart(w, '0');
+  /** [[cell, id, sym], …] as 5 characters each */
+  function encodePlaced(list) {
+    return list.map(p => b36(p.c, 2) + b36(p.id, 2) + SYM_CH[SYMS.indexOf(p.s)]).join('');
+  }
+  function decodePlaced(str) {
+    const out = [];
+    if (typeof str !== 'string' || str.length % 5 || str.length > 5 * CELLS) return null;
+    for (let i = 0; i < str.length; i += 5) {
+      const c = parseInt(str.slice(i, i + 2), 36), id = parseInt(str.slice(i + 2, i + 4), 36), k = SYM_CH.indexOf(str[i + 4]);
+      if (!(c >= 0 && c < CELLS) || !(id >= 0 && id < TILE_COUNT) || k < 0) return null;
+      out.push({ c, id, s: SYMS[k] });
+    }
+    return out;
+  }
+  function encodeBoard(board) {
+    const list = [];
+    board.forEach((x, c) => { if (x) list.push({ c, id: x[0], s: x[1] }); });
+    return encodePlaced(list);
+  }
+  function decodeBoard(str) {
+    const b = emptyBoard();
+    (decodePlaced(str || '') || []).forEach(p => { b[p.c] = [p.id, p.s]; });
+    return b;
+  }
+  const encodeIds = ids => ids.map(id => b36(id, 2)).join('');
+  function decodeIds(str) {
+    const out = [];
+    if (typeof str !== 'string') return out;
+    for (let i = 0; i + 1 < str.length; i += 2) { const id = parseInt(str.slice(i, i + 2), 36); if (id >= 0 && id < TILE_COUNT) out.push(id); }
+    return out;
+  }
+
+  // ---- bag ----
+  const fullBag = () => TILES.map(t => t.id);
+  function shuffle(a, rng) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  const rackValue = ids => ids.reduce((s, id) => s + TILES[id].pts, 0);
+  /** Rack order: numbers small to big, then operators, =, choice tiles, blanks. */
+  const FACE_ORDER = new Map(KINDS.map((k, i) => [k[0], i]));
+  const byFace = (a, b) => FACE_ORDER.get(TILES[a].face) - FACE_ORDER.get(TILES[b].face) || a - b;
+
+  const api = {
+    SIZE, CELLS, CENTER, RACK, BINGO, KINDS, TILE_COUNT, SYMS, NUMS, OPS,
+    tile, options, canBe, needsChoice, isNumFace, premium, neighbours, rc, at, emptyBoard, isEmpty, lineThrough,
+    parse, checkLine, lineText, evaluatePlay,
+    encodePlaced, decodePlaced, encodeBoard, decodeBoard, encodeIds, decodeIds,
+    fullBag, shuffle, rackValue, byFace
+  };
+  root.RK = root.RK || {};
+  root.RK.MathRules = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- mathbot.js ----
+// Bot for the math crossword. It tries every free stretch of a row or column
+// next to the tiles already down, filling the gaps from its rack left to right
+// while checking the grammar and the arithmetic as it goes. The search runs in
+// small slices (step), so the page keeps drawing while a bot thinks.
+(function (root) {
+  'use strict';
+  const M = (root.RK && root.RK.MathRules) || require('./mathrules.js');
+  const { SIZE, CELLS, CENTER } = M;
+
+  // grammar states
+  const START = 0, NEG = 1, OP = 2, DIG = 3, BIG = 4;
+  const near = (a, b) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+  const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+  /**
+   * Feed one symbol to a running equation. Returns the new state, or null when
+   * the symbol can't go there (bad grammar, ÷0, or a side that doesn't match).
+   * A state: st, nd (digits so far), lz (number started with 0), num, neg,
+   * acc (finished terms), term, sign, mul (0, 1 = ×, 2 = ÷), target (first side), eqs.
+   */
+  function closeNumber(s) {
+    const v = s.neg ? -s.num : s.num;
+    if (s.mul === 0) return v;
+    if (s.mul === 1) return s.term * v;
+    return v === 0 ? NaN : s.term / v;
+  }
+  function feed(s, x) {
+    const c = x.charCodeAt(0);
+    if (x.length === 1 && c >= 48 && c <= 57) {           // 0–9
+      const d = c - 48;
+      if (s.st === START || s.st === OP) return { st: DIG, nd: 1, lz: d === 0, num: d, neg: false, acc: s.acc, term: s.term, sign: s.sign, mul: s.mul, target: s.target, eqs: s.eqs };
+      if (s.st === NEG) return d === 0 ? null : { st: DIG, nd: 1, lz: false, num: d, neg: true, acc: s.acc, term: s.term, sign: s.sign, mul: s.mul, target: s.target, eqs: s.eqs };
+      if (s.st === DIG) return s.lz || s.nd >= 3 ? null : { st: DIG, nd: s.nd + 1, lz: false, num: s.num * 10 + d, neg: s.neg, acc: s.acc, term: s.term, sign: s.sign, mul: s.mul, target: s.target, eqs: s.eqs };
+      return null;
+    }
+    if (x.length === 2 && c >= 48 && c <= 57) {           // 10–20
+      if (s.st === START || s.st === OP || s.st === NEG) return { st: BIG, nd: 0, lz: false, num: +x, neg: s.st === NEG, acc: s.acc, term: s.term, sign: s.sign, mul: s.mul, target: s.target, eqs: s.eqs };
+      return null;
+    }
+    if (x === '=') {
+      if (s.st !== DIG && s.st !== BIG) return null;
+      const term = closeNumber(s);
+      if (term !== term) return null;
+      const side = s.acc + s.sign * term;
+      if (s.eqs && !near(side, s.target)) return null;
+      return { st: START, nd: 0, lz: false, num: 0, neg: false, acc: 0, term: 0, sign: 1, mul: 0, target: s.eqs ? s.target : side, eqs: s.eqs + 1 };
+    }
+    // + - * /
+    if (s.st === START && x === '-') return { st: NEG, nd: 0, lz: false, num: 0, neg: false, acc: s.acc, term: s.term, sign: s.sign, mul: s.mul, target: s.target, eqs: s.eqs };
+    if (s.st !== DIG && s.st !== BIG) return null;
+    const term = closeNumber(s);
+    if (term !== term) return null;
+    if (x === '+' || x === '-') return { st: OP, nd: 0, lz: false, num: 0, neg: false, acc: s.acc + s.sign * term, term: 0, sign: x === '-' ? -1 : 1, mul: 0, target: s.target, eqs: s.eqs };
+    return { st: OP, nd: 0, lz: false, num: 0, neg: false, acc: s.acc, term, sign: s.sign, mul: x === '*' ? 1 : 2, target: s.target, eqs: s.eqs };
+  }
+  function finished(s) {
+    if ((s.st !== DIG && s.st !== BIG) || !s.eqs) return false;
+    const term = closeNumber(s);
+    return term === term && near(s.acc + s.sign * term, s.target);
+  }
+  const FRESH = { st: START, nd: 0, lz: false, num: 0, neg: false, acc: 0, term: 0, sign: 1, mul: 0, target: 0, eqs: 0 };
+
+  /**
+   * Start a search. board: the host's board, rack: tile ids.
+   * opts.budget: how many symbols to try in all (keeps it bounded), opts.rng.
+   * Returns { step(ms) → done, best: {placements, score, main} | null }.
+   */
+  function create(board, rack, opts) {
+    opts = opts || {};
+    const budget = opts.budget || 1200000;
+    const slotCap = opts.slotCap || 40000;
+    const rng = opts.rng || Math.random;
+    const syms = board.map(x => (x ? x[1] : null));
+    const empty = syms.every(x => !x);
+
+    // the rack as faces with counts, in a random order so bots don't all play alike
+    const faceIds = new Map();
+    rack.forEach(id => { const f = M.tile(id).face; if (!faceIds.has(f)) faceIds.set(f, []); faceIds.get(f).push(id); });
+    const faces = M.shuffle([...faceIds.keys()], rng);
+    const left = faces.map(f => faceIds.get(f).length);
+
+    // What may go in an empty cell, given the tiles above/below it (or left/right):
+    // null = nothing there, anything goes; otherwise the set of symbols that make that line true.
+    const cross = [new Map(), new Map()];
+    const quick = seq => { let st = FRESH; for (let i = 0; i < seq.length && st; i++) st = feed(st, seq[i]); return !!st && finished(st); };
+    function crossAt(d, cell) {
+      const m = cross[d];
+      if (m.has(cell)) return m.get(cell);
+      const pd = 1 - d, [r, c] = M.rc(cell);
+      const step = pd === 0 ? 1 : SIZE, k = pd === 0 ? c : r;
+      const before = [], after = [];
+      for (let j = k - 1, x = cell - step; j >= 0 && syms[x]; j--, x -= step) before.unshift(syms[x]);
+      for (let j = k + 1, x = cell + step; j < SIZE && syms[x]; j++, x += step) after.push(syms[x]);
+      let v = null;
+      // a quick float pass throws out almost everything; exact fractions confirm what's left
+      if (before.length || after.length) v = new Set(M.SYMS.filter(s => { const seq = before.concat([s], after); return quick(seq) && M.checkLine(seq).ok; }));
+      m.set(cell, v);
+      return v;
+    }
+
+    // every stretch [a, b] of a row or column that a move could turn into one equation;
+    // found one line at a time inside step(), so even this part never blocks a frame
+    const small = [], large = [];
+    let slots = null, li = 0;
+    function scanLine(n) {
+        const d = n < SIZE ? 0 : 1, L = n % SIZE;
+        if (empty && (d !== 0 || L !== 7)) return;
+        const line = Array.from({ length: SIZE }, (_, k) => (d === 0 ? M.at(L, k) : M.at(k, L)));
+        for (let a = 0; a < SIZE; a++) {
+          if (a > 0 && syms[line[a - 1]]) continue;
+          let gaps = 0, touch = false, blocked = false;
+          for (let b = a; b < SIZE; b++) {
+            const cell = line[b];
+            if (syms[cell]) touch = true;
+            else {
+              gaps++;
+              if (gaps > rack.length) break;
+              const cx = empty ? null : crossAt(d, cell);
+              if (cx && !cx.size) { blocked = true; break; }
+              if (cx) touch = true;
+            }
+            if (b - a < 2 || !gaps) continue;
+            if (b < SIZE - 1 && syms[line[b + 1]]) continue;
+            if (empty ? !(a <= 7 && b >= 7) : !touch) continue;
+            (gaps <= 4 ? small : large).push({ d, cells: line.slice(a, b + 1), gaps });
+          }
+          if (blocked) continue;
+        }
+    }
+
+    let si = 0, nodes = 0, best = null, blanks = false, slotNodes = 0, found = 0;
+    const cands = [];
+    const blankAt = faces.indexOf('?');
+    const choice = [];   // per position in the slot: [faceIndex, sym] for gaps
+
+    function leaf(slot) {
+      const used = new Map();
+      const placements = [];
+      slot.cells.forEach((cell, i) => {
+        if (syms[cell]) return;
+        const [fi, s] = choice[i];
+        const f = faces[fi];
+        const n = used.get(f) || 0;
+        used.set(f, n + 1);
+        placements.push({ c: cell, id: faceIds.get(f)[n], s });
+      });
+      const res = M.evaluatePlay(board, placements);
+      if (!res.ok) return;
+      const mv = { placements, score: res.score, main: res.main };
+      if (!best || mv.score > best.score) best = mv;
+      // a fair sample of everything found, for the easier levels
+      found++;
+      if (cands.length < 2000) cands.push(mv);
+      else { const j = Math.floor(rng() * found); if (j < cands.length) cands[j] = mv; }
+    }
+
+    function dfs(slot, i, st, blankUsed) {
+      if (nodes >= budget || slotNodes >= slotCap) return;
+      const cells = slot.cells;
+      if (i === cells.length) { if (finished(st)) leaf(slot); return; }
+      const cell = cells[i];
+      const fixed = syms[cell];
+      if (fixed) {
+        nodes++; slotNodes++;
+        const ns = feed(st, fixed);
+        if (ns) dfs(slot, i + 1, ns, blankUsed);
+        return;
+      }
+      const cx = empty ? null : crossAt(slot.d, cell);
+      for (let fi = 0; fi < faces.length; fi++) {
+        if (!left[fi]) continue;
+        const isBlank = fi === blankAt;
+        if (isBlank && (!blanks || blankUsed)) continue;
+        const opts = M.options(faces[fi]);
+        for (let k = 0; k < opts.length; k++) {
+          const s = opts[k];
+          if (cx && !cx.has(s)) continue;
+          nodes++; slotNodes++;
+          const ns = feed(st, s);
+          if (!ns) continue;
+          left[fi]--; choice[i] = [fi, s];
+          dfs(slot, i + 1, ns, blankUsed || isBlank);
+          left[fi]++;
+          if (nodes >= budget || slotNodes >= slotCap) return;
+        }
+      }
+    }
+
+    function step(ms) {
+      const end = clock() + (ms === undefined ? Infinity : ms);
+      while (!slots) {
+        scanLine(li++);
+        if (li >= 2 * SIZE) slots = M.shuffle(small, rng).concat(M.shuffle(large, rng));
+        else if (clock() >= end) return false;
+      }
+      while (nodes < budget) {
+        if (si >= slots.length) {
+          // nothing without blanks: try again letting one blank stand for anything
+          if (best || blanks || blankAt < 0) return true;
+          blanks = true; si = 0;
+          continue;
+        }
+        slotNodes = 0;
+        dfs(slots[si++], 0, FRESH, false);
+        if (clock() >= end) return false;
+      }
+      return true;
+    }
+    /**
+     * The move for a level: hard = the best found, normal = from the top fifth,
+     * easy = somewhere in the middle (still a real equation, just not the cleverest).
+     */
+    function pick(level) {
+      if (!best || level === 'hard' || !level) return best;
+      const all = cands.slice().sort((a, b) => b.score - a.score);
+      const f = level === 'easy' ? 0.35 + 0.35 * rng() : 0.2 * rng();
+      return all[Math.min(all.length - 1, Math.floor(all.length * f))] || best;
+    }
+    return { step, pick, get best() { return best; }, get nodes() { return nodes; }, get found() { return found; }, get slots() { return slots ? slots.length : 0; } };
+  }
+
+  /** Run a whole search at once (tests, or when time doesn't matter). */
+  function bestMove(board, rack, opts) {
+    const job = create(board, rack, opts);
+    while (!job.step()) { /* keep going */ }
+    return job.pick(opts && opts.level);
+  }
+
+  /** No move found: which tiles to trade back. Keep one =, a few small numbers and one operator. */
+  function swapPick(rack) {
+    const keep = new Set();
+    const by = f => rack.filter(id => !keep.has(id) && f(M.tile(id).face));
+    by(f => f === '=').slice(0, 1).forEach(id => keep.add(id));
+    by(f => f.length === 1 && f >= '1' && f <= '9').slice(0, 3).forEach(id => keep.add(id));
+    by(f => f === '+' || f === '-' || f === '+-').slice(0, 1).forEach(id => keep.add(id));
+    by(f => f === '?').forEach(id => keep.add(id));
+    const out = rack.filter(id => !keep.has(id));
+    return out.length ? out : rack.slice();
+  }
+
+  const api = { create, bestMove, swapPick, feed, finished, FRESH };
+  root.RK = root.RK || {};
+  root.RK.MathBot = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- mathhost.js ----
+// Host engine for the math crossword: one table's single source of truth.
+// Same shape as host.js (Rummy), so the app's online code drives both.
+// Pure apart from the injected rng and clock.
+(function (root) {
+  'use strict';
+  const M = (root.RK && root.RK.MathRules) || require('./mathrules.js');
+  const Bot = (root.RK && root.RK.MathBot) || require('./mathbot.js');
+  const Host = (root.RK && root.RK.Host) || require('./host.js');
+  const cleanName = Host.cleanName;
+
+  const DEFAULT_RULES = { rack: M.RACK, minPlayers: 2, maxPlayers: 4, turnSec: 0, swapMin: 5, botLevel: 'normal' };
+  const TURN_SECS = [0, 60, 90, 120, 180];
+  const BOT_LEVELS = ['easy', 'normal', 'hard'];
+
+  function createGame(opts) {
+    const rules = Object.assign({}, DEFAULT_RULES, opts.rules || {});
+    if (TURN_SECS.indexOf(rules.turnSec) < 0) rules.turnSec = 0;
+    if (BOT_LEVELS.indexOf(rules.botLevel) < 0) rules.botLevel = 'normal';
+    return {
+      game: 'math',
+      code: opts.code,
+      hostId: opts.hostId,
+      status: 'lobby',
+      players: [{ id: opts.hostId, name: cleanName(opts.hostName), bot: false, hand: [], score: 0, wins: 0 }],
+      bag: [],
+      board: M.emptyBoard(),
+      turn: 0, tn: 0, v: 1, round: 0,
+      scoreless: 0,          // turns in a row without points; a long enough streak ends the game
+      winner: -1,
+      log: [],
+      rules,
+      lastMove: null,
+      turnAt: 0              // host clock when this turn began (for the turn timer)
+    };
+  }
+
+  const idx = (G, id) => G.players.findIndex(p => p.id === id);
+  function bump(G, entry) {
+    G.v++;
+    if (entry) { G.log.push(entry); if (G.log.length > 8) G.log.splice(0, G.log.length - 8); }
+  }
+
+  function addPlayer(G, id, name, bot) {
+    const i = idx(G, id);
+    if (i >= 0) {
+      if (!G.players[i].bot && name) G.players[i].name = cleanName(name);
+      bump(G);
+      return { ok: true, rejoined: true };
+    }
+    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+    if (G.players.length >= G.rules.maxPlayers) return { ok: false, reason: 'full' };
+    G.players.push({ id, name: cleanName(name), bot: !!bot, hand: [], score: 0, wins: 0 });
+    bump(G, { k: 'join', p: G.players.length - 1 });
+    return { ok: true };
+  }
+  function addBot(G) {
+    let n = 1;
+    while (G.players.some(p => p.id === 'bot' + n)) n++;
+    return addPlayer(G, 'bot' + n, 'Bot ' + n, true);
+  }
+  function removePlayer(G, id) {
+    const i = idx(G, id);
+    if (i < 0 || id === G.hostId) return { ok: false, reason: 'no_player' };
+    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+    G.players.splice(i, 1);
+    bump(G);
+    return { ok: true };
+  }
+
+  function refill(G, p) {
+    while (p.hand.length < G.rules.rack && G.bag.length) p.hand.push(G.bag.pop());
+  }
+
+  function start(G, rng, now) {
+    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+    if (G.players.length < G.rules.minPlayers) return { ok: false, reason: 'need_players' };
+    G.bag = M.shuffle(M.fullBag(), rng);
+    G.board = M.emptyBoard();
+    G.players.forEach(p => { p.hand = []; p.score = 0; refill(G, p); });
+    G.round++;
+    G.turn = Math.floor(rng() * G.players.length);
+    G.tn = (G.tn || 0) + 1;
+    G.scoreless = 0;
+    G.winner = -1;
+    G.status = 'playing';
+    G.result = null;
+    G.lastMove = { tn: G.tn, k: 'deal', p: G.turn };
+    G.turnAt = now || 0;
+    G.log = [];
+    bump(G, { k: 'start', p: G.turn });
+    return { ok: true };
+  }
+
+  function nextTurn(G, now) {
+    G.turn = (G.turn + 1) % G.players.length;
+    G.tn++;
+    G.turnAt = now || 0;
+  }
+
+  /** Game over. `out` is the seat that used its last tile (or -1). */
+  function finish(G, out) {
+    G.status = 'ended';
+    const left = G.players.map(p => M.rackValue(p.hand));
+    const delta = G.players.map((p, i) => (i === out ? left.reduce((a, b) => a + b, 0) : -left[i]));
+    G.players.forEach((p, i) => { p.score += delta[i]; });
+    const top = Math.max.apply(null, G.players.map(p => p.score));
+    const leaders = G.players.map((p, i) => (p.score === top ? i : -1)).filter(i => i >= 0);
+    G.winner = leaders.length === 1 ? leaders[0] : -1;      // -1 = a draw
+    if (G.winner >= 0) G.players[G.winner].wins++;
+    G.result = G.players.map((p, i) => ({ left: left[i], delta: delta[i], score: p.score }));
+    bump(G, { k: G.winner >= 0 ? 'win' : 'draw', p: G.winner });
+  }
+
+  /** A turn without points (swap, pass, timeout, skip). Enough of them in a row ends the game. */
+  function scoreless(G, pi, kind, now, extra) {
+    G.lastMove = Object.assign({ tn: G.tn, k: kind, p: pi }, extra || {});
+    G.scoreless++;
+    if (G.scoreless >= G.players.length * 3) {
+      bump(G, Object.assign({ k: kind, p: pi }, extra || {}));
+      finish(G, -1);
+      return { ok: true, ended: true };
+    }
+    nextTurn(G, now);
+    bump(G, Object.assign({ k: kind, p: pi }, extra || {}));
+    return { ok: true };
+  }
+
+  /**
+   * Apply one intent from `playerId`. Everything is checked here.
+   * actions: {t:'play', ps:[{c,id,s}], v} | {t:'swap', ids:[…]} | {t:'pass'} | {t:'skip'} (host only)
+   * now: host clock (turn timer), rng: for reshuffling swapped tiles
+   */
+  function apply(G, playerId, action, now, rng) {
+    if (!action || typeof action !== 'object') return { ok: false, reason: 'malformed' };
+    if (G.status !== 'playing') return { ok: false, reason: 'not_playing' };
+    if (action.t === 'skip') {
+      if (playerId !== G.hostId) return { ok: false, reason: 'host_only' };
+      return scoreless(G, G.turn, 'skip', now);
+    }
+    const pi = idx(G, playerId);
+    if (pi < 0) return { ok: false, reason: 'no_player' };
+    if (pi !== G.turn) return { ok: false, reason: 'not_your_turn' };
+    if (action.v !== undefined && action.v !== G.tn) return { ok: false, reason: 'stale' };
+    const p = G.players[pi];
+    if (action.t === 'pass') return scoreless(G, pi, 'pass', now);
+    if (action.t === 'swap') {
+      const ids = Array.isArray(action.ids) ? action.ids : [];
+      if (!ids.length || new Set(ids).size !== ids.length || !ids.every(id => p.hand.indexOf(id) >= 0)) return { ok: false, reason: 'not_your_tile' };
+      if (G.bag.length < G.rules.swapMin) return { ok: false, reason: 'swap_low' };
+      const gone = new Set(ids);
+      p.hand = p.hand.filter(id => !gone.has(id));
+      refill(G, p);
+      G.bag = M.shuffle(G.bag.concat(ids), rng || Math.random);
+      return scoreless(G, pi, 'swap', now, { n: ids.length });
+    }
+    if (action.t === 'play') {
+      const ps = action.ps;
+      if (!Array.isArray(ps) || !ps.length) return { ok: false, reason: 'no_tiles' };
+      if (!ps.every(x => x && p.hand.indexOf(x.id) >= 0)) return { ok: false, reason: 'not_your_tile' };
+      const res = M.evaluatePlay(G.board, ps);
+      if (!res.ok) return { ok: false, reason: res.reason };
+      ps.forEach(x => { G.board[x.c] = [x.id, x.s]; });
+      const gone = new Set(ps.map(x => x.id));
+      p.hand = p.hand.filter(id => !gone.has(id));
+      p.score += res.score;
+      refill(G, p);
+      G.scoreless = 0;
+      G.lastMove = { tn: G.tn, k: 'play', p: pi, sc: res.score, bg: res.bingo ? 1 : 0, cs: ps.map(x => x.c), eq: res.main, ln: res.lines.length };
+      const entry = { k: 'play', p: pi, sc: res.score, eq: res.main, bg: res.bingo ? 1 : 0 };
+      if (!p.hand.length) { bump(G, entry); finish(G, pi); return { ok: true, ended: true, score: res.score }; }
+      nextTurn(G, now);
+      bump(G, entry);
+      return { ok: true, score: res.score };
+    }
+    return { ok: false, reason: 'malformed' };
+  }
+
+  /** Turn timer: the host calls this; a turn that ran out counts as a pass. */
+  function timeout(G, now) {
+    if (G.status !== 'playing' || !G.rules.turnSec || !G.turnAt) return null;
+    if (now - G.turnAt < G.rules.turnSec * 1000) return null;
+    return scoreless(G, G.turn, 'timeout', now);
+  }
+  function setBotLevel(G, level) {
+    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+    G.rules.botLevel = BOT_LEVELS.indexOf(level) >= 0 ? level : 'normal';
+    bump(G);
+    return { ok: true };
+  }
+  function setTurnSec(G, sec) {
+    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+    G.rules.turnSec = TURN_SECS.indexOf(sec) >= 0 ? sec : 0;
+    bump(G);
+    return { ok: true };
+  }
+
+  /** A slice-able search for the bot whose turn it is: {step(ms) → done, action()}. */
+  function botSearch(G, opts) {
+    const p = G.players[G.turn];
+    if (!p || !p.bot || G.status !== 'playing') return null;
+    const job = Bot.create(G.board, p.hand, opts);
+    const level = (opts && opts.level) || G.rules.botLevel;
+    return {
+      step: ms => job.step(ms),
+      action: () => {
+        const b = job.pick(level);
+        if (b) return { t: 'play', ps: b.placements, v: G.tn };
+        if (G.bag.length >= G.rules.swapMin) return { t: 'swap', ids: Bot.swapPick(p.hand), v: G.tn };
+        return { t: 'pass', v: G.tn };
+      }
+    };
+  }
+  function botAction(G, opts) {
+    const s = botSearch(G, opts);
+    if (!s) return null;
+    while (!s.step()) { /* run it all */ }
+    return s.action();
+  }
+
+  /** What every seat may see. Racks are never in here. */
+  function publicView(G, online, now) {
+    const mv = G.lastMove ? Object.assign({}, G.lastMove) : null;
+    if (mv && mv.cs) mv.cs = M.encodeIds(mv.cs.map(c => c));   // cells fit in 2 base-36 chars too
+    return {
+      g: 'math',
+      c: G.code, h: G.hostId, s: G.status, v: G.v, r: G.round, t: G.turn, tn: G.tn, w: G.winner,
+      bag: G.bag.length,
+      bd: M.encodeBoard(G.board),
+      ts: G.rules.turnSec || 0,
+      bl: G.rules.botLevel || 'normal',
+      tl: G.status === 'playing' && G.rules.turnSec && G.turnAt && now ? Math.max(0, G.rules.turnSec * 1000 - (now - G.turnAt)) : -1,
+      mv,
+      ps: G.players.map(p => ({ id: p.id, nm: p.name, b: p.bot ? 1 : 0, n: p.hand.length, sc: p.score, wn: p.wins || 0, on: p.bot || !online || online.has(p.id) ? 1 : 0 })),
+      lg: G.log.slice(-6),
+      res: G.status === 'ended' ? G.result : null
+    };
+  }
+
+  function decodeCells(s) {
+    const out = [];
+    if (typeof s !== 'string') return out;
+    for (let i = 0; i + 1 < s.length; i += 2) { const c = parseInt(s.slice(i, i + 2), 36); if (c >= 0 && c < M.CELLS) out.push(c); }
+    return out;
+  }
+  function readView(pv) {
+    const mv = pv.mv && typeof pv.mv === 'object' ? Object.assign({}, pv.mv, { cs: decodeCells(pv.mv.cs) }) : null;
+    return {
+      game: 'math',
+      code: pv.c, hostId: pv.h, status: pv.s, v: pv.v, round: pv.r, turn: pv.t, tn: pv.tn, winner: pv.w,
+      bag: pv.bag, pool: pv.bag, board: M.decodeBoard(pv.bd), timeLeft: typeof pv.tl === 'number' ? pv.tl : -1,
+      rules: { turnSec: pv.ts || 0, botLevel: BOT_LEVELS.indexOf(pv.bl) >= 0 ? pv.bl : 'normal' },
+      players: (pv.ps || []).map(p => ({ id: p.id, name: cleanName(p.nm), bot: !!p.b, count: p.n, score: p.sc, wins: p.wn || 0, online: !!p.on })),
+      log: pv.lg || [], result: pv.res, lastMove: mv
+    };
+  }
+
+  function handOf(G, id) {
+    const p = G.players.find(q => q.id === id);
+    return p ? p.hand.slice() : [];
+  }
+
+  /** Every tile is somewhere, exactly once. */
+  function invariant(G) {
+    if (G.status === 'lobby') return true;
+    const all = G.bag.slice();
+    G.board.forEach(x => { if (x) all.push(x[0]); });
+    G.players.forEach(p => all.push.apply(all, p.hand));
+    return all.length === M.TILE_COUNT && new Set(all).size === M.TILE_COUNT;
+  }
+
+  // network shapes for a move
+  function encodeAct(a) {
+    if (a.t === 'play') return { t: 'play', ps: M.encodePlaced(a.ps), v: a.v };
+    if (a.t === 'swap') return { t: 'swap', ids: M.encodeIds(a.ids), v: a.v };
+    return { t: a.t, v: a.v };
+  }
+  function decodeAct(d) {
+    if (!d || typeof d !== 'object') return null;
+    const v = typeof d.v === 'number' ? d.v : undefined;
+    if (d.t === 'play' && typeof d.ps === 'string') { const ps = M.decodePlaced(d.ps); return ps && ps.length <= M.RACK ? { t: 'play', ps, v } : null; }
+    if (d.t === 'swap' && typeof d.ids === 'string' && d.ids.length <= 2 * M.RACK) return { t: 'swap', ids: M.decodeIds(d.ids), v };
+    if (d.t === 'pass') return { t: 'pass', v };
+    return null;
+  }
+
+  const api = {
+    DEFAULT_RULES, TURN_SECS, BOT_LEVELS,
+    createGame, addPlayer, addBot, removePlayer, start, apply, timeout, setTurnSec, setBotLevel,
+    botSearch, botAction, publicView, readView, handOf, invariant, encodeAct, decodeAct, cleanName,
+    encodeHand: M.encodeIds, decodeHand: M.decodeIds
+  };
+  root.RK = root.RK || {};
+  root.RK.MathHost = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
 // ---- i18n.js ----
 // Thai / English strings. {name} placeholders are filled by t().
 (function (root) {
@@ -2042,7 +3082,33 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       sFxSound: 'เอฟเฟกต์และเสียง', sFx: 'ระดับเอฟเฟกต์', fx_full: 'เต็ม', fx_lite: 'เบา', fx_off: 'ปิด', sSound: 'เปิดเสียง', sVolume: 'ระดับเสียง', sDemo: 'ลองเอฟเฟกต์',
       sFps: 'อัตราเฟรมสูงสุด (FPS)', sFpsScreen: 'จอนี้แสดงได้ประมาณ {hz} FPS', sFpsOver: 'จอนี้แสดงได้ประมาณ {hz} FPS ตั้งสูงกว่านี้ได้ แต่จะเห็นจริงแค่ {hz}', sShowFps: 'แสดงตัวนับ FPS',
       sRules: 'กติกาโต๊ะที่คุณเปิด', sBoardHead: 'บอร์ดของคุณ (รางไพ่)',
-      colors: ['ดำ', 'แดง', 'น้ำเงิน', 'เหลือง'], joker: 'โจ๊กเกอร์'
+      colors: ['ดำ', 'แดง', 'น้ำเงิน', 'เหลือง'], joker: 'โจ๊กเกอร์',
+      // games on the menu
+      gameLabel: 'เกม', gRummy: 'Rummy', gMath: 'ครอสเวิร์ดเลข', gRummySub: 'เรียงไพ่ตัวเลข สี่สี', gMathSub: 'ต่อเลขให้เป็นสมการ',
+      // math crossword
+      mBoard: 'กระดาน 15 × 15', mRack: 'รางไพ่ของคุณ', mEq: 'สมการ', mTileShort: 'เบี้ย', mBag: 'ไพ่ในถุง', mLog: 'ล่าสุด', mLegend: 'ช่องพิเศษและกติกา',
+      mLegE3: 'สมการ ×3', mLegE2: 'สมการ ×2', mLegT3: 'เบี้ย ×3', mLegT2: 'เบี้ย ×2',
+      mRule1: 'ทุกแถวที่ไพ่ติดกันต้องเป็นสมการที่ถูก มี = อย่างน้อย 1 ตัว (มีหลาย = ได้)',
+      mRule2: 'เลข 0–9 ต่อกันเป็นเลขได้ไม่เกิน 3 หลัก ห้ามขึ้นต้นด้วย 0 · ไพ่ 10–20 ต้องวางเดี่ยว',
+      mRule3: '× ÷ คิดก่อน + − · ใส่ − หน้าตัวเลขได้ที่ต้นสมการหรือหลัง = · ตาแรกต้องผ่านดาว ★',
+      mRule4: 'ลงครบ 8 ตัวในตาเดียว +40 · ไพ่ +/− และ ×/÷ เลือกได้ ไพ่ว่างเป็นอะไรก็ได้ (0 แต้ม)',
+      mRecall: 'เก็บคืน', mShuffle: 'สลับ', mSort: 'เรียง', mSwap: 'เปลี่ยนไพ่', mSwapGo: 'เปลี่ยน {n} ตัว', mSwapCancel: 'ยกเลิก',
+      mSwapHint: 'แตะไพ่ที่จะเปลี่ยน แล้วกดยืนยัน (ใช้ตานี้)', mPass: 'ผ่าน', mPassArm: 'แตะอีกครั้งเพื่อผ่าน', mPlay: 'ลง', mPlayPts: 'ลง +{n}', mZoom: 'ขยายกระดาน',
+      mHintEmpty: 'วางไพ่จากรางลงกระดานให้เป็นสมการที่ถูก', mHintFirst: 'ตาแรก: วางสมการผ่านช่องดาว ★ ตรงกลาง', mHintChoice: 'แตะไพ่ที่ยังว่างเพื่อเลือกค่า',
+      mHintOk: '✓ {eq} ได้ +{n}', mOkLines: '{n} สมการ',
+      mPickDual: 'เลือกเครื่องหมาย', mPickBlank: 'ไพ่ว่าง: เลือกค่า (0 แต้ม)', mBackToRack: 'คืนเข้าราง',
+      mTileLabel: 'ไพ่ {s}, {p} แต้ม', mBlankLabel: 'ไพ่ว่าง',
+      mThinking: '{name} กำลังคิด…', mTurnSub: 'วางสมการ เปลี่ยนไพ่ หรือผ่าน',
+      mlog_play: '{name} ลง {eq} +{n}', mlog_bingo: '{name} ลงครบ 8 ตัว! {eq} +{n}', mlog_swap: '{name} เปลี่ยนไพ่ {n} ตัว', mlog_pass: '{name} ผ่าน',
+      mlog_timeout: '{name} หมดเวลา', mlog_skip: 'โฮสต์ข้ามตา {name}', mlog_start: 'เริ่มเกม — {name} ลงก่อน', mlog_win: '{name} ชนะ', mlog_draw: 'เสมอกัน', mlog_join: '{name} เข้าโต๊ะ',
+      mfxBingo: 'บิงโก! ลงครบ 8 ตัว', mfxBig: 'สุดยอด +{n}!', mfxCross: 'ไขว้ {n} สมการ!', mfxTimeout: 'หมดเวลา!',
+      mGameOver: 'จบเกมที่ {r}', mYouWon: 'คุณชนะ!', mDraw: 'เสมอกัน', mColLeft: 'แต้มค้างราง', mColAdj: 'ปรับ', mColScore: 'คะแนน', mColWins: 'ชนะ', mRematch: 'เล่นอีกเกม', mWins: 'ชนะแล้ว {n} เกม',
+      mTimer: 'เวลาต่อตา', timer_0: 'ไม่จับ', timer_n: '{n} วิ', mBotLevel: 'ระดับบอท', bot_easy: 'ง่าย', bot_normal: 'กลาง', bot_hard: 'ยาก',
+      mTimerOn: 'จับเวลา {n} วินาทีต่อตา', mTimerOff: 'ไม่จับเวลา', mBotIs: 'บอทระดับ{l}',
+      r_eq_none: 'ต้องมี = อย่างน้อย 1 ตัว', r_eq_ops: 'เครื่องหมายวางผิดที่', r_eq_big: 'ไพ่ 10–20 ต้องวางเดี่ยว ห้ามติดเลขอื่น', r_eq_digits: 'ตัวเลขยาวได้ไม่เกิน 3 หลัก',
+      r_eq_lead0: 'ตัวเลขห้ามขึ้นต้นด้วย 0', r_eq_neg0: 'ไม่มี −0', r_eq_div0: 'หารด้วยศูนย์ไม่ได้', r_eq_false: 'ไม่เท่ากัน', r_eq_short: 'สมการต้องยาวอย่างน้อย 3 ตัว',
+      r_not_line: 'ไพ่ที่ลงต้องอยู่แถวเดียวหรือคอลัมน์เดียว', r_gap: 'ไพ่ที่ลงต้องติดกัน ไม่เว้นช่อง', r_center: 'ตาแรกต้องวางผ่านช่องดาว ★',
+      r_not_connected: 'ต้องต่อกับไพ่ที่อยู่บนกระดาน', r_need_choice: 'เลือกค่าให้ไพ่ตัวเลือกก่อน', r_cell_taken: 'ช่องนี้มีไพ่แล้ว', r_swap_low: 'ในถุงเหลือไม่ถึง 5 ตัว เปลี่ยนไพ่ไม่ได้'
     },
     en: {
       tagline: 'Rummikub-style number tiles for 2–4 players. Open a table for friends online, or practise against bots.',
@@ -2096,7 +3162,31 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       sFxSound: 'Effects and sound', sFx: 'Effects', fx_full: 'Full', fx_lite: 'Light', fx_off: 'Off', sSound: 'Sound on', sVolume: 'Volume', sDemo: 'Try the effects',
       sFps: 'Max frame rate (FPS)', sFpsScreen: 'This screen shows about {hz} FPS', sFpsOver: 'This screen shows about {hz} FPS. You can set more, but you will see {hz}.', sShowFps: 'Show FPS counter',
       sRules: 'Rules for tables you open', sBoardHead: 'Your board (rack)',
-      colors: ['black', 'red', 'blue', 'yellow'], joker: 'joker'
+      colors: ['black', 'red', 'blue', 'yellow'], joker: 'joker',
+      gameLabel: 'Game', gRummy: 'Rummy', gMath: 'Math Crossword', gRummySub: 'Number tiles in four colours', gMathSub: 'Build true equations',
+      mBoard: '15 × 15 board', mRack: 'Your rack', mEq: 'eq', mTileShort: 'tile', mBag: 'Tiles in the bag', mLog: 'Latest', mLegend: 'Bonus squares and rules',
+      mLegE3: 'Equation ×3', mLegE2: 'Equation ×2', mLegT3: 'Tile ×3', mLegT2: 'Tile ×2',
+      mRule1: 'Every row or column of touching tiles must be a true equation with at least one = (more are fine)',
+      mRule2: '0–9 tiles join into numbers of up to 3 digits, no leading 0 · 10–20 tiles stand alone',
+      mRule3: '× ÷ before + − · a − may lead a number at the start or after = · the first move covers the ★',
+      mRule4: 'All 8 tiles in one move: +40 · +/− and ×/÷ tiles let you choose; a blank is anything (0 points)',
+      mRecall: 'Recall', mShuffle: 'Shuffle', mSort: 'Sort', mSwap: 'Swap', mSwapGo: 'Swap {n}', mSwapCancel: 'Cancel',
+      mSwapHint: 'Tap the tiles to trade back, then confirm (uses your turn)', mPass: 'Pass', mPassArm: 'Tap again to pass', mPlay: 'Play', mPlayPts: 'Play +{n}', mZoom: 'Zoom the board',
+      mHintEmpty: 'Put tiles from your rack on the board to make a true equation', mHintFirst: 'First move: run your equation through the ★ in the middle', mHintChoice: 'Tap the open tile to choose what it is',
+      mHintOk: '✓ {eq} for +{n}', mOkLines: '{n} equations',
+      mPickDual: 'Choose the sign', mPickBlank: 'Blank: choose a value (0 points)', mBackToRack: 'Back to rack',
+      mTileLabel: 'Tile {s}, {p} points', mBlankLabel: 'Blank tile',
+      mThinking: '{name} is thinking…', mTurnSub: 'Play an equation, swap, or pass',
+      mlog_play: '{name} played {eq} +{n}', mlog_bingo: '{name} used all 8! {eq} +{n}', mlog_swap: '{name} swapped {n}', mlog_pass: '{name} passed',
+      mlog_timeout: '{name} ran out of time', mlog_skip: 'Host skipped {name}', mlog_start: 'Game on — {name} starts', mlog_win: '{name} wins', mlog_draw: 'A draw', mlog_join: '{name} joined',
+      mfxBingo: 'Bingo! All 8 tiles', mfxBig: 'Huge +{n}!', mfxCross: '{n} equations at once!', mfxTimeout: 'Time\'s up!',
+      mGameOver: 'Game {r} over', mYouWon: 'You won!', mDraw: 'It\'s a draw', mColLeft: 'Left on rack', mColAdj: 'Adjust', mColScore: 'Score', mColWins: 'Wins', mRematch: 'Play again', mWins: '{n} games won',
+      mTimer: 'Time per turn', timer_0: 'Off', timer_n: '{n}s', mBotLevel: 'Bot level', bot_easy: 'Easy', bot_normal: 'Normal', bot_hard: 'Hard',
+      mTimerOn: '{n} seconds per turn', mTimerOff: 'No turn timer', mBotIs: 'Bots: {l}',
+      r_eq_none: 'Needs at least one =', r_eq_ops: 'A sign is in the wrong place', r_eq_big: 'A 10–20 tile must stand alone', r_eq_digits: 'Numbers have at most 3 digits',
+      r_eq_lead0: 'A number can\'t start with 0', r_eq_neg0: 'There is no −0', r_eq_div0: 'Can\'t divide by zero', r_eq_false: 'not equal', r_eq_short: 'An equation needs at least 3 tiles',
+      r_not_line: 'Your tiles must be in one row or one column', r_gap: 'Your tiles must touch, no gaps', r_center: 'The first move must cover the ★',
+      r_not_connected: 'Must join the tiles on the board', r_need_choice: 'Choose a value for the open tile first', r_cell_taken: 'That square is taken', r_swap_low: 'Fewer than 5 tiles in the bag: no swapping'
     }
   };
   root.RK = root.RK || {};
@@ -2773,7 +3863,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
           ch.peers.forEach(p => {
             const pr = p.presence || {};
             if (typeof pr.tbl === 'string' && /^[a-z0-9]{4}$/.test(pr.tbl) && !p.sameTab) {
-              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby' });
+              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby', g: pr.g === 'math' ? 'math' : 'rummy' });
             }
           });
           this.lobby = [...seen.values()];
@@ -2811,10 +3901,10 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
     async announceTable(info) {
       if (!this.room) return;
-      const ann = info ? JSON.stringify([info.code, info.host, info.n, info.st]) : '';
+      const ann = info ? JSON.stringify([info.code, info.host, info.n, info.st, info.g]) : '';
       if (ann === this._ann) return;          // unchanged: don't wake every page in the lobby
       this._ann = ann;
-      try { await this.room.presence(info ? { tbl: info.code, hn: info.host, n: info.n, st: info.st } : { tbl: null, hn: null, n: null, st: null }); } catch (e) { /* presence is best-effort */ }
+      try { await this.room.presence(info ? { tbl: info.code, hn: info.host, n: info.n, st: info.st, g: info.g || 'rummy' } : { tbl: null, hn: null, n: null, st: null, g: null }); } catch (e) { /* presence is best-effort */ }
     },
 
     async joinTable(code, handlers) {
@@ -2922,7 +4012,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         const x = all[code];
         if (!CODE_RE.test(code) || !x || x.uid === uid) return;
         if (typeof x.ts === 'number' && now - x.ts > 6 * 3600e3) return;   // forgotten tables
-        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby' });
+        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby', g: x.g === 'math' ? 'math' : 'rummy' });
       });
       Net.lobby = list;
       onChange();
@@ -2938,13 +4028,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       if (!info) { if (lobbyOn && code) { lobbyOn = false; lastAnn = ''; try { await fb.remove(R('lobby/' + code)); } catch (e) {} } return; }
       if (!CODE_RE.test(info.code)) return;
       // only write when something changed (or every 10 min to keep the entry fresh): every write wakes every menu
-      const ann = JSON.stringify([info.code, info.host, info.n, info.st]);
+      const ann = JSON.stringify([info.code, info.host, info.n, info.st, info.g]);
       if (ann === lastAnn && Date.now() - lastAnnAt < 600e3) return;
       lastAnn = ann; lastAnnAt = Date.now();
       try {
         const r = R('lobby/' + info.code);
         if (!lobbyOn) { lobbyOn = true; fb.onDisconnect(r).remove(); }
-        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, ts: fb.serverTimestamp() });
+        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, g: info.g === 'math' ? 'math' : 'rummy', ts: fb.serverTimestamp() });
       } catch (e) { /* the lobby is best-effort */ }
     };
 
@@ -3044,11 +4134,724 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   root.RK.NetFB = { attach, hasConfig, SDK_VERSION };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
+// ---- mathui.js ----
+// Math crossword screen: the 15 × 15 board, your rack, placing tiles, effects.
+// app.js owns the menu, lobby, settings and the network; it hands this module
+// what it needs (A) and calls onState / renderGame / afterRender.
+(function (root) {
+  'use strict';
+  root.RK = root.RK || {};
+  root.RK.MathUI = function (A) {
+    const M = root.RK.MathRules, MH = root.RK.MathHost, FX = root.RK.FX, SFX = root.RK.SFX;
+    const { S, h, t } = A;
+    const $ = (sel, el) => (el || document).querySelector(sel);
+    const SHOW = s => (s === '*' ? '×' : s === '/' ? '÷' : s === '-' ? '−' : s);
+    const FACE = f => (f === '+-' ? '+/−' : f === '*/' ? '×/÷' : f === '?' ? '' : SHOW(f));
+    const PREM = { E: 'pe3', e: 'pe2', T: 'pt3', t: 'pt2', '*': 'pstar' };
+
+    // this screen's own state; S (shared) holds the view, hand, mode and ids
+    const U = {
+      turnKey: null, draft: [], order: [], orderKey: null, prevHand: null,
+      sel: null, swap: null, picker: null, passArm: 0, zoom: 1,
+      mvSeen: null, bannerKey: null, pendingMove: null, pendingBanner: false, dealing: false,
+      lastCells: new Set(), flyIds: null, flyBoard: null, flyFrom: -1, dragFrom: null,
+      deadline: 0, deadlineTn: null, endAt: 0, endClosed: null, scroll: null, ro: null, ticker: null
+    };
+
+    const me = () => (S.view && S.meIdx >= 0 ? S.view.players[S.meIdx] : null);
+    const isMyTurn = () => !!(S.view && S.view.status === 'playing' && S.meIdx >= 0 && S.view.turn === S.meIdx);
+    const active = () => S.screen === 'game' && S.gameId === 'math' && !!S.view && !S.settings;
+
+    // ---------- rack order (kept per game, survives reloads) ----------
+    function loadOrder(key) {
+      const o = A.store.json('rk.mrack');
+      return o && o.k === key && Array.isArray(o.order) ? o.order.filter(Number.isInteger) : null;
+    }
+    const saveOrder = () => A.store.set('rk.mrack', JSON.stringify({ k: U.orderKey, order: U.order }));
+    const draftIds = () => new Set(U.draft.map(p => p.id));
+    const rackIds = () => { const d = draftIds(); return U.order.filter(id => !d.has(id)); };
+
+    // ---------- state from the host ----------
+    function reset() {
+      Object.assign(U, { turnKey: null, draft: [], sel: null, swap: null, picker: null, mvSeen: null, bannerKey: null, pendingMove: null, pendingBanner: false, dealing: false, lastCells: new Set(), flyIds: null, flyBoard: null, prevHand: null, endAt: 0, endClosed: null, deadline: 0, deadlineTn: null, scroll: null });
+      stopTicker();
+    }
+
+    function onState() {
+      const v = S.view;
+      if (!v) { A.render(); return; }
+      S.meIdx = v.players.findIndex(p => p.id === S.myId);
+      const hand = S.hand || [];
+      const first = U.mvSeen === null;
+      // rack order: keep yours, drop what left, add what came in at the end
+      const ok = v.code + ':' + v.round;
+      if (U.orderKey !== ok) { U.orderKey = ok; U.order = loadOrder(ok) || []; U.prevHand = null; }
+      const inHand = new Set(hand);
+      U.order = U.order.filter(id => inHand.has(id));
+      hand.forEach(id => { if (U.order.indexOf(id) < 0) U.order.push(id); });
+      const prev = U.prevHand ? new Set(U.prevHand) : null;
+      const fresh = hand.filter(id => prev && !prev.has(id));
+      if (fresh.length && !first) U.flyIds = new Set(fresh);
+      U.prevHand = hand.slice();
+      saveOrder();
+
+      // a new turn starts with an empty draft; the same turn keeps it (minus anything gone)
+      const turnKey = v.code + ':' + v.round + ':' + v.tn;
+      if (U.turnKey !== turnKey) { U.turnKey = turnKey; U.draft = []; U.sel = null; U.swap = null; U.picker = null; U.passArm = 0; S.pending = false; }
+      else U.draft = U.draft.filter(p => inHand.has(p.id) && !v.board[p.c]);
+
+      const mv = v.lastMove;
+      const mvKey = mv ? v.code + ':' + v.round + ':' + mv.tn + ':' + mv.k : '';
+      if (mvKey !== U.mvSeen) {
+        U.mvSeen = mvKey;
+        if (mv && mv.k === 'deal') { U.lastCells = new Set(); U.dealing = true; U.flyIds = new Set(hand); }   // a fresh deal always flies in
+        else if (mv && mv.k === 'play') U.lastCells = new Set(mv.cs);
+        if (mv && mv.k !== 'deal' && !first) {
+          U.pendingMove = mv;
+          if (mv.k === 'play' && mv.p !== S.meIdx) { U.flyBoard = new Set(mv.cs.map(c => v.board[c] && v.board[c][0])); U.flyFrom = mv.p; }
+        }
+        if (v.status === 'ended' && !first) { U.endAt = Date.now() + 2400; setTimeout(A.render, 2450); }
+      }
+      if (isMyTurn() && U.bannerKey !== turnKey) { U.bannerKey = turnKey; U.pendingBanner = true; }
+
+      // turn timer: the host sends what is left; count down locally
+      if (v.status === 'playing' && v.rules.turnSec && v.timeLeft >= 0) {
+        const dl = Date.now() + v.timeLeft;
+        if (U.deadlineTn !== v.tn || Math.abs(dl - U.deadline) > 1500) { U.deadline = dl; U.deadlineTn = v.tn; }
+      } else { U.deadline = 0; U.deadlineTn = null; }
+
+      const screen = v.status === 'lobby' ? 'lobby' : 'game';
+      const key = JSON.stringify([v.code, v.v, v.status, v.players.map(p => (p.online ? 1 : 0) + p.name), hand, S.meIdx, screen]);
+      if (key === S.lastStateKey && S.screen === screen && !U.pendingMove && !U.pendingBanner && !U.dealing) return;
+      S.lastStateKey = key;
+      S.screen = screen;
+      A.render();
+    }
+
+    // ---------- your move ----------
+    function evalDraft() {
+      if (!U.draft.length || !S.view) return null;
+      const open = U.draft.filter(p => !p.s);
+      if (open.length) return { ok: false, reason: 'need_choice', bad: open.map(p => p.c) };
+      return M.evaluatePlay(S.view.board, U.draft);
+    }
+    function place(id, c) {
+      if (!isMyTurn()) { A.toast(t('notYourTurn'), true); return false; }
+      if (S.pending) return false;
+      if (S.view.board[c]) { A.toast(t('cellTaken'), true); return false; }
+      const moving = U.draft.find(p => p.id === id);
+      const other = U.draft.find(p => p.c === c);
+      if (other && other.id !== id) {
+        if (moving) other.c = moving.c;                       // two of your tiles swap places
+        else U.draft = U.draft.filter(p => p !== other);      // a rack tile replaces it; that one goes back
+      }
+      if (moving) moving.c = c;
+      else { const f = M.tile(id).face; U.draft.push({ c, id, s: M.needsChoice(f) ? null : f }); }
+      U.sel = null; U.swap = null;
+      const d = U.draft.find(p => p.id === id);
+      U.picker = d.s === null ? c : null;
+      U.justPlaced = id;
+      SFX.place(U.draft.length);
+      A.render();
+      return true;
+    }
+    function toRack(id, slot) {
+      U.draft = U.draft.filter(p => p.id !== id);
+      if (U.picker !== null && !U.draft.some(p => p.c === U.picker)) U.picker = null;
+      if (slot !== undefined) moveInRack(id, slot);
+      U.sel = null;
+      SFX.place(2);
+      A.render();
+    }
+    function moveInRack(id, slot) {
+      const d = draftIds();
+      const vis = U.order.filter(x => !d.has(x) && x !== id);
+      vis.splice(Math.min(slot, vis.length), 0, id);
+      U.order = vis.concat(U.order.filter(x => d.has(x) && x !== id));
+      saveOrder();
+    }
+    function recall() { if (!U.draft.length) return; U.draft = []; U.picker = null; U.sel = null; A.render(); }
+    function shuffle() {
+      const d = draftIds();
+      const vis = M.shuffle(U.order.filter(x => !d.has(x)), A.rand);
+      U.order = vis.concat(U.order.filter(x => d.has(x)));
+      saveOrder(); SFX.whoosh(); A.render();
+    }
+    function sortRack() {
+      const d = draftIds();
+      U.order = U.order.filter(x => !d.has(x)).sort(M.byFace).concat(U.order.filter(x => d.has(x)));
+      saveOrder(); A.render();
+    }
+    function play() {
+      const ev = evalDraft();
+      if (!ev || !ev.ok || S.pending || !isMyTurn()) return;
+      U.picker = null;
+      A.act({ t: 'play', ps: U.draft.map(p => ({ c: p.c, id: p.id, s: p.s })), v: S.view.tn });
+    }
+    function startSwap() {
+      if (!isMyTurn() || S.view.bag < MH.DEFAULT_RULES.swapMin) return;
+      U.draft = []; U.picker = null; U.sel = null; U.swap = new Set();
+      A.render();
+    }
+    function doSwap() {
+      if (!U.swap || !U.swap.size) return;
+      const ids = [...U.swap];
+      U.swap = null;
+      A.act({ t: 'swap', ids, v: S.view.tn });
+    }
+    function pass() {
+      if (!isMyTurn() || S.pending) return;
+      if (Date.now() - U.passArm > 3000) { U.passArm = Date.now(); A.render(); setTimeout(() => { if (U.passArm && Date.now() - U.passArm >= 3000) { U.passArm = 0; A.render(); } }, 3050); return; }
+      U.passArm = 0;
+      U.draft = [];
+      A.act({ t: 'pass', v: S.view.tn });
+    }
+    /** The host said no: shake the line that's wrong. */
+    function deny() {
+      const ev = evalDraft();
+      const els = ev && ev.bad ? ev.bad.map(c => $('[data-mc="' + c + '"]')) : [...document.querySelectorAll('.mtile.draft')];
+      FX.deny(els);
+    }
+
+    // ---------- drawing ----------
+    function tileLabel(id, sym) {
+      const tl = M.tile(id);
+      if (tl.face === '?' && !sym) return t('mBlankLabel');
+      return t('mTileLabel', { s: sym ? SHOW(sym) : FACE(tl.face), p: tl.pts });
+    }
+    function tileEl(id, sym, cls, src) {
+      const tl = M.tile(id), f = tl.face;
+      const text = sym ? SHOW(sym) : FACE(f);
+      const kind = f === '?' ? 'blank' : f === '+-' || f === '*/' ? 'dual' : f === '=' ? 'eq' : M.isNumFace(f) ? 'num' : 'op';
+      const sk = sym ? (sym === '=' ? 'eq' : M.NUMS.indexOf(sym) >= 0 ? 'num' : 'op') : kind;
+      const el = h('div', {
+        class: 'mtile k-' + kind + ' s-' + sk + (text.length >= 3 ? ' w3' : text.length === 2 ? ' w2' : '') + (cls ? ' ' + cls : ''),
+        'data-mt': id, role: 'img', 'aria-label': tileLabel(id, sym)
+      }, h('span', { class: 'mt-s', text }), tl.pts ? h('span', { class: 'mt-p', text: String(tl.pts) }) : null);
+      if (src) el.dataset.src = src;
+      return el;
+    }
+
+    function renderBoard() {
+      const v = S.view, my = isMyTurn();
+      const draftAt = new Map(U.draft.map(p => [p.c, p]));
+      const ev = my ? evalDraft() : null;
+      const bad = new Set(ev && !ev.ok && ev.bad ? ev.bad : []);
+      const good = new Set();
+      if (ev && ev.ok) ev.lines.forEach(L => L.cells.forEach(c => good.add(c)));
+      const g = h('div', { class: 'mboard' + (my ? ' mine' : '') + (U.sel ? ' placing' : '') + (U.cs >= 38 ? ' roomy' : ''), role: 'grid', 'aria-label': t('mBoard'), style: U.cs ? { '--cs': U.cs + 'px' } : null });
+      const empty = M.isEmpty(v.board);
+      for (let c = 0; c < M.CELLS; c++) {
+        const pr = M.premium(c);
+        const b = v.board[c], d = draftAt.get(c);
+        const cell = h('div', {
+          class: 'mcell' + (pr ? ' ' + PREM[pr] : '') + (bad.has(c) ? ' bad' : good.has(c) ? ' good' : '') + (pr === '*' && empty ? ' start' : ''),
+          'data-mc': c, role: 'gridcell'
+        });
+        if (b) cell.append(tileEl(b[0], b[1], 'onb' + (U.lastCells.has(c) ? ' last' : '')));
+        else if (d) cell.append(tileEl(d.id, d.s, 'draft' + (d.s ? '' : ' open') + (U.picker === c ? ' picking' : ''), 'draft'));
+        else if (pr === '*') cell.append(h('span', { class: 'pl star', 'aria-hidden': 'true', text: '★' }));
+        else if (pr) cell.append(h('span', { class: 'pl', 'aria-hidden': 'true' }, h('b', { text: '×' + (pr === 'E' || pr === 'T' ? 3 : 2) }), h('small', { text: pr === 'E' || pr === 'e' ? t('mEq') : t('mTileShort') })));
+        g.append(cell);
+      }
+      return g;
+    }
+
+    function renderRack() {
+      const ids = rackIds();
+      const rack = h('div', { class: 'mrack' + (U.swap ? ' swapping' : ''), 'data-rack': '1', 'aria-label': t('mRack') });
+      for (let i = 0; i < M.RACK; i++) {
+        const id = ids[i];
+        const slot = h('div', { class: 'mslot', 'data-ms': i });
+        if (id !== undefined) slot.append(tileEl(id, null, (U.sel && U.sel.id === id ? 'sel' : '') + (U.swap && U.swap.has(id) ? ' swapsel' : ''), 'rack'));
+        rack.append(slot);
+      }
+      return rack;
+    }
+
+    function logText(e) {
+      const v = S.view;
+      const p = v.players[e.p];
+      const name = p ? (p.id === S.myId ? t('you') : p.name) : '';
+      if (e.k === 'play') return t(e.bg ? 'mlog_bingo' : 'mlog_play', { name, eq: e.eq || '', n: e.sc });
+      return t('mlog_' + e.k, { name, n: e.n || 0 });
+    }
+
+    function timerText(ms) {
+      const s = Math.max(0, Math.ceil(ms / 1000));
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    function statusLine() {
+      const v = S.view, my = isMyTurn(), cur = v.players[v.turn];
+      const st = h('div', { class: 'mstatus', role: 'status' });
+      if (v.status === 'playing') {
+        if (U.deadline) st.append(h('span', { class: 'mtimer', 'data-timer': '1', text: timerText(U.deadline - Date.now()) }));
+        if (my) {
+          st.append(h('span', { class: 'turnflag', text: t('yourTurn') }));
+          const ev = evalDraft();
+          let hint = '', cls = '';
+          if (U.swap) hint = t('mSwapHint');
+          else if (!ev) hint = M.isEmpty(v.board) ? t('mHintFirst') : t('mHintEmpty');
+          else if (ev.ok) { hint = t('mHintOk', { eq: ev.main, n: ev.score }) + (ev.lines.length > 1 ? ' · ' + t('mOkLines', { n: ev.lines.length }) : '') + (ev.bingo ? ' · BINGO' : ''); cls = ' ok'; }
+          else if (ev.reason === 'need_choice') hint = t('mHintChoice');
+          else {
+            hint = (ev.text ? ev.text + ' — ' : '') + t('r_' + ev.reason) + (ev.reason === 'eq_false' && ev.values ? ' (' + ev.values.join(' ≠ ') + ')' : '');
+            cls = ' bad';
+          }
+          st.append(h('span', { class: 'mcheck' + cls, id: 'm-check', text: hint }));
+        } else if (cur) {
+          st.append(h('span', { text: cur.bot ? t('mThinking', { name: cur.name }) : t('waitingFor', { name: cur.name }) }));
+          const last = v.log[v.log.length - 1];
+          if (last) st.append(h('span', { class: 'logline', text: '· ' + logText(last) }));
+        }
+      }
+      if (S.mode === 'client' && !S.hostSeen) st.append(h('span', { class: 'banner', text: t('hostOffline') }));
+      if (S.meIdx < 0) st.append(h('span', { class: 'banner', text: t('spectating') }));
+      if (S.mode === 'host' && cur && !cur.bot && !cur.online && cur.id !== S.myId && v.status === 'playing') {
+        st.append(h('button', { type: 'button', class: 'btn small', text: t('skipTurn', { name: cur.name }), onclick: () => A.act({ t: 'skip' }) }));
+      }
+      return st;
+    }
+
+    function renderSide() {
+      const v = S.view;
+      const log = h('ol', { class: 'mlog', 'aria-label': t('mLog') }, v.log.slice().reverse().map(e => h('li', { class: e.bg ? 'bingo' : '', text: logText(e) })));
+      const legend = h('div', { class: 'mlegend' },
+        [['pe3', 'mLegE3'], ['pe2', 'mLegE2'], ['pt3', 'mLegT3'], ['pt2', 'mLegT2']].map(([c, k]) => h('span', { class: 'lg' }, h('i', { class: c }), t(k))));
+      const rules = h('ul', { class: 'mrules' }, ['mRule1', 'mRule2', 'mRule3', 'mRule4'].map(k => h('li', { text: t(k) })));
+      return h('aside', { class: 'mside' },
+        h('section', { class: 'mcard' }, h('span', { class: 'label', text: t('mLog') }), v.log.length ? log : h('p', { class: 'note', text: '—' })),
+        h('section', { class: 'mcard' }, h('span', { class: 'label', text: t('mLegend') }), legend, rules));
+    }
+
+    function renderDock() {
+      const v = S.view, my = isMyTurn();
+      const ev = my ? evalDraft() : null;
+      const canPlay = !!(ev && ev.ok) && !S.pending;
+      const bagLow = v.bag < MH.DEFAULT_RULES.swapMin;
+      let actions;
+      if (U.swap) {
+        actions = h('div', { class: 'actions' },
+          h('button', { type: 'button', class: 'btn', id: 'm-swap-cancel', text: t('mSwapCancel'), onclick: () => { U.swap = null; A.render(); } }),
+          h('button', { type: 'button', class: 'btn primary', id: 'm-swap-go', disabled: !U.swap.size, text: t('mSwapGo', { n: U.swap.size }), onclick: doSwap }));
+      } else {
+        const armed = U.passArm && Date.now() - U.passArm < 3000;
+        actions = h('div', { class: 'actions' },
+          h('span', { class: 'agroup' },
+            h('button', { type: 'button', class: 'btn small', id: 'm-recall', disabled: !U.draft.length, text: t('mRecall'), onclick: recall }),
+            h('button', { type: 'button', class: 'btn small', id: 'm-shuffle', text: t('mShuffle'), onclick: shuffle }),
+            h('button', { type: 'button', class: 'btn small', id: 'm-sort', text: t('mSort'), onclick: sortRack })),
+          h('span', { class: 'agroup main' },
+            h('button', { type: 'button', class: 'btn', id: 'm-swap', disabled: !my || S.pending || bagLow, title: bagLow ? t('r_swap_low') : null, text: t('mSwap'), onclick: startSwap }),
+            h('button', { type: 'button', class: 'btn' + (armed ? ' armed' : ''), id: 'm-pass', disabled: !my || S.pending, text: armed ? t('mPassArm') : t('mPass'), onclick: pass }),
+            h('button', { type: 'button', class: 'btn primary', id: 'm-play', disabled: !my || !canPlay, text: canPlay ? t('mPlayPts', { n: ev.score }) : t('mPlay'), onclick: play })));
+      }
+      return h('section', { class: 'mdock', 'aria-label': t('mRack') }, renderRack(), actions,
+        h('p', { class: 'note dock-hint', 'aria-live': 'polite', text: S.pending ? t('sent') : '' }));
+    }
+
+    function renderPicker() {
+      const d = U.draft.find(p => p.c === U.picker);
+      if (!d) { U.picker = null; return null; }
+      const f = M.tile(d.id).face;
+      return h('div', { class: 'mpicker' + (f === '?' ? ' blank' : ''), role: 'dialog', 'aria-label': t(f === '?' ? 'mPickBlank' : 'mPickDual') },
+        h('div', { class: 'mp-head' }, h('span', { text: t(f === '?' ? 'mPickBlank' : 'mPickDual') }),
+          h('button', { type: 'button', class: 'btn small ghost', id: 'm-pick-back', text: t('mBackToRack'), onclick: () => toRack(d.id) })),
+        h('div', { class: 'mp-grid' }, M.options(f).map(s => h('button', {
+          type: 'button', class: 'mp-opt' + (d.s === s ? ' on' : '') + (M.NUMS.indexOf(s) < 0 ? ' op' : ''), 'data-sym': s, text: SHOW(s),
+          onclick: () => { d.s = s; U.picker = null; SFX.pluck(3); A.render(); }
+        }))));
+    }
+
+    function renderEnd() {
+      const v = S.view;
+      const w = v.players[v.winner];
+      const rows = v.players.map((q, i) => h('tr', { class: i === v.winner ? 'win' : '' },
+        h('td', { text: q.name + (q.id === S.myId ? ' (' + t('you') + ')' : '') }),
+        h('td', { class: 'num', text: v.result ? String(v.result[i].left) : '' }),
+        h('td', { class: 'num ' + (v.result && v.result[i].delta >= 0 ? 'pos' : 'neg'), text: v.result ? (v.result[i].delta > 0 ? '+' : '') + v.result[i].delta : '' }),
+        h('td', { class: 'num', text: String(q.score) }),
+        h('td', { class: 'num', text: String(q.wins) })));
+      const host = A.engineMode();
+      return h('div', { class: 'overlay', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'end-title' },
+        h('div', { class: 'dialog' },
+          h('span', { class: 'label', text: t('mGameOver', { r: v.round }) }),
+          h('h2', { id: 'end-title', text: v.winner < 0 ? t('mDraw') : w && w.id === S.myId ? t('mYouWon') : t('winnerIs', { name: w ? w.name : '?' }) }),
+          h('div', { style: { overflowX: 'auto' } }, h('table', { class: 'scores' },
+            h('thead', null, h('tr', null, h('th', { text: t('colPlayer') }), h('th', { class: 'num', text: t('mColLeft') }), h('th', { class: 'num', text: t('mColAdj') }), h('th', { class: 'num', text: t('mColScore') }), h('th', { class: 'num', text: t('mColWins') }))),
+            h('tbody', null, rows))),
+          h('div', { class: 'row' },
+            host ? h('button', { type: 'button', class: 'btn primary', id: 'm-rematch', text: t('mRematch'), onclick: () => { MH.start(S.G, A.rand, Date.now()); A.engineChanged(); } }) : h('span', { class: 'note', text: t('waitHost') }),
+            h('span', { class: 'grow' }),
+            h('button', { type: 'button', class: 'btn ghost', text: t('close'), onclick: () => { U.endClosed = v.round; A.render(); } }),
+            h('button', { type: 'button', class: 'btn ghost', text: t('backHome'), onclick: () => { if (S.mode === 'local') A.store.del('rk.local'); A.leaveTable(); } }))));
+    }
+
+    function renderGame() {
+      const v = S.view;
+      const wrap = $('.mboard-wrap');
+      if (wrap) U.scroll = { l: wrap.scrollLeft, t: wrap.scrollTop };
+      const game = h('div', { class: 'mgame game-math' });
+      const players = h('div', { class: 'players' });
+      v.players.forEach((q, i) => players.append(h('div', { class: 'pchip' + (i === v.turn && v.status === 'playing' ? ' turn' : '') + (q.id === S.myId ? ' me' : ''), 'data-p': i },
+        h('span', { class: 'dot' + (q.online ? '' : ' off') }),
+        h('span', { class: 'nm', text: q.name }),
+        q.id === S.myId ? h('span', { class: 'chip', text: t('you') }) : null,
+        h('span', { class: 'ct score', text: String(q.score) }),
+        q.wins ? h('span', { class: 'ct wins', title: t('mWins', { n: q.wins }), text: '★' + q.wins }) : null)));
+      const sb = A.settingsBtn(true); sb.querySelector('span').textContent = t('settings');
+      game.append(h('header', { class: 'topbar' },
+        h('span', { class: 'mark', html: 'Math <em>Cross</em>' }),
+        S.mode !== 'local' ? h('span', { class: 'code', text: v.code }) : null,
+        players,
+        h('span', { class: 'pool', title: t('mBag') }, h('span', { class: 'bagicon', 'aria-hidden': 'true' }), String(v.bag)),
+        sb, A.langSeg(),
+        h('button', { type: 'button', class: 'btn small ghost', text: t('leave'), onclick: A.leaveTable })));
+
+      const boardWrap = h('div', { class: 'mboard-wrap' }, renderBoard());
+      const zoomBtn = h('button', { type: 'button', class: 'btn small mzoom', id: 'm-zoom', 'aria-label': t('mZoom'), text: U.zoom === 1 ? '⤢' : U.zoom + '×', onclick: () => { U.zoom = U.zoom === 1 ? 1.5 : U.zoom === 1.5 ? 2 : 1; A.render(); } });
+      const playCol = h('div', { class: 'mplay' }, statusLine(), h('div', { class: 'mboard-box' }, boardWrap, zoomBtn), S.meIdx >= 0 ? renderDock() : null);
+      game.append(h('div', { class: 'mmain' }, playCol, renderSide()));
+      const pk = U.picker !== null && isMyTurn() ? renderPicker() : null;
+      if (pk) game.append(pk);
+      if (v.status === 'ended' && U.endClosed !== v.round && Date.now() >= U.endAt) game.append(renderEnd());
+      return game;
+    }
+
+    // ---------- after each draw: fit, motion, effects ----------
+    function fitBoard() {
+      const wrap = $('.mboard-wrap'), b = $('.mboard');
+      if (!wrap || !b) return;
+      const avail = Math.min(wrap.clientWidth, wrap.clientHeight);
+      const cs = Math.max(18, Math.floor((avail - 6) / 15.4));
+      const px = Math.floor(cs * U.zoom);
+      if (px === U.cs && b.style.getPropertyValue('--cs') === px + 'px') return;
+      U.cs = px;
+      b.style.setProperty('--cs', px + 'px');
+      b.classList.toggle('roomy', px >= 38);   // room for the small 'eq' / 'tile' words on bonus squares
+    }
+    function snap() {
+      const m = new Map();
+      document.querySelectorAll('.mgame .mtile[data-mt]').forEach(el => { const r = el.getBoundingClientRect(); if (r.width) m.set(+el.dataset.mt, r); });
+      return m;
+    }
+    const chipRect = p => { const el = $('.pchip[data-p="' + p + '"]'); return el ? el.getBoundingClientRect() : null; };
+    function flip(before) {
+      const deal = U.dealing; U.dealing = false;
+      const fly = U.flyIds; U.flyIds = null;
+      const flyBoard = U.flyBoard; U.flyBoard = null;
+      const chip = flyBoard ? chipRect(U.flyFrom) : null;
+      const from = U.dragFrom; U.dragFrom = null;
+      const bagEl = $('.mgame .pool');
+      const bag = bagEl ? bagEl.getBoundingClientRect() : null;
+      let n = 0, m = 0;
+      // measure everything first, then animate: reading a rect after starting an animation forces a style pass per tile
+      const items = [];
+      document.querySelectorAll('.mgame .mtile[data-mt]').forEach(el => { const r = el.getBoundingClientRect(); if (r.width) items.push([el, r]); });
+      items.forEach(([el, r]) => {
+        const id = +el.dataset.mt;
+        const b = from && from.id === id ? from.rect : before.get(id);
+        if (b && !(deal && fly && fly.has(id))) {
+          const dx = b.left + b.width / 2 - (r.left + r.width / 2), dy = b.top + b.height / 2 - (r.top + r.height / 2), s = b.width / r.width;
+          if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(s - 1) < 0.03) return;
+          el.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + s + ')' }, { transform: 'none' }], { duration: Math.min(480, 180 + Math.hypot(dx, dy) * 0.4), easing: 'cubic-bezier(.2,.85,.25,1.08)' });
+          return;
+        }
+        const inRack = !!el.closest('.mrack');
+        let src = null, delay = 0;
+        if (inRack && fly && fly.has(id) && bag) { src = bag; delay = (n++) * (deal ? 55 : 80); }
+        else if (!inRack && flyBoard && flyBoard.has(id) && chip) { src = chip; delay = (m++) * 70; }
+        if (!src) return;
+        const dx = src.left + src.width / 2 - (r.left + r.width / 2), dy = src.top + src.height / 2 - (r.top + r.height / 2);
+        el.animate([
+          { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.4) rotate(-12deg)', opacity: 0 },
+          { transform: 'translate(' + (dx * 0.35) + 'px,' + (dy * 0.35 - 30) + 'px) scale(1.1) rotate(4deg)', opacity: 1, offset: 0.55 },
+          { transform: 'none', opacity: 1 }
+        ], { duration: 500, delay, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'backwards' });
+        if (inRack) setTimeout(() => SFX.deal(n), delay);
+      });
+      if (deal) FX.hold(n * 55 + 500);
+    }
+
+    function cellRect(c) { const el = $('[data-mc="' + c + '"]'); return el ? el.getBoundingClientRect() : null; }
+    function boardRect() { const b = $('.mboard'); return b ? b.getBoundingClientRect() : null; }
+    function anchor() { const r = boardRect(); return r ? { x: r.left + r.width / 2, y: r.top + Math.min(r.height * 0.18, 90) } : { x: innerWidth / 2, y: 120 }; }
+
+    /** "+24" rising from the middle of the tiles just placed. */
+    function scorePop(cells, n, big) {
+      const rs = cells.map(cellRect).filter(Boolean);
+      if (!rs.length) return;
+      const x = rs.reduce((a, r) => a + r.left + r.width / 2, 0) / rs.length, y = Math.min.apply(null, rs.map(r => r.top));
+      const e = h('div', { class: 'mscore-pop' + (big ? ' big' : ''), text: '+' + n, style: { left: x + 'px', top: y + 'px' } });
+      document.body.append(e);
+      if (FX.tier() === 0) { setTimeout(() => e.remove(), 900); return; }
+      const a = e.animate([
+        { transform: 'translate(-50%, 0) scale(.6)', opacity: 0 },
+        { transform: 'translate(-50%, -22px) scale(1.15)', opacity: 1, offset: 0.25 },
+        { transform: 'translate(-50%, -40px) scale(1)', opacity: 1, offset: 0.7 },
+        { transform: 'translate(-50%, -64px) scale(.95)', opacity: 0 }
+      ], { duration: 1500, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      a.onfinish = () => e.remove();
+    }
+
+    function playMove(mv) {
+      const v = S.view;
+      const who = v.players[mv.p];
+      const mine = mv.p === S.meIdx;
+      FX.note('m-' + mv.k, mv.sc);
+      if (mv.k === 'play') {
+        const d0 = mine ? 0 : 450;
+        mv.cs.forEach((c, i) => setTimeout(() => {
+          const r = cellRect(c);
+          const el = $('[data-mc="' + c + '"] .mtile');
+          if (el && FX.tier() > 0) el.animate([{ scale: '1' }, { scale: '1.18' }, { scale: '1' }], { duration: 360, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
+          if (r) FX.P.sparkle(r.left + r.width / 2, r.top + r.height / 2, 5, { k: 'gold', v0: 20, v1: 90 });
+          SFX.place(i);
+        }, d0 + i * 70));
+        const done = d0 + mv.cs.length * 70 + 120;
+        setTimeout(() => { scorePop(mv.cs, mv.sc, mv.sc >= 40 || mv.bg); SFX.chime(Math.min(6, mv.cs.length + 1)); }, done);
+        const eq = mv.eq || '';
+        if (mv.bg) setTimeout(() => {
+          FX.card(t('mfxBingo'), '+' + M.BINGO + ' · ' + eq, 'gold', 'win', anchor(), true);
+          SFX.fanfare();
+          const r = boardRect(); if (r) FX.P.confetti({ left: r.left, right: r.right, top: r.top }, 90);
+        }, done + 150);
+        else if (mv.sc >= 40) setTimeout(() => { FX.card(t('mfxBig', { n: mv.sc }), eq, 'violet', 'combo', anchor()); SFX.sparkle(); }, done + 150);
+        else if (mv.ln >= 2) setTimeout(() => FX.card(t('mfxCross', { n: mv.ln }), '+' + mv.sc + ' · ' + eq, 'cyan', 'group4', anchor()), done + 150);
+        FX.hold(done + 700);
+        return done + 500;
+      }
+      if (mv.k === 'timeout') {
+        FX.card(t('mfxTimeout'), who ? (mine ? t('you') : who.name) : '', 'rose', 'wrap', anchor());
+        SFX.buzz();
+        return 800;
+      }
+      if (mv.k === 'swap') {
+        const el = $('.pchip[data-p="' + mv.p + '"]');
+        if (el && FX.tier() > 0) el.animate([{ scale: '1' }, { scale: '1.08' }, { scale: '1' }], { duration: 380 });
+        SFX.whoosh();
+        return 300;
+      }
+      return 200;
+    }
+
+    function runPendingFx() {
+      let wait = 0;
+      if (U.pendingMove) { const mv = U.pendingMove; U.pendingMove = null; wait = playMove(mv); }
+      if (U.justPlaced !== undefined) {
+        const id = U.justPlaced; U.justPlaced = undefined;
+        const el = $('.mtile.draft[data-mt="' + id + '"]');
+        if (el) { const r = el.getBoundingClientRect(); FX.P.sparkle(r.left + r.width / 2, r.top + r.height / 2, 4, { k: 'gold', v0: 20, v1: 70 }); }
+        const ev = evalDraft();
+        if (ev && ev.ok) { SFX.chime(3); FX.note('m-valid', ev.score); }
+      }
+      if (U.pendingBanner) {
+        U.pendingBanner = false;
+        setTimeout(() => { if (isMyTurn()) FX.turnBanner(t('turnBanner'), t('mTurnSub')); }, Math.max(wait, FX.busyFor()));
+      }
+      const v = S.view;
+      if (v.status === 'ended' && !U.wonShown && Date.now() >= U.endAt && U.endClosed !== v.round) {
+        U.wonShown = v.code + ':' + v.round;
+        if (v.winner === S.meIdx && S.meIdx >= 0) FX.victory(boardRect());
+      }
+      if (v.status !== 'ended') U.wonShown = null;
+    }
+
+    function placePicker() {
+      const pk = $('.mpicker');
+      if (!pk) return;
+      const r = cellRect(U.picker);
+      if (!r) return;
+      const w = pk.offsetWidth, hh = pk.offsetHeight;
+      let x = r.left + r.width / 2 - w / 2, y = r.bottom + 8;
+      if (y + hh > innerHeight - 8) y = r.top - hh - 8;
+      x = Math.max(8, Math.min(innerWidth - w - 8, x));
+      y = Math.max(8, y);
+      pk.style.left = x + 'px'; pk.style.top = y + 'px';
+    }
+
+    function stopTicker() { clearInterval(U.ticker); U.ticker = null; }
+    function tick() {
+      const left = U.deadline - Date.now();
+      document.querySelectorAll('[data-timer]').forEach(el => {
+        el.textContent = timerText(left);
+        el.classList.toggle('low', left <= 10000);
+      });
+    }
+
+    function afterRender(before) {
+      fitBoard();
+      const wrap = $('.mboard-wrap');
+      if (wrap) {
+        if (U.scroll) { wrap.scrollLeft = U.scroll.l; wrap.scrollTop = U.scroll.t; }
+        else if (U.zoom > 1) { wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2; wrap.scrollTop = (wrap.scrollHeight - wrap.clientHeight) / 2; }
+        if (window.ResizeObserver) {
+          if (!U.ro) U.ro = new ResizeObserver(() => fitBoard());
+          U.ro.disconnect(); U.ro.observe(wrap);
+        }
+      }
+      if (FX.tier() > 0) flip(before);
+      else { U.dealing = false; U.flyIds = null; U.flyBoard = null; U.dragFrom = null; }
+      placePicker();
+      runPendingFx();
+      if (U.deadline && S.view.status === 'playing') { if (!U.ticker) U.ticker = setInterval(tick, 250); tick(); }
+      else stopTicker();
+    }
+
+    // ---------- pointer: drag a tile, or tap to pick and tap to put ----------
+    const D = { p: null, a: null, ghost: null, raf: 0, x: 0, y: 0, pace: null, hover: null, hoverKey: '' };
+    function targetAt(x, y) {
+      const el = document.elementFromPoint(x, y);
+      if (!el || !el.closest('.mgame')) return null;
+      const cell = el.closest('.mcell[data-mc]');
+      if (cell) return { kind: 'cell', c: +cell.dataset.mc, el: cell };
+      const slot = el.closest('.mslot[data-ms]');
+      if (slot) return { kind: 'slot', i: +slot.dataset.ms, el: slot };
+      const rack = el.closest('.mrack, .mdock');
+      if (rack) return { kind: 'rack', el: rack };
+      return null;
+    }
+    function clearHover() { if (D.hover && D.hover.el) D.hover.el.classList.remove('drop', 'drop-bad'); D.hover = null; }
+    function showHover(tgt) {
+      clearHover();
+      if (!tgt) return;
+      D.hover = tgt;
+      const bad = tgt.kind === 'cell' && (!!S.view.board[tgt.c] || !isMyTurn());
+      tgt.el.classList.add(bad ? 'drop-bad' : 'drop');
+    }
+    function dropOn(id, src, tgt) {
+      if (!tgt) return false;
+      if (tgt.kind === 'cell') return place(id, tgt.c);
+      if (tgt.kind === 'slot') {
+        if (src === 'draft') { toRack(id, tgt.i); return true; }
+        moveInRack(id, tgt.i); A.render(); return true;
+      }
+      if (tgt.kind === 'rack' && src === 'draft') { toRack(id); return true; }
+      return false;
+    }
+    function frame(now) {
+      D.raf = 0;
+      if (!D.a || !D.ghost) return;
+      if (!D.pace(now)) { D.raf = requestAnimationFrame(frame); return; }
+      D.ghost.style.transform = 'translate3d(' + D.x + 'px,' + D.y + 'px,0) translate(-50%,-60%) rotate(-3deg) scale(1.12)';
+      const tgt = targetAt(D.x, D.y);
+      const k = tgt ? tgt.kind + (tgt.c !== undefined ? tgt.c : tgt.i !== undefined ? tgt.i : '') : '';
+      if (k !== D.hoverKey) { D.hoverKey = k; showHover(tgt); }
+      // a zoomed board scrolls when you drag near its edge
+      const wrap = $('.mboard-wrap');
+      if (wrap && U.zoom > 1) {
+        const r = wrap.getBoundingClientRect();
+        if (D.x > r.left && D.x < r.right && D.y > r.top && D.y < r.bottom) {
+          if (D.x < r.left + 36) wrap.scrollLeft -= 10; else if (D.x > r.right - 36) wrap.scrollLeft += 10;
+          if (D.y < r.top + 36) wrap.scrollTop -= 10; else if (D.y > r.bottom - 36) wrap.scrollTop += 10;
+        }
+      }
+    }
+    function tapTile(id, src) {
+      if (src === 'rack') {
+        if (U.swap) { if (U.swap.has(id)) U.swap.delete(id); else U.swap.add(id); SFX.pick(); A.render(); return; }
+        U.sel = U.sel && U.sel.id === id ? null : { id };
+        if (U.sel) SFX.pick();
+        A.render();
+        return;
+      }
+      // a tile you put down this turn: choice tiles reopen their picker, others go back to the rack
+      const d = U.draft.find(p => p.id === id);
+      if (!d) return;
+      if (U.sel) { const s = U.sel.id; U.sel = null; place(s, d.c); return; }
+      if (M.needsChoice(M.tile(id).face)) { U.picker = U.picker === d.c ? null : d.c; A.render(); return; }
+      toRack(id);
+    }
+    document.addEventListener('pointerdown', e => {
+      if (!active() || (e.button !== undefined && e.button !== 0)) return;
+      const el = e.target.closest('.mtile[data-src]');
+      if (!el) return;
+      e.preventDefault();
+      D.p = { id: +el.dataset.mt, src: el.dataset.src, el, x0: e.clientX, y0: e.clientY, pid: e.pointerId };
+    });
+    window.addEventListener('pointermove', e => {
+      const p = D.p;
+      if (p && !D.a && e.pointerId === p.pid && Math.hypot(e.clientX - p.x0, e.clientY - p.y0) >= 6) {
+        if (U.swap) { D.p = null; return; }
+        const r = p.el.getBoundingClientRect();
+        const g = p.el.cloneNode(true);
+        g.classList.add('drag-ghost'); g.classList.remove('sel', 'last', 'picking');
+        g.style.width = r.width + 'px'; g.style.height = r.height + 'px'; g.style.setProperty('--tw', r.width + 'px');
+        g.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0) translate(-50%,-60%) rotate(-3deg) scale(1.12)';
+        document.body.append(g);
+        p.el.classList.add('lifting');
+        D.a = p; D.ghost = g; D.p = null; D.hoverKey = ''; D.pace = FX.pacer();
+        U.sel = null; U.picker = null;
+        SFX.pick();
+      }
+      if (!D.a || e.pointerId !== D.a.pid) return;
+      e.preventDefault();
+      D.x = e.clientX; D.y = e.clientY;
+      if (!D.raf) D.raf = requestAnimationFrame(frame);
+    }, { passive: false });
+    function end(e, cancel) {
+      const a = D.a, p = D.p;
+      D.p = null;
+      if (a) {
+        const tgt = cancel ? null : targetAt(e.clientX, e.clientY);
+        clearHover();
+        U.dragFrom = { id: a.id, rect: D.ghost.getBoundingClientRect() };
+        D.ghost.remove(); D.ghost = null; D.a = null;
+        D.dropAt = Date.now();     // the browser follows a mouse drag with a click on the shared parent: ignore it
+        a.el.classList.remove('lifting');
+        if (!dropOn(a.id, a.src, tgt)) { U.dragFrom = null; A.render(); }
+        return;
+      }
+      if (p && !cancel && e.pointerId === p.pid) tapTile(p.id, p.src);
+    }
+    window.addEventListener('pointerup', e => { if (D.a || D.p) end(e, false); });
+    window.addEventListener('pointercancel', e => { if (D.a || D.p) end(e, true); });
+    // taps on empty cells and rack slots (taps on tiles are handled above)
+    document.addEventListener('click', e => {
+      if (!active() || e.target.closest('.mtile, button, .mpicker') || Date.now() - (D.dropAt || 0) < 350) return;
+      const cell = e.target.closest('.mcell[data-mc]');
+      if (cell && U.sel) { place(U.sel.id, +cell.dataset.mc); return; }
+      const slot = e.target.closest('.mslot[data-ms]');
+      if (slot && U.sel) { moveInRack(U.sel.id, +slot.dataset.ms); U.sel = null; A.render(); return; }
+      if (U.picker !== null && !e.target.closest('.mpicker')) { U.picker = null; A.render(); }
+    });
+
+    function onKey(e) {
+      if (!active()) return false;
+      if (e.key === 'Escape') {
+        if (U.picker !== null) U.picker = null;
+        else if (U.swap) U.swap = null;
+        else if (U.sel) U.sel = null;
+        else return true;
+        A.render();
+        return true;
+      }
+      if (e.target && e.target.closest && e.target.closest('input, button, textarea, select')) return false;   // Enter on a button is that button's
+      if (e.key === 'Enter' && !e.repeat) { if (U.swap) doSwap(); else play(); return true; }
+      if (e.key === 'Backspace' && U.draft.length) { toRack(U.draft[U.draft.length - 1].id); return true; }
+      return false;
+    }
+
+    // ---------- menu art: a little equation fanned out ----------
+    function menuFan() {
+      const pick = f => { for (let i = 0; i < M.TILE_COUNT; i++) if (M.tile(i).face === f) return i; return 0; };
+      return h('div', { class: 'menu-fan mfan', 'aria-hidden': 'true' }, ['12', '/', '4', '=', '3'].map((f, i) => {
+        const e = tileEl(pick(f), f, 'static');
+        e.style.setProperty('--i', String(i - 2));
+        return e;
+      }));
+    }
+
+    return { onState, renderGame, afterRender, snap, reset, deny, onKey, menuFan, tileEl, evalDraft, place, toRack, play, U };
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
 // ---- app.js ----
 // UI: screens, your board (rack), the shared table, drag and drop, settings.
 (function () {
   'use strict';
-  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins } = window.RK;
+  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins, MathHost: MH } = window.RK;
 
   // ---------- small helpers ----------
   const $ = (sel, el) => (el || document).querySelector(sel);
@@ -3097,6 +4900,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     name: (store.get('rk.name') || '').slice(0, 16),
     config: BC.load(storageAdapter),
     screen: 'home', bots: 2, code: '',
+    gameId: 'rummy',                                   // the game at the table you are in
+    menuGame: store.get('rk.game') === 'math' ? 'math' : 'rummy',   // the game picked on the menu
     mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1,
     rack: null, rackRound: null, draft: null, draftKey: null, undo: [], sel: null, tnSeen: null,
     zoomUser: 1, settings: null, online: new Set(), pks: new Map(), gotHand: false, hostSeen: true,
@@ -3151,6 +4956,27 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     return !!(v && v.status === 'playing' && S.meIdx >= 0 && v.turn === S.meIdx);
   }
   const engineMode = () => S.mode === 'local' || S.mode === 'host';
+
+  // ---------- games ----------
+  // Each game brings its host engine and how its racks and moves travel over the network.
+  const GAMES = {
+    rummy: {
+      Host,
+      encodeHand: Rules.encodeIds, decodeHand: Rules.decodeIds,
+      encodeAct: a => (a.t === 'play' ? { t: 'play', tb: TG.encodeBoard(a.table, a.layout), v: a.v } : { t: a.t }),
+      decodeAct: d => {
+        if (d.t === 'play' && typeof d.tb === 'string') { const bd = TG.decodeBoard(d.tb); return { t: 'play', table: bd.table, layout: bd.layout, v: d.v }; }
+        return d.t === 'draw' ? { t: 'draw' } : null;
+      }
+    },
+    math: { Host: MH, encodeHand: MH.encodeHand, decodeHand: MH.decodeHand, encodeAct: MH.encodeAct, decodeAct: MH.decodeAct }
+  };
+  const gameOf = G => (G && G.game === 'math' ? 'math' : 'rummy');
+  const GM = () => GAMES[S.gameId] || GAMES.rummy;
+  const GH = () => GM().Host;
+  const gameName = id => t(id === 'math' ? 'gMath' : 'gRummy');
+  /** Rules for a new table of this game, from your settings. */
+  const newRules = gid => (gid === 'math' ? { turnSec: S.prefs.mathTimer, botLevel: S.prefs.mathBot } : { wrap: S.prefs.wrap });
   // The table during your turn is a grid (S.draft); sets are read off it.
   function viewGrid() {
     const v = S.view;
@@ -3203,7 +5029,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
 
   // Called whenever S.view / S.hand change, in every mode.
-  function onState() {
+  function onState() { if (S.gameId === 'math') MUI.onState(); else rummyOnState(); }
+  function rummyOnState() {
     const v = S.view;
     if (!v) { render(); return; }
     S.meIdx = v.players.findIndex(p => p.id === S.myId);
@@ -3247,23 +5074,38 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   let botTimer = null;
   function enterEngine(mode, G, myId) {
     S.mode = mode; S.G = G; S.myId = myId; S.hostId = G.hostId;
+    S.gameId = gameOf(G); MUI.reset();
+    if (S.gameId === 'math' && G.status === 'playing') G.turnAt = Date.now();   // a resumed game gets a fresh turn clock
     S.rack = null; S.rackRound = null; S.draft = null; S.draftKey = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     engineChanged();
   }
   function engineChanged() {
     if (!S.G) return;
-    S.view = Host.readView(Host.publicView(S.G, S.mode === 'host' ? S.online : null));
-    S.hand = Host.handOf(S.G, S.myId);
+    S.view = GH().readView(GH().publicView(S.G, S.mode === 'host' ? S.online : null, Date.now()));
+    S.hand = GH().handOf(S.G, S.myId);
     if (S.mode === 'local') store.set('rk.local', JSON.stringify(S.G));
     if (S.mode === 'host') { store.set('rk.host.' + S.G.code, JSON.stringify(S.G)); broadcastSoon(); }
     onState();
     scheduleBot();
+    armTurnTimer();
   }
+  // math crossword: the host passes a turn that runs out of time
+  let turnTimer = null;
+  function armTurnTimer() {
+    clearTimeout(turnTimer);
+    const G = S.G;
+    if (!G || gameOf(G) !== 'math' || G.status !== 'playing' || !G.rules.turnSec || !engineMode()) return;
+    const left = G.rules.turnSec * 1000 - (Date.now() - G.turnAt);
+    turnTimer = setTimeout(() => { if (S.G !== G) return; if (MH.timeout(G, Date.now())) engineChanged(); else armTurnTimer(); }, Math.max(50, left + 30));
+  }
+  let botJob = null;
   function scheduleBot() {
     clearTimeout(botTimer);
+    if (botJob) { botJob.cancel = true; botJob = null; }
     const G = S.G;
     if (!G || G.status !== 'playing' || !G.players[G.turn] || !G.players[G.turn].bot) return;
+    if (gameOf(G) === 'math') { mathBot(G); return; }
     botTimer = setTimeout(() => {
       if (S.G !== G || G.status !== 'playing' || !G.players[G.turn].bot) return;
       const pid = G.players[G.turn].id;
@@ -3272,30 +5114,50 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       engineChanged();
     }, S.fastBots ? 20 : 850 + rand() * 600 + FX.busyFor());
   }
+  /** A math bot thinks in 4 ms slices, so the page keeps drawing at full frame rate (even 120 Hz) while it searches. */
+  function mathBot(G) {
+    const tn = G.tn, job = { cancel: false };
+    botJob = job;
+    const search = MH.botSearch(G, { rng: rand });
+    const readyAt = Date.now() + (S.fastBots ? 0 : 900 + rand() * 700);
+    const tick = () => {
+      if (job.cancel || S.G !== G || G.tn !== tn || G.status !== 'playing') return;
+      if (!search.step(4)) { botTimer = setTimeout(tick, 0); return; }
+      const wait = S.fastBots ? 0 : Math.max(readyAt - Date.now(), FX.busyFor());
+      if (wait > 0) { botTimer = setTimeout(tick, wait); return; }
+      const pid = G.players[G.turn].id;
+      const res = MH.apply(G, pid, search.action(), Date.now(), rand);
+      if (!res.ok) MH.apply(G, pid, { t: 'pass' }, Date.now(), rand);
+      engineChanged();
+    };
+    botTimer = setTimeout(tick, 0);
+  }
 
   function myName() { return S.name.trim() || (S.lang === 'th' ? 'ผู้เล่น' : 'Player'); }
 
   function startLocal() {
-    const G = Host.createGame({ code: 'solo', hostId: 'me', hostName: myName(), rules: { wrap: S.prefs.wrap } });
-    for (let i = 0; i < S.bots; i++) Host.addBot(G);
-    Host.start(G, rand);
+    const H = GAMES[S.menuGame].Host;
+    const G = H.createGame({ code: 'solo', hostId: 'me', hostName: myName(), rules: newRules(S.menuGame) });
+    for (let i = 0; i < S.bots; i++) H.addBot(G);
+    H.start(G, rand, Date.now());
     enterEngine('local', G, 'me');
   }
 
   async function act(action) {
     if (engineMode()) {
-      const res = Host.apply(S.G, S.myId, action);
-      if (!res.ok) { toast(reasonText(res), true); FX.deny([...document.querySelectorAll('.tset.bad')]); return false; }
+      const res = GH().apply(S.G, S.myId, action, Date.now(), rand);
+      if (!res.ok) { toast(reasonText(res), true); denied(); return false; }
       engineChanged();
       return true;
     }
     try {
-      const data = action.t === 'play' ? { t: 'play', tb: TG.encodeBoard(action.table, action.layout), v: action.v } : { t: action.t };
-      await Net.send('act', data);
+      await Net.send('act', GM().encodeAct(action));
       S.pending = true; render();
       return true;
     } catch (e) { netError(e); return false; }
   }
+  /** The move was refused: the wrong sets / lines give a short shake. */
+  function denied() { if (S.gameId === 'math') MUI.deny(); else FX.deny([...document.querySelectorAll('.tset.bad')]); }
   function netError(e) {
     const code = e && e.code;
     toast(code === 'not_permitted' ? t('r_not_permitted') : code === 'taken' ? t('r_taken') : t('r_no_room'), true);
@@ -3315,8 +5177,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     } else {
       let code = newCode();
       while (Net.lobby.some(x => x.code === code)) code = newCode();
-      G = Host.createGame({ code, hostId: myId, hostName: myName(), rules: { wrap: S.prefs.wrap } });
+      G = GAMES[S.menuGame].Host.createGame({ code, hostId: myId, hostName: myName(), rules: newRules(S.menuGame) });
     }
+    S.gameId = gameOf(G);
     S.online = new Set([myId]);
     S.pks = new Map();
     for (let tries = 0; ; tries++) {
@@ -3349,7 +5212,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     const id = Net.senderId(msg);
     const d = msg.data && typeof msg.data === 'object' ? msg.data : {};
     if (typeof d.pk === 'string' && d.pk.length < 200) S.pks.set(id, d.pk);
-    const res = Host.addPlayer(S.G, id, typeof d.nm === 'string' ? d.nm : 'Player');
+    const res = GH().addPlayer(S.G, id, typeof d.nm === 'string' ? d.nm : 'Player');
     if (!res.ok) Net.send('err', { to: id, r: res.reason }).catch(() => {});
     S.online.add(id);
     engineChanged();
@@ -3358,12 +5221,10 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     if (!S.G || msg.sameTab) return;
     const id = Net.senderId(msg);
     const d = msg.data && typeof msg.data === 'object' ? msg.data : {};
-    let action = null;
-    if (d.t === 'play' && typeof d.tb === 'string') { const bd = TG.decodeBoard(d.tb); action = { t: 'play', table: bd.table, layout: bd.layout, v: d.v }; }
-    else if (d.t === 'draw') action = { t: 'draw' };
-    else if (d.t === 'leave') { Host.removePlayer(S.G, id); engineChanged(); return; }
+    if (d.t === 'leave') { GH().removePlayer(S.G, id); engineChanged(); return; }
+    const action = GM().decodeAct(d);
     if (!action) return;
-    const res = Host.apply(S.G, id, action);
+    const res = GH().apply(S.G, id, action, Date.now(), rand);
     if (!res.ok) Net.send('err', { to: id, r: res.reason, mm: S.G.rules.meldMin }).catch(() => {});
     else engineChanged();
   }
@@ -3371,18 +5232,18 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   async function broadcast() {
     if (S.mode !== 'host' || !S.G) return;
     const G = S.G;
-    const pv = Host.publicView(G, S.online);
+    const pv = GH().publicView(G, S.online, Date.now());
     pv.hk = Net.Crypto.pub;
     pv.hx = {};
     for (const p of G.players) {
       if (p.bot || p.id === G.hostId) continue;
       const pk = S.pks.get(p.id);
       if (!pk) continue;
-      const enc = Rules.encodeIds(p.hand);
+      const enc = GM().encodeHand(p.hand);
       try { pv.hx[p.id] = Net.Crypto.ok && pv.hk ? await Net.Crypto.seal(pk, enc) : { pt: enc }; } catch (e) { /* skip this seat until it says hello again */ }
     }
     try { await Net.send('state', pv); } catch (e) { netError(e); }
-    Net.announceTable({ code: G.code, host: G.players[0].name, n: G.players.length, st: G.status });
+    Net.announceTable({ code: G.code, host: G.players[0].name, n: G.players.length, st: G.status, g: gameOf(G) });
   }
 
   // ---------- client networking ----------
@@ -3395,6 +5256,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     const myId = await waitFor(() => Net.selfId(), 4000);
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
     S.mode = 'client'; S.myId = myId; S.view = null; S.hostId = null; S.code = code; S.gotHand = false;
+    MUI.reset();
     S.rack = null; S.rackRound = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     try {
@@ -3402,7 +5264,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         state: msg => { stateChain = stateChain.then(() => handleState(msg)).catch(() => {}); },
         err: msg => {
           const d = msg.data || {};
-          if (Net.senderId(msg) === S.hostId && d.to === S.myId) { S.pending = false; toast(reasonText({ reason: d.r, meldMin: d.mm }), true); FX.deny([...document.querySelectorAll('.tset.bad')]); render(); }
+          if (Net.senderId(msg) === S.hostId && d.to === S.myId) { S.pending = false; toast(reasonText({ reason: d.r, meldMin: d.mm }), true); denied(); render(); }
           else if (!S.hostId && d.to === S.myId) { toast(reasonText({ reason: d.r }), true); }
         },
         peers: ch => {
@@ -3431,13 +5293,15 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     if (S.hostId && S.hostId !== sender) return;
     if (S.view && d.v < S.view.v) return;
     S.hostId = sender; S.hostSeen = true;
+    const gid = d.g === 'math' ? 'math' : 'rummy';
+    if (S.gameId !== gid) { S.gameId = gid; S.lastStateKey = null; }
     let hand = S.hand;
     const box = d.hx && d.hx[S.myId];
     if (box) {
-      try { hand = Rules.decodeIds(box.pt !== undefined ? box.pt : await Net.Crypto.open(d.hk, box)); S.gotHand = true; }
+      try { hand = GAMES[gid].decodeHand(box.pt !== undefined ? box.pt : await Net.Crypto.open(d.hk, box)); S.gotHand = true; }
       catch (e) { S.gotHand = false; }
     }
-    S.view = Host.readView(d);
+    S.view = GAMES[gid].Host.readView(d);
     S.hand = S.view.players.some(p => p.id === S.myId) ? hand : [];
     if (S.view.players.some(p => p.id === S.myId) && !box) { S.gotHand = false; }
     store.set('rk.last', JSON.stringify({ code: S.view.code, role: 'client', tab: Net.tab }));
@@ -3445,7 +5309,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
 
   async function leaveTable() {
-    clearInterval(heartbeat); clearInterval(helloTimer); clearTimeout(botTimer); clearTimeout(joinWatch);
+    clearInterval(heartbeat); clearInterval(helloTimer); clearTimeout(botTimer); clearTimeout(joinWatch); clearTimeout(turnTimer);
+    if (botJob) { botJob.cancel = true; botJob = null; }
+    MUI.reset();
     if (S.mode === 'client' && S.view && S.view.status !== 'playing') Net.send('act', { t: 'leave' }).catch(() => {});
     if (S.mode === 'host') Net.announceTable(null);
     if (S.mode === 'host' || S.mode === 'client') await Net.leaveTable();
@@ -3953,10 +5819,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     const pool = poolEl ? poolEl.getBoundingClientRect() : null;
     const from = S.flipFrom; S.flipFrom = null;
     let n = 0;
-    document.querySelectorAll('.game .tile[data-tile]').forEach(el => {
+    // measure every tile first, then animate (reading a rect after starting an animation costs a style pass per tile)
+    const items = [];
+    document.querySelectorAll('.game .tile[data-tile]').forEach(el => { const r = el.getBoundingClientRect(); if (r.width) items.push([el, r]); });
+    items.forEach(([el, r]) => {
       const id = +el.dataset.tile;
-      const r = el.getBoundingClientRect();
-      if (!r.width) return;
       let b = deal ? null : before.get(id);
       if (from && from.id === id) b = from.rect;
       if (b) {
@@ -4091,7 +5958,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
   function updateTitle() {
     const mine = S.screen === 'game' && isMyTurn() && S.mode !== 'local';
-    const title = mine ? '● ' + t('yourTurn') + ' · Rummy Tiles Club' : 'Rummy Tiles Club';
+    const brand = S.screen === 'game' && S.gameId === 'math' ? gameName('math') : 'Rummy Tiles Club';
+    const title = mine ? '● ' + t('yourTurn') + ' · ' + brand : brand;
     if (document.title !== title) document.title = title;
   }
 
@@ -4106,6 +5974,14 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
   function renderNow() {
     document.documentElement.lang = S.lang;
+    if (S.screen === 'game' && S.view && S.gameId === 'math') {
+      const before = FX.tier() > 0 ? MUI.snap() : new Map();
+      root.replaceChildren(MUI.renderGame());
+      MUI.afterRender(before);
+      if (S.settings) renderSettingsLive();
+      updateTitle();
+      return;
+    }
     const tableScroll = $('.table') ? $('.table').scrollTop : 0;
     const motion = S.screen === 'game' && FX.tier() > 0;
     const before = motion && $('.game') ? snapTiles() : new Map();
@@ -4140,12 +6016,19 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
   function renderHome() {
     const T = (c, n) => c * 13 + (n - 1);
-    const fan = h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
+    const math = S.menuGame === 'math';
+    const fan = math ? MUI.menuFan() : h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
       [T(0, 11), T(2, 1), 104, T(1, 13), T(3, 7)].map((id, i) => {
         const e = tileEl(id, 'static');
         e.style.setProperty('--i', String(i - 2));
         return e;
       }));
+    const picker = h('div', { class: 'game-pick', role: 'radiogroup', 'aria-label': t('gameLabel'), id: 'game-pick' },
+      ['rummy', 'math'].map(g => h('button', {
+        type: 'button', class: 'gp-card', role: 'radio', 'aria-checked': S.menuGame === g ? 'true' : 'false', 'data-game': g,
+        onclick: () => { S.menuGame = g; store.set('rk.game', g); render(); }
+      }, h('span', { class: 'gp-ico gp-' + g, 'aria-hidden': 'true', text: g === 'math' ? '÷' : '7' }),
+        h('span', { class: 'gp-txt' }, h('b', { text: gameName(g) }), h('small', { text: t(g === 'math' ? 'gMathSub' : 'gRummySub') })))));
     const nameIn = h('input', { class: 'input', id: 'name', maxlength: '16', autocomplete: 'nickname', placeholder: t('namePh'), value: S.name });
     nameIn.addEventListener('input', () => { S.name = nameIn.value.slice(0, 16); store.set('rk.name', S.name); });
     const codeIn = h('input', { class: 'input code', id: 'join-code', maxlength: '4', placeholder: t('codePh'), autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': t('codePh') });
@@ -4158,6 +6041,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     settingsB.querySelector('.mb-t').textContent = t('settings');
     const panel = h('section', { class: 'menu-panel', 'aria-label': 'Menu' },
       resume.length ? h('div', { class: 'menu-resume' }, resume) : null,
+      picker,
       h('label', { class: 'field', for: 'name' }, h('span', { text: t('yourName') }), nameIn),
       h('div', { class: 'menu-row' },
         h('button', { type: 'button', class: 'mbtn primary', id: 'start-bots', onclick: startLocal },
@@ -4174,13 +6058,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       tables = h('section', { class: 'menu-tables' }, h('span', { class: 'label', text: t('openTables') }),
         Net.lobby.map(x => h('div', { class: 'table-item' },
           h('span', { class: 'code', text: x.code }),
-          h('span', { class: 'meta', text: x.host + ' · ' + x.n + '/4' + (x.st === 'playing' ? ' · ▶' : '') }),
+          h('span', { class: 'meta', text: gameName(x.g) + ' · ' + x.host + ' · ' + x.n + '/4' + (x.st === 'playing' ? ' · ▶' : '') }),
           h('button', { type: 'button', class: 'btn small', text: t('join'), onclick: () => joinOnline(x.code) }))));
     }
     return h('div', { class: 'menu' },
       h('div', { class: 'menu-motes', 'aria-hidden': 'true' }, Array.from({ length: 16 }, (_, i) => h('i', { style: { '--k': String(i) } }))),
       h('div', { class: 'menu-top' }, langSeg()),
-      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: 'Rummy Tiles<small>Club</small>' })),
+      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: math ? 'Math Crossword<small>Tiles Club</small>' : 'Rummy Tiles<small>Club</small>' })),
       panel, tables);
   }
 
@@ -4195,7 +6079,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     const local = store.json('rk.local');
     if (local && local.status === 'playing' && Array.isArray(local.players)) {
       out.push(h('div', { class: 'row' },
-        h('span', { class: 'grow', text: t('resumeLocal') }),
+        h('span', { class: 'grow', text: t('resumeLocal') + ' · ' + gameName(gameOf(local)) }),
         h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => enterEngine('local', local, 'me') }),
         h('button', { type: 'button', class: 'btn small ghost', text: t('discard'), onclick: () => { store.del('rk.local'); render(); } })));
     }
@@ -4239,27 +6123,48 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         p.id === v.hostId ? h('span', { class: 'chip brass', text: t('host') }) : null,
         p.id === S.myId ? h('span', { class: 'chip', text: t('you') }) : null,
         p.bot ? h('span', { class: 'chip', text: t('bot') }) : null,
-        isHost && p.id !== v.hostId ? h('button', { type: 'button', class: 'btn small ghost', text: t('remove'), onclick: () => { Host.removePlayer(S.G, p.id); engineChanged(); } }) : null));
+        isHost && p.id !== v.hostId ? h('button', { type: 'button', class: 'btn small ghost', text: t('remove'), onclick: () => { GH().removePlayer(S.G, p.id); engineChanged(); } }) : null));
     }
     inner.append(
-      h('div', { class: 'brand-row' }, h('h1', { class: 'brand', style: { fontSize: 'clamp(28px,5vw,40px)' }, text: t('lobbyTitle') }), langSeg()),
+      h('div', { class: 'brand-row' }, h('div', null, h('span', { class: 'label', text: gameName(S.gameId) }), h('h1', { class: 'brand', style: { fontSize: 'clamp(28px,5vw,40px)' }, text: t('lobbyTitle') })), langSeg()),
       h('section', { class: 'card' },
         h('span', { class: 'label', text: t('tableCode') }),
         h('div', { class: 'row' }, codeTiles, copy),
         h('p', { class: 'note', text: t('shareHint') })),
       h('section', { class: 'card' },
         h('div', { class: 'row' }, h('h2', { class: 'grow', text: t('seats', { n: v.players.length }) }),
-          isHost ? h('button', { type: 'button', class: 'btn small', id: 'add-bot', disabled: v.players.length >= 4, text: t('addBot'), onclick: () => { Host.addBot(S.G); engineChanged(); } }) : null),
+          isHost ? h('button', { type: 'button', class: 'btn small', id: 'add-bot', disabled: v.players.length >= 4, text: t('addBot'), onclick: () => { GH().addBot(S.G); engineChanged(); } }) : null),
         seats,
-        isHost ? wrapToggle('lobby-wrap', v.rules.wrap, on => { Host.setWrap(S.G, on); S.prefs.wrap = on; Prefs.save(storageAdapter, S.prefs); engineChanged(); })
-          : h('p', { class: 'note', text: t(v.rules.wrap ? 'wrapOn' : 'wrapOff') }),
+        lobbyRules(v, isHost),
         h('div', { class: 'row' },
-          isHost ? h('button', { type: 'button', class: 'btn primary', id: 'start-game', disabled: v.players.length < 2, text: t('start'), onclick: () => { const r = Host.start(S.G, rand); if (!r.ok) toast(reasonText(r), true); engineChanged(); } }) : h('p', { class: 'note', text: t('waitHostStart') }),
+          isHost ? h('button', { type: 'button', class: 'btn primary', id: 'start-game', disabled: v.players.length < 2, text: t('start'), onclick: () => { const r = GH().start(S.G, rand, Date.now()); if (!r.ok) toast(reasonText(r), true); engineChanged(); } }) : h('p', { class: 'note', text: t('waitHostStart') }),
           isHost && v.players.length < 2 ? h('span', { class: 'note', text: t('needPlayers') }) : null,
           h('span', { class: 'grow' }),
           h('button', { type: 'button', class: 'btn ghost', text: t('leave'), onclick: leaveTable }))));
     wrap.append(inner);
     return wrap;
+  }
+
+  /** The table's rules in the lobby: the host changes them, everyone else reads them. */
+  function lobbyRules(v, isHost) {
+    if (S.gameId !== 'math') {
+      return isHost ? wrapToggle('lobby-wrap', v.rules.wrap, on => { Host.setWrap(S.G, on); S.prefs.wrap = on; Prefs.save(storageAdapter, S.prefs); engineChanged(); })
+        : h('p', { class: 'note', text: t(v.rules.wrap ? 'wrapOn' : 'wrapOff') });
+    }
+    const r = v.rules;
+    if (!isHost) return h('p', { class: 'note', text: (r.turnSec ? t('mTimerOn', { n: r.turnSec }) : t('mTimerOff')) + ' · ' + t('mBotIs', { l: t('bot_' + r.botLevel) }) });
+    return h('div', { class: 'lobby-rules' }, timerSeg('lobby-timer', r.turnSec, n => { MH.setTurnSec(S.G, n); S.prefs.mathTimer = n; Prefs.save(storageAdapter, S.prefs); engineChanged(); }),
+      botLevelSeg('lobby-bot', r.botLevel, l => { MH.setBotLevel(S.G, l); S.prefs.mathBot = l; Prefs.save(storageAdapter, S.prefs); engineChanged(); }));
+  }
+  function timerSeg(id, cur, set) {
+    return h('div', { class: 'ctl' }, h('span', { class: 'lbl', text: t('mTimer') }),
+      h('div', { class: 'seg', role: 'group', 'aria-label': t('mTimer'), id },
+        Prefs.MATH_TIMERS.map(n => h('button', { type: 'button', 'aria-pressed': cur === n ? 'true' : 'false', text: n ? t('timer_n', { n }) : t('timer_0'), onclick: () => set(n) }))));
+  }
+  function botLevelSeg(id, cur, set) {
+    return h('div', { class: 'ctl' }, h('span', { class: 'lbl', text: t('mBotLevel') }),
+      h('div', { class: 'seg', role: 'group', 'aria-label': t('mBotLevel'), id },
+        Prefs.BOT_LEVELS.map(l => h('button', { type: 'button', 'aria-pressed': cur === l ? 'true' : 'false', text: t('bot_' + l), onclick: () => set(l) }))));
   }
 
   function logText(e) {
@@ -4559,7 +6464,24 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     // rules for tables you open
     const wr = h('input', { type: 'checkbox', id: 's-wrap', checked: pr.wrap });
     wr.addEventListener('change', () => setPref('wrap', wr.checked));
-    controls.append(h('section', { class: 'group' }, h('h3', { text: t('sRules') }), h('label', { class: 'toggle', for: 's-wrap' }, wr, t('wrapRule'))));
+    controls.append(h('section', { class: 'group' }, h('h3', { text: t('sRules') }),
+      h('span', { class: 'lbl', text: gameName('rummy') }), h('label', { class: 'toggle', for: 's-wrap' }, wr, t('wrapRule')),
+      h('span', { class: 'lbl', text: gameName('math') }),
+      timerSeg('s-mtimer', pr.mathTimer, n => setPref('mathTimer', n, true)),
+      botLevelSeg('s-mbot', pr.mathBot, l => setPref('mathBot', l, true))));
+    const mathGame = S.screen === 'game' && S.gameId === 'math';
+    if (mathGame) {
+      // the rack layout below is Rummy's; the math rack is fixed at 8
+      const panel0 = h('div', { class: 'settings', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 's-title' },
+        h('header', { class: 'settings-head' }, h('h2', { id: 's-title', text: t('sTitle') }), langSeg(),
+          h('button', { type: 'button', class: 'btn small ghost', text: t('sCancel'), onclick: closeSettings })),
+        h('div', { class: 'settings-body solo' }, controls),
+        h('footer', { class: 'settings-foot', id: 's-foot' }));
+      host.replaceChildren(panel0);
+      controls.scrollTop = prevScroll;
+      renderSettingsLive();
+      return;
+    }
 
     // your board (the rack)
     controls.append(h('h3', { class: 'group-head', text: t('sBoardHead') }));
@@ -4625,7 +6547,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
 
   function settingsHand() {
-    return S.rack && S.screen === 'game' ? Rack.allTiles(S.rack) : null;
+    return S.rack && S.screen === 'game' && S.gameId !== 'math' ? Rack.allTiles(S.rack) : null;
   }
   function renderSettingsLive() {
     const st = S.settings;
@@ -4634,7 +6556,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     const cap = BC.capacity(c);
     const hand = settingsHand();
     const impact = hand ? Rack.resizeImpact(S.rack, BC.rowLayout(c)) : null;
-    setKids($('#s-capacity'),
+    if ($('#s-capacity')) setKids($('#s-capacity'),
       h('span', { class: 'label', text: t('sCapacity') }),
       h('span', { class: 'big', id: 's-cap-label', text: BC.capacityLabel(c) + ' ' + t('sCellsUnit') }),
       h('div', { class: 'meter', role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': String(L.maxCells), 'aria-valuenow': String(cap), 'aria-label': t('sCapacity') }, h('i', { style: { width: (cap / L.maxCells * 100) + '%' } })),
@@ -4716,7 +6638,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   function applySettings(confirmed) {
     const st = S.settings;
     const cfg = BC.sanitize(st.draft).config;
-    if (S.rack && S.screen === 'game') {
+    if (S.rack && S.screen === 'game' && S.gameId !== 'math') {
       const impact = Rack.resizeImpact(S.rack, BC.rowLayout(cfg));
       if (impact.toTray > 0 && !confirmed) { st.confirm = impact; renderSettingsLive(); const b = $('#s-confirm-apply'); if (b) b.focus(); return; }
       pushUndo();
@@ -4734,12 +6656,16 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
   // ---------- keyboard ----------
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && S.settings) { closeSettings(); return; }
+    if (S.screen === 'game' && S.gameId === 'math') { if (MUI.onKey(e)) e.preventDefault(); return; }
     if (e.key === 'Escape') {
-      if (S.settings) { closeSettings(); return; }
       if (S.sel) { S.sel = null; render(); }
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && S.screen === 'game' && !S.settings && !e.target.closest('input')) { e.preventDefault(); undo(); }
   });
+
+  // ---------- the math crossword screen ----------
+  const MUI = window.RK.MathUI({ S, h, t, store, toast, rand, render, act, engineMode, engineChanged, leaveTable, settingsBtn, langSeg });
 
   // ---------- boot ----------
   document.body.append(h('div', { id: 'settings-root' }));
@@ -4751,7 +6677,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 
   // Handle for automated checks (harmless for players).
-  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl };
+  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl, math: MUI, GAMES };
 })();
 
 </script>

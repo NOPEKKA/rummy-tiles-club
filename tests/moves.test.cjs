@@ -85,8 +85,8 @@ test('host records lastMove for plays, draws and passes, and it travels in the p
 });
 
 test('prefs: defaults, junk, clamping, and the old wrap switch carries over', () => {
-  assert.deepEqual(Prefs.sanitize({}), { skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false });
-  assert.deepEqual(Prefs.sanitize({ skin: 'neon', fx: 'max', volume: 9, sound: 0, fps: 75 }), { skin: 'ivory', fx: 'full', sound: false, volume: 1, wrap: true, fps: 120, showFps: false });
+  assert.deepEqual(Prefs.sanitize({}), { skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal' });
+  assert.deepEqual(Prefs.sanitize({ skin: 'neon', fx: 'max', volume: 9, sound: 0, fps: 75 }), { skin: 'ivory', fx: 'full', sound: false, volume: 1, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal' });
   assert.equal(Prefs.sanitize({ fps: '60' }).fps, 60, 'fps 30/60/90/120 only');
   assert.equal(Prefs.sanitize({ fps: 240 }).fps, 120, 'never above 120');
   const mem = new Map();
@@ -94,7 +94,9 @@ test('prefs: defaults, junk, clamping, and the old wrap switch carries over', ()
   mem.set('rk.wrap', '0');
   assert.equal(Prefs.load(st).wrap, false);
   Prefs.save(st, { skin: 'arcane', fx: 'lite', sound: true, volume: 0.25, wrap: true, fps: 30, showFps: true });
-  assert.deepEqual(Prefs.load(st), { skin: 'arcane', fx: 'lite', sound: true, volume: 0.25, wrap: true, fps: 30, showFps: true });
+  assert.deepEqual(Prefs.load(st), { skin: 'arcane', fx: 'lite', sound: true, volume: 0.25, wrap: true, fps: 30, showFps: true, mathTimer: 0, mathBot: 'normal' });
+  assert.equal(Prefs.sanitize({ mathTimer: 90, mathBot: 'easy' }).mathTimer, 90);
+  assert.equal(Prefs.sanitize({ mathTimer: 45, mathBot: 'evil' }).mathBot, 'normal');
   mem.set(Prefs.KEY, '{bad');
   assert.equal(Prefs.load(st).skin, 'ivory');
 });

@@ -6,7 +6,9 @@
   const SKINS = Object.freeze(['ivory', 'arcane', 'crystal', 'gilded']);
   const FX_LEVELS = Object.freeze(['full', 'lite', 'off']);
   const FPS = Object.freeze([30, 60, 90, 120]);
-  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false });
+  const MATH_TIMERS = Object.freeze([0, 60, 90, 120, 180]);
+  const BOT_LEVELS = Object.freeze(['easy', 'normal', 'hard']);
+  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal' });
   const KEY = 'rk.prefs.v1';
 
   function sanitize(input) {
@@ -19,7 +21,9 @@
       volume: Number.isFinite(vol) ? Math.max(0, Math.min(1, Math.round(vol * 100) / 100)) : DEFAULTS.volume,
       wrap: src.wrap === undefined ? DEFAULTS.wrap : !!src.wrap,
       fps: FPS.includes(Number(src.fps)) ? Number(src.fps) : DEFAULTS.fps,
-      showFps: !!src.showFps
+      showFps: !!src.showFps,
+      mathTimer: MATH_TIMERS.includes(Number(src.mathTimer)) ? Number(src.mathTimer) : DEFAULTS.mathTimer,
+      mathBot: BOT_LEVELS.includes(src.mathBot) ? src.mathBot : DEFAULTS.mathBot
     };
   }
 
@@ -38,7 +42,7 @@
     catch (e) { return false; }
   }
 
-  const api = { SKINS, FX_LEVELS, FPS, DEFAULTS, KEY, sanitize, load, save };
+  const api = { SKINS, FX_LEVELS, FPS, MATH_TIMERS, BOT_LEVELS, DEFAULTS, KEY, sanitize, load, save };
   root.RK = root.RK || {};
   root.RK.Prefs = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

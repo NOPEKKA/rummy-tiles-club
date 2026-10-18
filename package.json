@@ -5,7 +5,7 @@
   "description": "Rummikub-style tile game for 2-4 players: online (Firebase or claude.ai rooms) or against bots",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node --test tests/board.test.cjs tests/rules.test.cjs tests/grid.test.cjs tests/moves.test.cjs"
+    "test": "node --test tests/board.test.cjs tests/rules.test.cjs tests/grid.test.cjs tests/moves.test.cjs tests/math.test.cjs"
   },
   "engines": { "node": ">=18" }
 }

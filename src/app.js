@@ -1,7 +1,7 @@
 // UI: screens, your board (rack), the shared table, drag and drop, settings.
 (function () {
   'use strict';
-  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins } = window.RK;
+  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins, MathHost: MH } = window.RK;
 
   // ---------- small helpers ----------
   const $ = (sel, el) => (el || document).querySelector(sel);
@@ -50,6 +50,8 @@
     name: (store.get('rk.name') || '').slice(0, 16),
     config: BC.load(storageAdapter),
     screen: 'home', bots: 2, code: '',
+    gameId: 'rummy',                                   // the game at the table you are in
+    menuGame: store.get('rk.game') === 'math' ? 'math' : 'rummy',   // the game picked on the menu
     mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1,
     rack: null, rackRound: null, draft: null, draftKey: null, undo: [], sel: null, tnSeen: null,
     zoomUser: 1, settings: null, online: new Set(), pks: new Map(), gotHand: false, hostSeen: true,
@@ -104,6 +106,27 @@
     return !!(v && v.status === 'playing' && S.meIdx >= 0 && v.turn === S.meIdx);
   }
   const engineMode = () => S.mode === 'local' || S.mode === 'host';
+
+  // ---------- games ----------
+  // Each game brings its host engine and how its racks and moves travel over the network.
+  const GAMES = {
+    rummy: {
+      Host,
+      encodeHand: Rules.encodeIds, decodeHand: Rules.decodeIds,
+      encodeAct: a => (a.t === 'play' ? { t: 'play', tb: TG.encodeBoard(a.table, a.layout), v: a.v } : { t: a.t }),
+      decodeAct: d => {
+        if (d.t === 'play' && typeof d.tb === 'string') { const bd = TG.decodeBoard(d.tb); return { t: 'play', table: bd.table, layout: bd.layout, v: d.v }; }
+        return d.t === 'draw' ? { t: 'draw' } : null;
+      }
+    },
+    math: { Host: MH, encodeHand: MH.encodeHand, decodeHand: MH.decodeHand, encodeAct: MH.encodeAct, decodeAct: MH.decodeAct }
+  };
+  const gameOf = G => (G && G.game === 'math' ? 'math' : 'rummy');
+  const GM = () => GAMES[S.gameId] || GAMES.rummy;
+  const GH = () => GM().Host;
+  const gameName = id => t(id === 'math' ? 'gMath' : 'gRummy');
+  /** Rules for a new table of this game, from your settings. */
+  const newRules = gid => (gid === 'math' ? { turnSec: S.prefs.mathTimer, botLevel: S.prefs.mathBot } : { wrap: S.prefs.wrap });
   // The table during your turn is a grid (S.draft); sets are read off it.
   function viewGrid() {
     const v = S.view;
@@ -156,7 +179,8 @@
   }
 
   // Called whenever S.view / S.hand change, in every mode.
-  function onState() {
+  function onState() { if (S.gameId === 'math') MUI.onState(); else rummyOnState(); }
+  function rummyOnState() {
     const v = S.view;
     if (!v) { render(); return; }
     S.meIdx = v.players.findIndex(p => p.id === S.myId);
@@ -200,23 +224,38 @@
   let botTimer = null;
   function enterEngine(mode, G, myId) {
     S.mode = mode; S.G = G; S.myId = myId; S.hostId = G.hostId;
+    S.gameId = gameOf(G); MUI.reset();
+    if (S.gameId === 'math' && G.status === 'playing') G.turnAt = Date.now();   // a resumed game gets a fresh turn clock
     S.rack = null; S.rackRound = null; S.draft = null; S.draftKey = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     engineChanged();
   }
   function engineChanged() {
     if (!S.G) return;
-    S.view = Host.readView(Host.publicView(S.G, S.mode === 'host' ? S.online : null));
-    S.hand = Host.handOf(S.G, S.myId);
+    S.view = GH().readView(GH().publicView(S.G, S.mode === 'host' ? S.online : null, Date.now()));
+    S.hand = GH().handOf(S.G, S.myId);
     if (S.mode === 'local') store.set('rk.local', JSON.stringify(S.G));
     if (S.mode === 'host') { store.set('rk.host.' + S.G.code, JSON.stringify(S.G)); broadcastSoon(); }
     onState();
     scheduleBot();
+    armTurnTimer();
   }
+  // math crossword: the host passes a turn that runs out of time
+  let turnTimer = null;
+  function armTurnTimer() {
+    clearTimeout(turnTimer);
+    const G = S.G;
+    if (!G || gameOf(G) !== 'math' || G.status !== 'playing' || !G.rules.turnSec || !engineMode()) return;
+    const left = G.rules.turnSec * 1000 - (Date.now() - G.turnAt);
+    turnTimer = setTimeout(() => { if (S.G !== G) return; if (MH.timeout(G, Date.now())) engineChanged(); else armTurnTimer(); }, Math.max(50, left + 30));
+  }
+  let botJob = null;
   function scheduleBot() {
     clearTimeout(botTimer);
+    if (botJob) { botJob.cancel = true; botJob = null; }
     const G = S.G;
     if (!G || G.status !== 'playing' || !G.players[G.turn] || !G.players[G.turn].bot) return;
+    if (gameOf(G) === 'math') { mathBot(G); return; }
     botTimer = setTimeout(() => {
       if (S.G !== G || G.status !== 'playing' || !G.players[G.turn].bot) return;
       const pid = G.players[G.turn].id;
@@ -225,30 +264,50 @@
       engineChanged();
     }, S.fastBots ? 20 : 850 + rand() * 600 + FX.busyFor());
   }
+  /** A math bot thinks in 4 ms slices, so the page keeps drawing at full frame rate (even 120 Hz) while it searches. */
+  function mathBot(G) {
+    const tn = G.tn, job = { cancel: false };
+    botJob = job;
+    const search = MH.botSearch(G, { rng: rand });
+    const readyAt = Date.now() + (S.fastBots ? 0 : 900 + rand() * 700);
+    const tick = () => {
+      if (job.cancel || S.G !== G || G.tn !== tn || G.status !== 'playing') return;
+      if (!search.step(4)) { botTimer = setTimeout(tick, 0); return; }
+      const wait = S.fastBots ? 0 : Math.max(readyAt - Date.now(), FX.busyFor());
+      if (wait > 0) { botTimer = setTimeout(tick, wait); return; }
+      const pid = G.players[G.turn].id;
+      const res = MH.apply(G, pid, search.action(), Date.now(), rand);
+      if (!res.ok) MH.apply(G, pid, { t: 'pass' }, Date.now(), rand);
+      engineChanged();
+    };
+    botTimer = setTimeout(tick, 0);
+  }
 
   function myName() { return S.name.trim() || (S.lang === 'th' ? 'ผู้เล่น' : 'Player'); }
 
   function startLocal() {
-    const G = Host.createGame({ code: 'solo', hostId: 'me', hostName: myName(), rules: { wrap: S.prefs.wrap } });
-    for (let i = 0; i < S.bots; i++) Host.addBot(G);
-    Host.start(G, rand);
+    const H = GAMES[S.menuGame].Host;
+    const G = H.createGame({ code: 'solo', hostId: 'me', hostName: myName(), rules: newRules(S.menuGame) });
+    for (let i = 0; i < S.bots; i++) H.addBot(G);
+    H.start(G, rand, Date.now());
     enterEngine('local', G, 'me');
   }
 
   async function act(action) {
     if (engineMode()) {
-      const res = Host.apply(S.G, S.myId, action);
-      if (!res.ok) { toast(reasonText(res), true); FX.deny([...document.querySelectorAll('.tset.bad')]); return false; }
+      const res = GH().apply(S.G, S.myId, action, Date.now(), rand);
+      if (!res.ok) { toast(reasonText(res), true); denied(); return false; }
       engineChanged();
       return true;
     }
     try {
-      const data = action.t === 'play' ? { t: 'play', tb: TG.encodeBoard(action.table, action.layout), v: action.v } : { t: action.t };
-      await Net.send('act', data);
+      await Net.send('act', GM().encodeAct(action));
       S.pending = true; render();
       return true;
     } catch (e) { netError(e); return false; }
   }
+  /** The move was refused: the wrong sets / lines give a short shake. */
+  function denied() { if (S.gameId === 'math') MUI.deny(); else FX.deny([...document.querySelectorAll('.tset.bad')]); }
   function netError(e) {
     const code = e && e.code;
     toast(code === 'not_permitted' ? t('r_not_permitted') : code === 'taken' ? t('r_taken') : t('r_no_room'), true);
@@ -268,8 +327,9 @@
     } else {
       let code = newCode();
       while (Net.lobby.some(x => x.code === code)) code = newCode();
-      G = Host.createGame({ code, hostId: myId, hostName: myName(), rules: { wrap: S.prefs.wrap } });
+      G = GAMES[S.menuGame].Host.createGame({ code, hostId: myId, hostName: myName(), rules: newRules(S.menuGame) });
     }
+    S.gameId = gameOf(G);
     S.online = new Set([myId]);
     S.pks = new Map();
     for (let tries = 0; ; tries++) {
@@ -302,7 +362,7 @@
     const id = Net.senderId(msg);
     const d = msg.data && typeof msg.data === 'object' ? msg.data : {};
     if (typeof d.pk === 'string' && d.pk.length < 200) S.pks.set(id, d.pk);
-    const res = Host.addPlayer(S.G, id, typeof d.nm === 'string' ? d.nm : 'Player');
+    const res = GH().addPlayer(S.G, id, typeof d.nm === 'string' ? d.nm : 'Player');
     if (!res.ok) Net.send('err', { to: id, r: res.reason }).catch(() => {});
     S.online.add(id);
     engineChanged();
@@ -311,12 +371,10 @@
     if (!S.G || msg.sameTab) return;
     const id = Net.senderId(msg);
     const d = msg.data && typeof msg.data === 'object' ? msg.data : {};
-    let action = null;
-    if (d.t === 'play' && typeof d.tb === 'string') { const bd = TG.decodeBoard(d.tb); action = { t: 'play', table: bd.table, layout: bd.layout, v: d.v }; }
-    else if (d.t === 'draw') action = { t: 'draw' };
-    else if (d.t === 'leave') { Host.removePlayer(S.G, id); engineChanged(); return; }
+    if (d.t === 'leave') { GH().removePlayer(S.G, id); engineChanged(); return; }
+    const action = GM().decodeAct(d);
     if (!action) return;
-    const res = Host.apply(S.G, id, action);
+    const res = GH().apply(S.G, id, action, Date.now(), rand);
     if (!res.ok) Net.send('err', { to: id, r: res.reason, mm: S.G.rules.meldMin }).catch(() => {});
     else engineChanged();
   }
@@ -324,18 +382,18 @@
   async function broadcast() {
     if (S.mode !== 'host' || !S.G) return;
     const G = S.G;
-    const pv = Host.publicView(G, S.online);
+    const pv = GH().publicView(G, S.online, Date.now());
     pv.hk = Net.Crypto.pub;
     pv.hx = {};
     for (const p of G.players) {
       if (p.bot || p.id === G.hostId) continue;
       const pk = S.pks.get(p.id);
       if (!pk) continue;
-      const enc = Rules.encodeIds(p.hand);
+      const enc = GM().encodeHand(p.hand);
       try { pv.hx[p.id] = Net.Crypto.ok && pv.hk ? await Net.Crypto.seal(pk, enc) : { pt: enc }; } catch (e) { /* skip this seat until it says hello again */ }
     }
     try { await Net.send('state', pv); } catch (e) { netError(e); }
-    Net.announceTable({ code: G.code, host: G.players[0].name, n: G.players.length, st: G.status });
+    Net.announceTable({ code: G.code, host: G.players[0].name, n: G.players.length, st: G.status, g: gameOf(G) });
   }
 
   // ---------- client networking ----------
@@ -348,6 +406,7 @@
     const myId = await waitFor(() => Net.selfId(), 4000);
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
     S.mode = 'client'; S.myId = myId; S.view = null; S.hostId = null; S.code = code; S.gotHand = false;
+    MUI.reset();
     S.rack = null; S.rackRound = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     try {
@@ -355,7 +414,7 @@
         state: msg => { stateChain = stateChain.then(() => handleState(msg)).catch(() => {}); },
         err: msg => {
           const d = msg.data || {};
-          if (Net.senderId(msg) === S.hostId && d.to === S.myId) { S.pending = false; toast(reasonText({ reason: d.r, meldMin: d.mm }), true); FX.deny([...document.querySelectorAll('.tset.bad')]); render(); }
+          if (Net.senderId(msg) === S.hostId && d.to === S.myId) { S.pending = false; toast(reasonText({ reason: d.r, meldMin: d.mm }), true); denied(); render(); }
           else if (!S.hostId && d.to === S.myId) { toast(reasonText({ reason: d.r }), true); }
         },
         peers: ch => {
@@ -384,13 +443,15 @@
     if (S.hostId && S.hostId !== sender) return;
     if (S.view && d.v < S.view.v) return;
     S.hostId = sender; S.hostSeen = true;
+    const gid = d.g === 'math' ? 'math' : 'rummy';
+    if (S.gameId !== gid) { S.gameId = gid; S.lastStateKey = null; }
     let hand = S.hand;
     const box = d.hx && d.hx[S.myId];
     if (box) {
-      try { hand = Rules.decodeIds(box.pt !== undefined ? box.pt : await Net.Crypto.open(d.hk, box)); S.gotHand = true; }
+      try { hand = GAMES[gid].decodeHand(box.pt !== undefined ? box.pt : await Net.Crypto.open(d.hk, box)); S.gotHand = true; }
       catch (e) { S.gotHand = false; }
     }
-    S.view = Host.readView(d);
+    S.view = GAMES[gid].Host.readView(d);
     S.hand = S.view.players.some(p => p.id === S.myId) ? hand : [];
     if (S.view.players.some(p => p.id === S.myId) && !box) { S.gotHand = false; }
     store.set('rk.last', JSON.stringify({ code: S.view.code, role: 'client', tab: Net.tab }));
@@ -398,7 +459,9 @@
   }
 
   async function leaveTable() {
-    clearInterval(heartbeat); clearInterval(helloTimer); clearTimeout(botTimer); clearTimeout(joinWatch);
+    clearInterval(heartbeat); clearInterval(helloTimer); clearTimeout(botTimer); clearTimeout(joinWatch); clearTimeout(turnTimer);
+    if (botJob) { botJob.cancel = true; botJob = null; }
+    MUI.reset();
     if (S.mode === 'client' && S.view && S.view.status !== 'playing') Net.send('act', { t: 'leave' }).catch(() => {});
     if (S.mode === 'host') Net.announceTable(null);
     if (S.mode === 'host' || S.mode === 'client') await Net.leaveTable();
@@ -906,10 +969,11 @@
     const pool = poolEl ? poolEl.getBoundingClientRect() : null;
     const from = S.flipFrom; S.flipFrom = null;
     let n = 0;
-    document.querySelectorAll('.game .tile[data-tile]').forEach(el => {
+    // measure every tile first, then animate (reading a rect after starting an animation costs a style pass per tile)
+    const items = [];
+    document.querySelectorAll('.game .tile[data-tile]').forEach(el => { const r = el.getBoundingClientRect(); if (r.width) items.push([el, r]); });
+    items.forEach(([el, r]) => {
       const id = +el.dataset.tile;
-      const r = el.getBoundingClientRect();
-      if (!r.width) return;
       let b = deal ? null : before.get(id);
       if (from && from.id === id) b = from.rect;
       if (b) {
@@ -1044,7 +1108,8 @@
   }
   function updateTitle() {
     const mine = S.screen === 'game' && isMyTurn() && S.mode !== 'local';
-    const title = mine ? '● ' + t('yourTurn') + ' · Rummy Tiles Club' : 'Rummy Tiles Club';
+    const brand = S.screen === 'game' && S.gameId === 'math' ? gameName('math') : 'Rummy Tiles Club';
+    const title = mine ? '● ' + t('yourTurn') + ' · ' + brand : brand;
     if (document.title !== title) document.title = title;
   }
 
@@ -1059,6 +1124,14 @@
   }
   function renderNow() {
     document.documentElement.lang = S.lang;
+    if (S.screen === 'game' && S.view && S.gameId === 'math') {
+      const before = FX.tier() > 0 ? MUI.snap() : new Map();
+      root.replaceChildren(MUI.renderGame());
+      MUI.afterRender(before);
+      if (S.settings) renderSettingsLive();
+      updateTitle();
+      return;
+    }
     const tableScroll = $('.table') ? $('.table').scrollTop : 0;
     const motion = S.screen === 'game' && FX.tier() > 0;
     const before = motion && $('.game') ? snapTiles() : new Map();
@@ -1093,12 +1166,19 @@
 
   function renderHome() {
     const T = (c, n) => c * 13 + (n - 1);
-    const fan = h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
+    const math = S.menuGame === 'math';
+    const fan = math ? MUI.menuFan() : h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
       [T(0, 11), T(2, 1), 104, T(1, 13), T(3, 7)].map((id, i) => {
         const e = tileEl(id, 'static');
         e.style.setProperty('--i', String(i - 2));
         return e;
       }));
+    const picker = h('div', { class: 'game-pick', role: 'radiogroup', 'aria-label': t('gameLabel'), id: 'game-pick' },
+      ['rummy', 'math'].map(g => h('button', {
+        type: 'button', class: 'gp-card', role: 'radio', 'aria-checked': S.menuGame === g ? 'true' : 'false', 'data-game': g,
+        onclick: () => { S.menuGame = g; store.set('rk.game', g); render(); }
+      }, h('span', { class: 'gp-ico gp-' + g, 'aria-hidden': 'true', text: g === 'math' ? '÷' : '7' }),
+        h('span', { class: 'gp-txt' }, h('b', { text: gameName(g) }), h('small', { text: t(g === 'math' ? 'gMathSub' : 'gRummySub') })))));
     const nameIn = h('input', { class: 'input', id: 'name', maxlength: '16', autocomplete: 'nickname', placeholder: t('namePh'), value: S.name });
     nameIn.addEventListener('input', () => { S.name = nameIn.value.slice(0, 16); store.set('rk.name', S.name); });
     const codeIn = h('input', { class: 'input code', id: 'join-code', maxlength: '4', placeholder: t('codePh'), autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': t('codePh') });
@@ -1111,6 +1191,7 @@
     settingsB.querySelector('.mb-t').textContent = t('settings');
     const panel = h('section', { class: 'menu-panel', 'aria-label': 'Menu' },
       resume.length ? h('div', { class: 'menu-resume' }, resume) : null,
+      picker,
       h('label', { class: 'field', for: 'name' }, h('span', { text: t('yourName') }), nameIn),
       h('div', { class: 'menu-row' },
         h('button', { type: 'button', class: 'mbtn primary', id: 'start-bots', onclick: startLocal },
@@ -1127,13 +1208,13 @@
       tables = h('section', { class: 'menu-tables' }, h('span', { class: 'label', text: t('openTables') }),
         Net.lobby.map(x => h('div', { class: 'table-item' },
           h('span', { class: 'code', text: x.code }),
-          h('span', { class: 'meta', text: x.host + ' · ' + x.n + '/4' + (x.st === 'playing' ? ' · ▶' : '') }),
+          h('span', { class: 'meta', text: gameName(x.g) + ' · ' + x.host + ' · ' + x.n + '/4' + (x.st === 'playing' ? ' · ▶' : '') }),
           h('button', { type: 'button', class: 'btn small', text: t('join'), onclick: () => joinOnline(x.code) }))));
     }
     return h('div', { class: 'menu' },
       h('div', { class: 'menu-motes', 'aria-hidden': 'true' }, Array.from({ length: 16 }, (_, i) => h('i', { style: { '--k': String(i) } }))),
       h('div', { class: 'menu-top' }, langSeg()),
-      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: 'Rummy Tiles<small>Club</small>' })),
+      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: math ? 'Math Crossword<small>Tiles Club</small>' : 'Rummy Tiles<small>Club</small>' })),
       panel, tables);
   }
 
@@ -1148,7 +1229,7 @@
     const local = store.json('rk.local');
     if (local && local.status === 'playing' && Array.isArray(local.players)) {
       out.push(h('div', { class: 'row' },
-        h('span', { class: 'grow', text: t('resumeLocal') }),
+        h('span', { class: 'grow', text: t('resumeLocal') + ' · ' + gameName(gameOf(local)) }),
         h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => enterEngine('local', local, 'me') }),
         h('button', { type: 'button', class: 'btn small ghost', text: t('discard'), onclick: () => { store.del('rk.local'); render(); } })));
     }
@@ -1192,27 +1273,48 @@
         p.id === v.hostId ? h('span', { class: 'chip brass', text: t('host') }) : null,
         p.id === S.myId ? h('span', { class: 'chip', text: t('you') }) : null,
         p.bot ? h('span', { class: 'chip', text: t('bot') }) : null,
-        isHost && p.id !== v.hostId ? h('button', { type: 'button', class: 'btn small ghost', text: t('remove'), onclick: () => { Host.removePlayer(S.G, p.id); engineChanged(); } }) : null));
+        isHost && p.id !== v.hostId ? h('button', { type: 'button', class: 'btn small ghost', text: t('remove'), onclick: () => { GH().removePlayer(S.G, p.id); engineChanged(); } }) : null));
     }
     inner.append(
-      h('div', { class: 'brand-row' }, h('h1', { class: 'brand', style: { fontSize: 'clamp(28px,5vw,40px)' }, text: t('lobbyTitle') }), langSeg()),
+      h('div', { class: 'brand-row' }, h('div', null, h('span', { class: 'label', text: gameName(S.gameId) }), h('h1', { class: 'brand', style: { fontSize: 'clamp(28px,5vw,40px)' }, text: t('lobbyTitle') })), langSeg()),
       h('section', { class: 'card' },
         h('span', { class: 'label', text: t('tableCode') }),
         h('div', { class: 'row' }, codeTiles, copy),
         h('p', { class: 'note', text: t('shareHint') })),
       h('section', { class: 'card' },
         h('div', { class: 'row' }, h('h2', { class: 'grow', text: t('seats', { n: v.players.length }) }),
-          isHost ? h('button', { type: 'button', class: 'btn small', id: 'add-bot', disabled: v.players.length >= 4, text: t('addBot'), onclick: () => { Host.addBot(S.G); engineChanged(); } }) : null),
+          isHost ? h('button', { type: 'button', class: 'btn small', id: 'add-bot', disabled: v.players.length >= 4, text: t('addBot'), onclick: () => { GH().addBot(S.G); engineChanged(); } }) : null),
         seats,
-        isHost ? wrapToggle('lobby-wrap', v.rules.wrap, on => { Host.setWrap(S.G, on); S.prefs.wrap = on; Prefs.save(storageAdapter, S.prefs); engineChanged(); })
-          : h('p', { class: 'note', text: t(v.rules.wrap ? 'wrapOn' : 'wrapOff') }),
+        lobbyRules(v, isHost),
         h('div', { class: 'row' },
-          isHost ? h('button', { type: 'button', class: 'btn primary', id: 'start-game', disabled: v.players.length < 2, text: t('start'), onclick: () => { const r = Host.start(S.G, rand); if (!r.ok) toast(reasonText(r), true); engineChanged(); } }) : h('p', { class: 'note', text: t('waitHostStart') }),
+          isHost ? h('button', { type: 'button', class: 'btn primary', id: 'start-game', disabled: v.players.length < 2, text: t('start'), onclick: () => { const r = GH().start(S.G, rand, Date.now()); if (!r.ok) toast(reasonText(r), true); engineChanged(); } }) : h('p', { class: 'note', text: t('waitHostStart') }),
           isHost && v.players.length < 2 ? h('span', { class: 'note', text: t('needPlayers') }) : null,
           h('span', { class: 'grow' }),
           h('button', { type: 'button', class: 'btn ghost', text: t('leave'), onclick: leaveTable }))));
     wrap.append(inner);
     return wrap;
+  }
+
+  /** The table's rules in the lobby: the host changes them, everyone else reads them. */
+  function lobbyRules(v, isHost) {
+    if (S.gameId !== 'math') {
+      return isHost ? wrapToggle('lobby-wrap', v.rules.wrap, on => { Host.setWrap(S.G, on); S.prefs.wrap = on; Prefs.save(storageAdapter, S.prefs); engineChanged(); })
+        : h('p', { class: 'note', text: t(v.rules.wrap ? 'wrapOn' : 'wrapOff') });
+    }
+    const r = v.rules;
+    if (!isHost) return h('p', { class: 'note', text: (r.turnSec ? t('mTimerOn', { n: r.turnSec }) : t('mTimerOff')) + ' · ' + t('mBotIs', { l: t('bot_' + r.botLevel) }) });
+    return h('div', { class: 'lobby-rules' }, timerSeg('lobby-timer', r.turnSec, n => { MH.setTurnSec(S.G, n); S.prefs.mathTimer = n; Prefs.save(storageAdapter, S.prefs); engineChanged(); }),
+      botLevelSeg('lobby-bot', r.botLevel, l => { MH.setBotLevel(S.G, l); S.prefs.mathBot = l; Prefs.save(storageAdapter, S.prefs); engineChanged(); }));
+  }
+  function timerSeg(id, cur, set) {
+    return h('div', { class: 'ctl' }, h('span', { class: 'lbl', text: t('mTimer') }),
+      h('div', { class: 'seg', role: 'group', 'aria-label': t('mTimer'), id },
+        Prefs.MATH_TIMERS.map(n => h('button', { type: 'button', 'aria-pressed': cur === n ? 'true' : 'false', text: n ? t('timer_n', { n }) : t('timer_0'), onclick: () => set(n) }))));
+  }
+  function botLevelSeg(id, cur, set) {
+    return h('div', { class: 'ctl' }, h('span', { class: 'lbl', text: t('mBotLevel') }),
+      h('div', { class: 'seg', role: 'group', 'aria-label': t('mBotLevel'), id },
+        Prefs.BOT_LEVELS.map(l => h('button', { type: 'button', 'aria-pressed': cur === l ? 'true' : 'false', text: t('bot_' + l), onclick: () => set(l) }))));
   }
 
   function logText(e) {
@@ -1512,7 +1614,24 @@
     // rules for tables you open
     const wr = h('input', { type: 'checkbox', id: 's-wrap', checked: pr.wrap });
     wr.addEventListener('change', () => setPref('wrap', wr.checked));
-    controls.append(h('section', { class: 'group' }, h('h3', { text: t('sRules') }), h('label', { class: 'toggle', for: 's-wrap' }, wr, t('wrapRule'))));
+    controls.append(h('section', { class: 'group' }, h('h3', { text: t('sRules') }),
+      h('span', { class: 'lbl', text: gameName('rummy') }), h('label', { class: 'toggle', for: 's-wrap' }, wr, t('wrapRule')),
+      h('span', { class: 'lbl', text: gameName('math') }),
+      timerSeg('s-mtimer', pr.mathTimer, n => setPref('mathTimer', n, true)),
+      botLevelSeg('s-mbot', pr.mathBot, l => setPref('mathBot', l, true))));
+    const mathGame = S.screen === 'game' && S.gameId === 'math';
+    if (mathGame) {
+      // the rack layout below is Rummy's; the math rack is fixed at 8
+      const panel0 = h('div', { class: 'settings', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 's-title' },
+        h('header', { class: 'settings-head' }, h('h2', { id: 's-title', text: t('sTitle') }), langSeg(),
+          h('button', { type: 'button', class: 'btn small ghost', text: t('sCancel'), onclick: closeSettings })),
+        h('div', { class: 'settings-body solo' }, controls),
+        h('footer', { class: 'settings-foot', id: 's-foot' }));
+      host.replaceChildren(panel0);
+      controls.scrollTop = prevScroll;
+      renderSettingsLive();
+      return;
+    }
 
     // your board (the rack)
     controls.append(h('h3', { class: 'group-head', text: t('sBoardHead') }));
@@ -1578,7 +1697,7 @@
   }
 
   function settingsHand() {
-    return S.rack && S.screen === 'game' ? Rack.allTiles(S.rack) : null;
+    return S.rack && S.screen === 'game' && S.gameId !== 'math' ? Rack.allTiles(S.rack) : null;
   }
   function renderSettingsLive() {
     const st = S.settings;
@@ -1587,7 +1706,7 @@
     const cap = BC.capacity(c);
     const hand = settingsHand();
     const impact = hand ? Rack.resizeImpact(S.rack, BC.rowLayout(c)) : null;
-    setKids($('#s-capacity'),
+    if ($('#s-capacity')) setKids($('#s-capacity'),
       h('span', { class: 'label', text: t('sCapacity') }),
       h('span', { class: 'big', id: 's-cap-label', text: BC.capacityLabel(c) + ' ' + t('sCellsUnit') }),
       h('div', { class: 'meter', role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': String(L.maxCells), 'aria-valuenow': String(cap), 'aria-label': t('sCapacity') }, h('i', { style: { width: (cap / L.maxCells * 100) + '%' } })),
@@ -1669,7 +1788,7 @@
   function applySettings(confirmed) {
     const st = S.settings;
     const cfg = BC.sanitize(st.draft).config;
-    if (S.rack && S.screen === 'game') {
+    if (S.rack && S.screen === 'game' && S.gameId !== 'math') {
       const impact = Rack.resizeImpact(S.rack, BC.rowLayout(cfg));
       if (impact.toTray > 0 && !confirmed) { st.confirm = impact; renderSettingsLive(); const b = $('#s-confirm-apply'); if (b) b.focus(); return; }
       pushUndo();
@@ -1687,12 +1806,16 @@
 
   // ---------- keyboard ----------
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && S.settings) { closeSettings(); return; }
+    if (S.screen === 'game' && S.gameId === 'math') { if (MUI.onKey(e)) e.preventDefault(); return; }
     if (e.key === 'Escape') {
-      if (S.settings) { closeSettings(); return; }
       if (S.sel) { S.sel = null; render(); }
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && S.screen === 'game' && !S.settings && !e.target.closest('input')) { e.preventDefault(); undo(); }
   });
+
+  // ---------- the math crossword screen ----------
+  const MUI = window.RK.MathUI({ S, h, t, store, toast, rand, render, act, engineMode, engineChanged, leaveTable, settingsBtn, langSeg });
 
   // ---------- boot ----------
   document.body.append(h('div', { id: 'settings-root' }));
@@ -1704,5 +1827,5 @@
   Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 
   // Handle for automated checks (harmless for players).
-  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl };
+  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl, math: MUI, GAMES };
 })();

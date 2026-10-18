@@ -67,7 +67,7 @@
         const x = all[code];
         if (!CODE_RE.test(code) || !x || x.uid === uid) return;
         if (typeof x.ts === 'number' && now - x.ts > 6 * 3600e3) return;   // forgotten tables
-        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby' });
+        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby', g: x.g === 'math' ? 'math' : 'rummy' });
       });
       Net.lobby = list;
       onChange();
@@ -83,13 +83,13 @@
       if (!info) { if (lobbyOn && code) { lobbyOn = false; lastAnn = ''; try { await fb.remove(R('lobby/' + code)); } catch (e) {} } return; }
       if (!CODE_RE.test(info.code)) return;
       // only write when something changed (or every 10 min to keep the entry fresh): every write wakes every menu
-      const ann = JSON.stringify([info.code, info.host, info.n, info.st]);
+      const ann = JSON.stringify([info.code, info.host, info.n, info.st, info.g]);
       if (ann === lastAnn && Date.now() - lastAnnAt < 600e3) return;
       lastAnn = ann; lastAnnAt = Date.now();
       try {
         const r = R('lobby/' + info.code);
         if (!lobbyOn) { lobbyOn = true; fb.onDisconnect(r).remove(); }
-        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, ts: fb.serverTimestamp() });
+        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, g: info.g === 'math' ? 'math' : 'rummy', ts: fb.serverTimestamp() });
       } catch (e) { /* the lobby is best-effort */ }
     };
 

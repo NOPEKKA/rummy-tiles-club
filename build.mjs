@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const src = f => readFileSync(join(here, 'src', f), 'utf8');
-const order = ['config.js', 'prefs.js', 'rack.js', 'rules.js', 'tablegrid.js', 'moveinfo.js', 'host.js', 'i18n.js', 'skins.js', 'sfx.js', 'fx.js', 'net.js', 'netfb.js', 'app.js'];
+const order = ['config.js', 'prefs.js', 'rack.js', 'rules.js', 'tablegrid.js', 'moveinfo.js', 'host.js', 'mathrules.js', 'mathbot.js', 'mathhost.js', 'i18n.js', 'skins.js', 'sfx.js', 'fx.js', 'net.js', 'netfb.js', 'mathui.js', 'app.js'];
 const js = order.map(f => `// ---- ${f} ----\n${src(f)}`).join('\n');
 if (js.includes('</script')) throw new Error('script would close early');
 const page = src('template.html')
@@ -25,7 +25,7 @@ writeFileSync(join(here, 'dist', 'test.html'), head + '</head><body>' + page + '
 mkdirSync(join(here, 'docs'), { recursive: true });
 const site = page.replace('<div id="app"></div>', '<div id="app"></div>\n<script src="firebase-config.js"></script>');
 writeFileSync(join(here, 'docs', 'index.html'),
-  head + '<meta name="description" content="Rummikub-style tile game for 2–4 players. Play friends online or practise against bots.">'
+  head + '<meta name="description" content="Two tile games for 2–4 players: Rummikub-style Rummy and Math Crossword. Play friends online or practise against bots.">'
   + '<meta name="theme-color" content="#163a33"><style>html{color-scheme:dark}</style></head><body>' + site + '</body></html>\n');
 const cfgPath = join(here, 'docs', 'firebase-config.js');
 if (!existsSync(cfgPath)) writeFileSync(cfgPath, readFileSync(join(here, 'firebase-config.example.js'), 'utf8'));

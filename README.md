@@ -1,8 +1,10 @@
 # Rummy Tiles Club
 
-เกมกระเบื้องตัวเลขแบบ Rummikub สำหรับ 2–4 คน เล่นออนไลน์กับเพื่อน หรือฝึกกับบอท (ไทย / English)
+เกมฝึกสมองแบบกระเบื้อง 2 เกมในเว็บเดียว เล่นออนไลน์กับเพื่อน หรือฝึกกับบอท (ไทย / English) ใช้เซิร์ฟเวอร์ Firebase ชุดเดียวกัน
 
-**เล่นเลย:** https://nopekka.github.io/rummy-tiles-club/
+**เล่นเลย:** https://nopekka.github.io/rummy-tiles-club/ (เลือกเกมได้ที่หน้าแรก)
+
+### Rummy (แบบ Rummikub)
 
 - โต๊ะกลางเป็นตาราง วางไพ่ช่องไหนก็ได้ ไพ่ที่ติดกันในแถวเดียวกันรวมเป็นชุดให้เอง
 - โต๊ะเริ่มแบบซูมเข้า แล้วค่อยๆ ซูมออกเมื่อโต๊ะขยาย
@@ -10,6 +12,19 @@
 - เอฟเฟกต์ตอนวางรวด ต่อไพ่ ขโมยไพ่มาต่อ ชิงโจ๊กเกอร์ และตอนชนะ มีเสียงประกอบ
 - สไตล์ไพ่ 4 แบบ: งาช้าง / มนตรา / คริสตัล / ราชสำนัก
 - บอร์ดรางไพ่ปรับได้: สูงสุด 15 ช่อง × 4 แถว (60 ช่อง) มีตัวอย่างสด
+
+### ครอสเวิร์ดเลข (Math Crossword)
+
+วางไพ่ตัวเลขกับเครื่องหมายลงกระดาน 15 × 15 แบบครอสเวิร์ด ทุกแถวที่ไพ่ติดกันต้องเป็นสมการที่ถูก
+
+- ไพ่ 100 ตัว: เลข 0–20, + − × ÷, ไพ่เลือกได้ +/− และ ×/÷, = และไพ่ว่าง (เป็นอะไรก็ได้ 0 แต้ม) ในรางมีคนละ 8 ตัว
+- เลข 0–9 ต่อกันเป็นเลขได้ถึง 3 หลัก (ห้ามขึ้นต้นด้วย 0) ไพ่ 10–20 ต้องวางเดี่ยว
+- × ÷ คิดก่อน + − มี = หลายตัวได้ (เช่น 1+1=2=4÷2) ใส่ − หน้าตัวเลขได้ที่ต้นสมการหรือหลัง =
+- ตาแรกต้องผ่านดาวกลางกระดาน ตาต่อไปต้องต่อกับไพ่ที่มีอยู่ และทุกสมการที่เกิดขึ้น (รวมแนวขวาง) ต้องถูก
+- คะแนน = แต้มไพ่ × ช่องพิเศษ (เบี้ย ×2/×3, สมการ ×2/×3) ลงครบ 8 ตัวในตาเดียว +40
+- เปลี่ยนไพ่ได้เมื่อในถุงเหลือ 5 ตัวขึ้นไป ผ่านติดกันครบ 3 รอบจบเกม จบแล้วแต้มที่ค้างรางติดลบ
+- ตั้งเวลาต่อตาได้ (60/90/120/180 วินาที) บอทมี 3 ระดับ (ง่าย/กลาง/ยาก) และนับจำนวนเกมที่ชนะต่อโต๊ะ
+- ลากไพ่ หรือแตะไพ่แล้วแตะช่อง ระหว่างวางจะเห็นทันทีว่าสมการถูกไหม และได้กี่แต้ม บนมือถือกดขยายกระดานได้
 
 ถ้ายังไม่ได้ตั้งค่า Firebase หน้าเว็บก็ยังเล่นกับบอทได้ตามปกติ ปุ่มเล่นออนไลน์จะยังกดไม่ได้
 
@@ -103,7 +118,7 @@ window.RK_FIREBASE = {
 
 ```bash
 npm run build   # src/ → docs/index.html (GitHub Pages) และ dist/rummy-tiles.html (Artifact)
-npm test        # unit tests: กติกา, ตารางโต๊ะ, บอร์ด, ตัวตรวจท่า (ต่อ/ขโมย/คอมโบ)
+npm test        # unit tests: กติกา, ตารางโต๊ะ, บอร์ด, ตัวตรวจท่า (ต่อ/ขโมย/คอมโบ), ครอสเวิร์ดเลข
 ```
 
 | ไฟล์ | หน้าที่ |
@@ -115,11 +130,15 @@ npm test        # unit tests: กติกา, ตารางโต๊ะ, บ�
 | `src/config.js`, `src/rack.js` | ตั้งค่าบอร์ดรางไพ่ และการจัดไพ่บนราง |
 | `src/net.js`, `src/netfb.js` | ออนไลน์: claude.ai room / Firebase |
 | `src/fx.js`, `src/sfx.js`, `src/skins.js` | เอฟเฟกต์ เสียง สไตล์ไพ่ |
-| `src/app.js`, `src/style.css` | หน้าจอทั้งหมด |
+| `src/mathrules.js` | ครอสเวิร์ดเลข: ไพ่ กระดาน ตรวจสมการ (เศษส่วนแบบตรงเป๊ะ) คิดแต้ม |
+| `src/mathbot.js` | บอทครอสเวิร์ดเลข (ค้นหาเป็นช่วงสั้นๆ จอไม่กระตุก) |
+| `src/mathhost.js` | เอนจินโฮสต์ของครอสเวิร์ดเลข (ตา ถุงไพ่ เปลี่ยน/ผ่าน ตั้งเวลา จบเกม) |
+| `src/mathui.js` | หน้าจอครอสเวิร์ดเลข |
+| `src/app.js`, `src/style.css` | เมนู ห้องรอ ตั้งค่า ออนไลน์ และหน้าจอ Rummy |
 | `database.rules.json` | กฎความปลอดภัยของ Firebase |
 
 ---
 
 ### English summary
 
-Rummikub-style tile game, TH/EN, 2–4 players online or against bots. The host's browser is the authority; Firebase Realtime Database only relays messages (anonymous auth + `database.rules.json` stop players writing as someone else or touching the game state). To enable online play on GitHub Pages: create a Firebase project, enable Anonymous sign-in, create a Realtime Database, publish `database.rules.json`, and paste the web app config into `docs/firebase-config.js`.
+Two tile games in one page, TH/EN, 2–4 players online or against bots: a Rummikub-style game and Math Crossword (a crossword of true equations on a 15 × 15 board, with bonus squares, choice tiles, blanks, a turn timer and three bot levels). Both share the same online code and Firebase rules. The host's browser is the authority; Firebase Realtime Database only relays messages (anonymous auth + `database.rules.json` stop players writing as someone else or touching the game state). To enable online play on GitHub Pages: create a Firebase project, enable Anonymous sign-in, create a Realtime Database, publish `database.rules.json`, and paste the web app config into `docs/firebase-config.js`.
