@@ -67,7 +67,7 @@
         const x = all[code];
         if (!CODE_RE.test(code) || !x || x.uid === uid) return;
         if (typeof x.ts === 'number' && now - x.ts > 6 * 3600e3) return;   // forgotten tables
-        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby', g: x.g === 'math' ? 'math' : 'rummy' });
+        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby', g: x.g === 'math' || x.g === 'word' ? x.g : 'rummy' });
       });
       Net.lobby = list;
       onChange();
@@ -89,7 +89,7 @@
       try {
         const r = R('lobby/' + info.code);
         if (!lobbyOn) { lobbyOn = true; fb.onDisconnect(r).remove(); }
-        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, g: info.g === 'math' ? 'math' : 'rummy', ts: fb.serverTimestamp() });
+        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, g: info.g === 'math' || info.g === 'word' ? info.g : 'rummy', ts: fb.serverTimestamp() });
       } catch (e) { /* the lobby is best-effort */ }
     };
 

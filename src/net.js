@@ -87,7 +87,7 @@
           ch.peers.forEach(p => {
             const pr = p.presence || {};
             if (typeof pr.tbl === 'string' && /^[a-z0-9]{4}$/.test(pr.tbl) && !p.sameTab) {
-              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby', g: pr.g === 'math' ? 'math' : 'rummy' });
+              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby', g: pr.g === 'math' || pr.g === 'word' ? pr.g : 'rummy' });
             }
           });
           this.lobby = [...seen.values()];

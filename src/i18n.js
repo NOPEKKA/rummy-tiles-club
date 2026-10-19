@@ -80,7 +80,28 @@
       r_eq_none: 'ต้องมี = อย่างน้อย 1 ตัว', r_eq_ops: 'เครื่องหมายวางผิดที่', r_eq_big: 'ไพ่ 10–20 ต้องวางเดี่ยว ห้ามติดเลขอื่น', r_eq_digits: 'ตัวเลขยาวได้ไม่เกิน 3 หลัก',
       r_eq_lead0: 'ตัวเลขห้ามขึ้นต้นด้วย 0', r_eq_neg0: 'ไม่มี −0', r_eq_div0: 'หารด้วยศูนย์ไม่ได้', r_eq_false: 'ไม่เท่ากัน', r_eq_short: 'สมการต้องยาวอย่างน้อย 3 ตัว',
       r_not_line: 'ไพ่ที่ลงต้องอยู่แถวเดียวหรือคอลัมน์เดียว', r_gap: 'ไพ่ที่ลงต้องติดกัน ไม่เว้นช่อง', r_center: 'ตาแรกต้องวางผ่านช่องดาว ★',
-      r_not_connected: 'ต้องต่อกับไพ่ที่อยู่บนกระดาน', r_need_choice: 'เลือกค่าให้ไพ่ตัวเลือกก่อน', r_cell_taken: 'ช่องนี้มีไพ่แล้ว', r_swap_low: 'ในถุงเหลือไม่ถึง 5 ตัว เปลี่ยนไพ่ไม่ได้'
+      r_not_connected: 'ต้องต่อกับไพ่ที่อยู่บนกระดาน', r_need_choice: 'เลือกค่าให้ไพ่ตัวเลือกก่อน', r_cell_taken: 'ช่องนี้มีไพ่แล้ว', r_swap_low: 'ในถุงเหลือไม่ถึง 5 ตัว เปลี่ยนไพ่ไม่ได้',
+      // word crossword ('w…' replaces the math game's 'm…' string of the same name)
+      gWord: 'ครอสเวิร์ดคำ', gWordSub: 'ต่อคำศัพท์ภาษาอังกฤษ',
+      wRack: 'รางตัวอักษรของคุณ', wEq: 'คำ', wTileShort: 'ตัว', wBag: 'ตัวอักษรในถุง',
+      wLegE3: 'คำ ×3', wLegE2: 'คำ ×2', wLegT3: 'ตัวอักษร ×3', wLegT2: 'ตัวอักษร ×2',
+      wRule1: 'ทุกแถวและคอลัมน์ที่ตัวอักษรติดกันต้องเป็นคำภาษาอังกฤษในพจนานุกรม (ENABLE ราว 170,000 คำ) ยาว 2 ตัวขึ้นไป',
+      wRule2: 'ตาแรกต้องวางผ่านดาว ★ ตรงกลาง (ดาวคูณคำ ×2) · ตาต่อไปต้องต่อกับตัวที่อยู่บนกระดาน',
+      wRule3: 'คะแนน = แต้มตัวอักษร × ช่องตัวอักษร แล้ว × ช่องคำ · ช่องพิเศษนับเฉพาะตาที่วางทับครั้งแรก',
+      wRule4: 'ลงครบ 7 ตัวในตาเดียว +40 · ตัวว่างเป็นตัวอะไรก็ได้ (0 แต้ม) · มีคีย์บอร์ด: คลิกช่องแล้วพิมพ์ได้เลย',
+      wSwap: 'เปลี่ยนตัว', wSwapHint: 'แตะตัวที่จะเปลี่ยน แล้วกดยืนยัน (ใช้ตานี้)',
+      wHintEmpty: 'วางตัวอักษรจากรางลงกระดานให้เป็นคำ', wHintFirst: 'ตาแรก: วางคำผ่านช่องดาว ★ ตรงกลาง',
+      wHintType: 'พิมพ์ตัวอักษรได้เลย · Backspace ลบ · คลิกช่องเดิมเพื่อเปลี่ยนแนว', wHintChoice: 'แตะตัวว่างเพื่อเลือกตัวอักษร',
+      wOkLines: '{n} คำ', wPickBlank: 'ตัวว่าง: เลือกตัวอักษร (0 แต้ม)',
+      wTileLabel: 'ตัว {s}, {p} แต้ม', wBlankLabel: 'ตัวว่าง', wBlankAs: 'ตัวว่าง เป็น {s}', wNoTile: 'ไม่มีตัว {s} ในราง',
+      wTurnSub: 'วางคำ เปลี่ยนตัว หรือผ่าน',
+      wlog_bingo: '{name} ลงครบ 7 ตัว! {eq} +{n}', wlog_swap: '{name} เปลี่ยนตัวอักษร {n} ตัว',
+      wfxBingo: 'บิงโก! ลงครบ 7 ตัว', wfxCross: 'ไขว้ {n} คำ!',
+      wLoading: 'กำลังโหลดคำศัพท์…', wLoadFail: 'โหลดคำศัพท์ไม่สำเร็จ ลองใหม่อีกครั้ง', wLoadOld: 'เบราว์เซอร์นี้เก่าเกินไปสำหรับเกมคำ ลองอัปเดตเบราว์เซอร์',
+      r_not_word: 'ไม่มีคำนี้ในพจนานุกรม', r_word_short: 'คำต้องยาวอย่างน้อย 2 ตัว', r_no_dict: 'ยังโหลดคำศัพท์ไม่เสร็จ',
+      wcellTaken: 'ช่องนี้มีตัวอักษรแล้ว เลือกช่องว่าง', wr_not_line: 'ตัวที่ลงต้องอยู่แถวเดียวหรือคอลัมน์เดียว', wr_gap: 'ตัวที่ลงต้องติดกัน ไม่เว้นช่อง',
+      wr_not_connected: 'ต้องต่อกับตัวอักษรที่อยู่บนกระดาน', wr_need_choice: 'เลือกตัวอักษรให้ตัวว่างก่อน', wr_cell_taken: 'ช่องนี้มีตัวอักษรแล้ว',
+      wr_swap_low: 'ในถุงเหลือไม่ถึง 5 ตัว เปลี่ยนตัวไม่ได้', wr_no_tiles: 'ต้องลงตัวอักษรอย่างน้อย 1 ตัว', wr_not_your_tile: 'มีตัวอักษรที่ไม่ใช่ของคุณ'
     },
     en: {
       tagline: 'Rummikub-style number tiles for 2–4 players. Open a table for friends online, or practise against bots.',
@@ -158,7 +179,27 @@
       r_eq_none: 'Needs at least one =', r_eq_ops: 'A sign is in the wrong place', r_eq_big: 'A 10–20 tile must stand alone', r_eq_digits: 'Numbers have at most 3 digits',
       r_eq_lead0: 'A number can\'t start with 0', r_eq_neg0: 'There is no −0', r_eq_div0: 'Can\'t divide by zero', r_eq_false: 'not equal', r_eq_short: 'An equation needs at least 3 tiles',
       r_not_line: 'Your tiles must be in one row or one column', r_gap: 'Your tiles must touch, no gaps', r_center: 'The first move must cover the ★',
-      r_not_connected: 'Must join the tiles on the board', r_need_choice: 'Choose a value for the open tile first', r_cell_taken: 'That square is taken', r_swap_low: 'Fewer than 5 tiles in the bag: no swapping'
+      r_not_connected: 'Must join the tiles on the board', r_need_choice: 'Choose a value for the open tile first', r_cell_taken: 'That square is taken', r_swap_low: 'Fewer than 5 tiles in the bag: no swapping',
+      gWord: 'Word Crossword', gWordSub: 'Build English words',
+      wRack: 'Your rack', wEq: 'word', wTileShort: 'letter', wBag: 'Letters in the bag',
+      wLegE3: 'Word ×3', wLegE2: 'Word ×2', wLegT3: 'Letter ×3', wLegT2: 'Letter ×2',
+      wRule1: 'Every row or column of touching letters must be an English word from the word list (ENABLE, about 170,000 words), 2 letters or more',
+      wRule2: 'The first word covers the ★ in the middle (it doubles that word) · later words join the tiles on the board',
+      wRule3: 'Score = letter points × letter bonus, then × word bonus · a bonus square counts only for the tile first put on it',
+      wRule4: 'All 7 tiles in one move: +40 · a blank is any letter (0 points) · with a keyboard, click a square and type',
+      wSwap: 'Swap', wSwapHint: 'Tap the letters to trade back, then confirm (uses your turn)',
+      wHintEmpty: 'Put letters from your rack on the board to make a word', wHintFirst: 'First move: run your word through the ★ in the middle',
+      wHintType: 'Type letters · Backspace takes one back · click the square again to turn', wHintChoice: 'Tap the blank to choose its letter',
+      wOkLines: '{n} words', wPickBlank: 'Blank: choose a letter (0 points)',
+      wTileLabel: 'Letter {s}, {p} points', wBlankLabel: 'Blank tile', wBlankAs: 'Blank as {s}', wNoTile: 'No {s} on your rack',
+      wTurnSub: 'Play a word, swap, or pass',
+      wlog_bingo: '{name} used all 7! {eq} +{n}', wlog_swap: '{name} swapped {n} letters',
+      wfxBingo: 'Bingo! All 7 tiles', wfxCross: '{n} words at once!',
+      wLoading: 'Loading the word list…', wLoadFail: 'Could not load the word list. Try again.', wLoadOld: 'This browser is too old for the word game. Please update it.',
+      r_not_word: 'not in the word list', r_word_short: 'A word needs at least 2 letters', r_no_dict: 'The word list is still loading',
+      wcellTaken: 'That square is taken. Pick an empty one.', wr_not_line: 'Your letters must be in one row or one column', wr_gap: 'Your letters must touch, no gaps',
+      wr_not_connected: 'Must join the letters on the board', wr_need_choice: 'Choose a letter for the blank first', wr_cell_taken: 'That square is taken',
+      wr_swap_low: 'Fewer than 5 tiles in the bag: no swapping', wr_no_tiles: 'Play at least one letter', wr_not_your_tile: 'One of those letters isn’t yours'
     }
   };
   root.RK = root.RK || {};

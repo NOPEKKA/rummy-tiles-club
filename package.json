@@ -2,10 +2,10 @@
   "name": "rummy-tiles-club",
   "version": "1.0.0",
   "private": true,
-  "description": "Rummikub-style tile game for 2-4 players: online (Firebase or claude.ai rooms) or against bots",
+  "description": "Tile games for 2-4 players (Rummy, Math Crossword, Word Crossword): online (Firebase or claude.ai rooms) or against bots",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node --test tests/board.test.cjs tests/rules.test.cjs tests/grid.test.cjs tests/moves.test.cjs tests/math.test.cjs"
+    "test": "node --test tests/board.test.cjs tests/rules.test.cjs tests/grid.test.cjs tests/moves.test.cjs tests/math.test.cjs tests/word.test.cjs"
   },
   "engines": { "node": ">=18" }
 }

@@ -1,7 +1,7 @@
 // UI: screens, your board (rack), the shared table, drag and drop, settings.
 (function () {
   'use strict';
-  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins, MathHost: MH } = window.RK;
+  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins, MathHost: MH, WordHost: WH, WordRules: WR, Words } = window.RK;
 
   // ---------- small helpers ----------
   const $ = (sel, el) => (el || document).querySelector(sel);
@@ -51,7 +51,7 @@
     config: BC.load(storageAdapter),
     screen: 'home', bots: 2, code: '',
     gameId: 'rummy',                                   // the game at the table you are in
-    menuGame: store.get('rk.game') === 'math' ? 'math' : 'rummy',   // the game picked on the menu
+    menuGame: ['math', 'word'].indexOf(store.get('rk.game')) >= 0 ? store.get('rk.game') : 'rummy',   // the game picked on the menu
     mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1,
     rack: null, rackRound: null, draft: null, draftKey: null, undo: [], sel: null, tnSeen: null,
     zoomUser: 1, settings: null, online: new Set(), pks: new Map(), gotHand: false, hostSeen: true,
@@ -68,7 +68,11 @@
     if (vars && typeof s === 'string') s = s.replace(/\{(\w+)\}/g, (m, k) => vars[k] !== undefined ? vars[k] : m);
     return s;
   }
-  function reasonText(res) { return t('r_' + (res.reason || 'malformed'), { min: res.meldMin || (S.view && S.view.meldMin) || 30 }); }
+  function reasonText(res) {
+    const k = 'r_' + (res.reason || 'malformed');
+    // Word Crossword has its own wording for some (letters, not tiles)
+    return t(S.gameId === 'word' && STR.en['w' + k] !== undefined ? 'w' + k : k, { min: res.meldMin || (S.view && S.view.meldMin) || 30 });
+  }
 
   // ---------- toasts ----------
   function toast(msg, bad) {
@@ -119,14 +123,31 @@
         return d.t === 'draw' ? { t: 'draw' } : null;
       }
     },
-    math: { Host: MH, encodeHand: MH.encodeHand, decodeHand: MH.decodeHand, encodeAct: MH.encodeAct, decodeAct: MH.decodeAct }
+    math: { Host: MH, encodeHand: MH.encodeHand, decodeHand: MH.decodeHand, encodeAct: MH.encodeAct, decodeAct: MH.decodeAct },
+    // Word Crossword needs its word list before anyone can play (ready)
+    word: { Host: WH, encodeHand: WH.encodeHand, decodeHand: WH.decodeHand, encodeAct: WH.encodeAct, decodeAct: WH.decodeAct, ready: () => Words.load(), isReady: () => WR.hasDict() }
   };
-  const gameOf = G => (G && G.game === 'math' ? 'math' : 'rummy');
+  const GAME_IDS = ['rummy', 'math', 'word'];
+  const gameOf = G => (G && (G.game === 'math' || G.game === 'word') ? G.game : 'rummy');
   const GM = () => GAMES[S.gameId] || GAMES.rummy;
   const GH = () => GM().Host;
-  const gameName = id => t(id === 'math' ? 'gMath' : 'gRummy');
+  const gameName = id => t({ math: 'gMath', word: 'gWord' }[id] || 'gRummy');
+  /** The crossword games keep their timer and bot level per game; Rummy has the 13 → 1 rule. */
+  const prefKey = (gid, what) => gid + (what === 'timer' ? 'Timer' : 'Bot');
   /** Rules for a new table of this game, from your settings. */
-  const newRules = gid => (gid === 'math' ? { turnSec: S.prefs.mathTimer, botLevel: S.prefs.mathBot } : { wrap: S.prefs.wrap });
+  const newRules = gid => (gid === 'rummy' ? { wrap: S.prefs.wrap } : { turnSec: S.prefs[prefKey(gid, 'timer')], botLevel: S.prefs[prefKey(gid, 'bot')] });
+  /** The crossword screen for the table you are at (null for Rummy). */
+  const XUI = () => (S.gameId === 'math' ? MUI : S.gameId === 'word' ? WUI : null);
+  function resetUIs() { MUI.reset(); WUI.reset(); }
+  /** Get a game ready to play (Word Crossword loads its word list once). false = it couldn't. */
+  async function needGame(gid) {
+    const g = GAMES[gid];
+    if (!g || !g.ready) return true;
+    const slow = setTimeout(() => toast(t('wLoading')), 300);
+    try { await g.ready(); return true; }
+    catch (e) { toast(t(e && e.message === 'words_old' ? 'wLoadOld' : 'wLoadFail'), true); return false; }
+    finally { clearTimeout(slow); }
+  }
   // The table during your turn is a grid (S.draft); sets are read off it.
   function viewGrid() {
     const v = S.view;
@@ -179,7 +200,7 @@
   }
 
   // Called whenever S.view / S.hand change, in every mode.
-  function onState() { if (S.gameId === 'math') MUI.onState(); else rummyOnState(); }
+  function onState() { const X = XUI(); if (X) X.onState(); else rummyOnState(); }
   function rummyOnState() {
     const v = S.view;
     if (!v) { render(); return; }
@@ -224,8 +245,8 @@
   let botTimer = null;
   function enterEngine(mode, G, myId) {
     S.mode = mode; S.G = G; S.myId = myId; S.hostId = G.hostId;
-    S.gameId = gameOf(G); MUI.reset();
-    if (S.gameId === 'math' && G.status === 'playing') G.turnAt = Date.now();   // a resumed game gets a fresh turn clock
+    S.gameId = gameOf(G); resetUIs();
+    if (S.gameId !== 'rummy' && G.status === 'playing') G.turnAt = Date.now();   // a resumed game gets a fresh turn clock
     S.rack = null; S.rackRound = null; S.draft = null; S.draftKey = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     engineChanged();
@@ -240,14 +261,15 @@
     scheduleBot();
     armTurnTimer();
   }
-  // math crossword: the host passes a turn that runs out of time
+  // crossword games: the host passes a turn that runs out of time
   let turnTimer = null;
   function armTurnTimer() {
     clearTimeout(turnTimer);
     const G = S.G;
-    if (!G || gameOf(G) !== 'math' || G.status !== 'playing' || !G.rules.turnSec || !engineMode()) return;
+    if (!G || gameOf(G) === 'rummy' || G.status !== 'playing' || !G.rules.turnSec || !engineMode()) return;
+    const H = GAMES[gameOf(G)].Host;
     const left = G.rules.turnSec * 1000 - (Date.now() - G.turnAt);
-    turnTimer = setTimeout(() => { if (S.G !== G) return; if (MH.timeout(G, Date.now())) engineChanged(); else armTurnTimer(); }, Math.max(50, left + 30));
+    turnTimer = setTimeout(() => { if (S.G !== G) return; if (H.timeout(G, Date.now())) engineChanged(); else armTurnTimer(); }, Math.max(50, left + 30));
   }
   let botJob = null;
   function scheduleBot() {
@@ -255,7 +277,7 @@
     if (botJob) { botJob.cancel = true; botJob = null; }
     const G = S.G;
     if (!G || G.status !== 'playing' || !G.players[G.turn] || !G.players[G.turn].bot) return;
-    if (gameOf(G) === 'math') { mathBot(G); return; }
+    if (gameOf(G) !== 'rummy') { crossBot(G); return; }
     botTimer = setTimeout(() => {
       if (S.G !== G || G.status !== 'playing' || !G.players[G.turn].bot) return;
       const pid = G.players[G.turn].id;
@@ -264,11 +286,11 @@
       engineChanged();
     }, S.fastBots ? 20 : 850 + rand() * 600 + FX.busyFor());
   }
-  /** A math bot thinks in 4 ms slices, so the page keeps drawing at full frame rate (even 120 Hz) while it searches. */
-  function mathBot(G) {
-    const tn = G.tn, job = { cancel: false };
+  /** A crossword bot thinks in 4 ms slices, so the page keeps drawing at full frame rate (even 120 Hz) while it searches. */
+  function crossBot(G) {
+    const tn = G.tn, job = { cancel: false }, H = GAMES[gameOf(G)].Host;
     botJob = job;
-    const search = MH.botSearch(G, { rng: rand });
+    const search = H.botSearch(G, { rng: rand });
     const readyAt = Date.now() + (S.fastBots ? 0 : 900 + rand() * 700);
     const tick = () => {
       if (job.cancel || S.G !== G || G.tn !== tn || G.status !== 'playing') return;
@@ -276,8 +298,8 @@
       const wait = S.fastBots ? 0 : Math.max(readyAt - Date.now(), FX.busyFor());
       if (wait > 0) { botTimer = setTimeout(tick, wait); return; }
       const pid = G.players[G.turn].id;
-      const res = MH.apply(G, pid, search.action(), Date.now(), rand);
-      if (!res.ok) MH.apply(G, pid, { t: 'pass' }, Date.now(), rand);
+      const res = H.apply(G, pid, search.action(), Date.now(), rand);
+      if (!res.ok) H.apply(G, pid, { t: 'pass' }, Date.now(), rand);
       engineChanged();
     };
     botTimer = setTimeout(tick, 0);
@@ -286,6 +308,8 @@
   function myName() { return S.name.trim() || (S.lang === 'th' ? 'ผู้เล่น' : 'Player'); }
 
   function startLocal() {
+    // a game still loading (the word list) starts once it has loaded
+    if (GAMES[S.menuGame].isReady && !GAMES[S.menuGame].isReady()) { needGame(S.menuGame).then(ok => { if (ok) startLocal(); }); return; }
     const H = GAMES[S.menuGame].Host;
     const G = H.createGame({ code: 'solo', hostId: 'me', hostName: myName(), rules: newRules(S.menuGame) });
     for (let i = 0; i < S.bots; i++) H.addBot(G);
@@ -307,7 +331,7 @@
     } catch (e) { netError(e); return false; }
   }
   /** The move was refused: the wrong sets / lines give a short shake. */
-  function denied() { if (S.gameId === 'math') MUI.deny(); else FX.deny([...document.querySelectorAll('.tset.bad')]); }
+  function denied() { const X = XUI(); if (X) X.deny(); else FX.deny([...document.querySelectorAll('.tset.bad')]); }
   function netError(e) {
     const code = e && e.code;
     toast(code === 'not_permitted' ? t('r_not_permitted') : code === 'taken' ? t('r_taken') : t('r_no_room'), true);
@@ -317,6 +341,7 @@
   let heartbeat = null, bcTimer = null;
   async function hostOnline(resumeG) {
     if (Net.state !== 'on') { toast(t('r_no_room'), true); return; }
+    if (!(await needGame(resumeG ? gameOf(resumeG) : S.menuGame))) return;
     S.screen = 'connecting'; render();
     const myId = await waitFor(() => Net.selfId(), 4000);
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
@@ -406,7 +431,7 @@
     const myId = await waitFor(() => Net.selfId(), 4000);
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
     S.mode = 'client'; S.myId = myId; S.view = null; S.hostId = null; S.code = code; S.gotHand = false;
-    MUI.reset();
+    resetUIs();
     S.rack = null; S.rackRound = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     try {
@@ -443,8 +468,10 @@
     if (S.hostId && S.hostId !== sender) return;
     if (S.view && d.v < S.view.v) return;
     S.hostId = sender; S.hostSeen = true;
-    const gid = d.g === 'math' ? 'math' : 'rummy';
+    const gid = d.g === 'math' || d.g === 'word' ? d.g : 'rummy';
     if (S.gameId !== gid) { S.gameId = gid; S.lastStateKey = null; }
+    // a guest checks words locally for hints; the host still rules on every move
+    if (gid === 'word' && !WR.hasDict() && Words.state !== 'loading') needGame('word').then(ok => { if (ok) { S.lastStateKey = null; render(); } });
     let hand = S.hand;
     const box = d.hx && d.hx[S.myId];
     if (box) {
@@ -461,7 +488,7 @@
   async function leaveTable() {
     clearInterval(heartbeat); clearInterval(helloTimer); clearTimeout(botTimer); clearTimeout(joinWatch); clearTimeout(turnTimer);
     if (botJob) { botJob.cancel = true; botJob = null; }
-    MUI.reset();
+    resetUIs();
     if (S.mode === 'client' && S.view && S.view.status !== 'playing') Net.send('act', { t: 'leave' }).catch(() => {});
     if (S.mode === 'host') Net.announceTable(null);
     if (S.mode === 'host' || S.mode === 'client') await Net.leaveTable();
@@ -1108,7 +1135,7 @@
   }
   function updateTitle() {
     const mine = S.screen === 'game' && isMyTurn() && S.mode !== 'local';
-    const brand = S.screen === 'game' && S.gameId === 'math' ? gameName('math') : 'Rummy Tiles Club';
+    const brand = S.screen === 'game' && XUI() ? gameName(S.gameId) : 'Rummy Tiles Club';
     const title = mine ? '● ' + t('yourTurn') + ' · ' + brand : brand;
     if (document.title !== title) document.title = title;
   }
@@ -1124,10 +1151,11 @@
   }
   function renderNow() {
     document.documentElement.lang = S.lang;
-    if (S.screen === 'game' && S.view && S.gameId === 'math') {
-      const before = FX.tier() > 0 ? MUI.snap() : new Map();
-      root.replaceChildren(MUI.renderGame());
-      MUI.afterRender(before);
+    const X = XUI();
+    if (S.screen === 'game' && S.view && X) {
+      const before = FX.tier() > 0 ? X.snap() : new Map();
+      root.replaceChildren(X.renderGame());
+      X.afterRender(before);
       if (S.settings) renderSettingsLive();
       updateTitle();
       return;
@@ -1166,19 +1194,19 @@
 
   function renderHome() {
     const T = (c, n) => c * 13 + (n - 1);
-    const math = S.menuGame === 'math';
-    const fan = math ? MUI.menuFan() : h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
+    const mg = S.menuGame;
+    const fan = mg === 'math' ? MUI.menuFan() : mg === 'word' ? WUI.menuFan() : h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
       [T(0, 11), T(2, 1), 104, T(1, 13), T(3, 7)].map((id, i) => {
         const e = tileEl(id, 'static');
         e.style.setProperty('--i', String(i - 2));
         return e;
       }));
     const picker = h('div', { class: 'game-pick', role: 'radiogroup', 'aria-label': t('gameLabel'), id: 'game-pick' },
-      ['rummy', 'math'].map(g => h('button', {
+      GAME_IDS.map(g => h('button', {
         type: 'button', class: 'gp-card', role: 'radio', 'aria-checked': S.menuGame === g ? 'true' : 'false', 'data-game': g,
-        onclick: () => { S.menuGame = g; store.set('rk.game', g); render(); }
-      }, h('span', { class: 'gp-ico gp-' + g, 'aria-hidden': 'true', text: g === 'math' ? '÷' : '7' }),
-        h('span', { class: 'gp-txt' }, h('b', { text: gameName(g) }), h('small', { text: t(g === 'math' ? 'gMathSub' : 'gRummySub') })))));
+        onclick: () => { S.menuGame = g; store.set('rk.game', g); if (g === 'word') Words.load().catch(() => {}); render(); }
+      }, h('span', { class: 'gp-ico gp-' + g, 'aria-hidden': 'true', text: { rummy: '7', math: '÷', word: 'A' }[g] }),
+        h('span', { class: 'gp-txt' }, h('b', { text: gameName(g) }), h('small', { text: t({ rummy: 'gRummySub', math: 'gMathSub', word: 'gWordSub' }[g]) })))));
     const nameIn = h('input', { class: 'input', id: 'name', maxlength: '16', autocomplete: 'nickname', placeholder: t('namePh'), value: S.name });
     nameIn.addEventListener('input', () => { S.name = nameIn.value.slice(0, 16); store.set('rk.name', S.name); });
     const codeIn = h('input', { class: 'input code', id: 'join-code', maxlength: '4', placeholder: t('codePh'), autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': t('codePh') });
@@ -1214,7 +1242,7 @@
     return h('div', { class: 'menu' },
       h('div', { class: 'menu-motes', 'aria-hidden': 'true' }, Array.from({ length: 16 }, (_, i) => h('i', { style: { '--k': String(i) } }))),
       h('div', { class: 'menu-top' }, langSeg()),
-      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: math ? 'Math Crossword<small>Tiles Club</small>' : 'Rummy Tiles<small>Club</small>' })),
+      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: { math: 'Math Crossword<small>Tiles Club</small>', word: 'Word Crossword<small>Tiles Club</small>' }[mg] || 'Rummy Tiles<small>Club</small>' })),
       panel, tables);
   }
 
@@ -1230,7 +1258,7 @@
     if (local && local.status === 'playing' && Array.isArray(local.players)) {
       out.push(h('div', { class: 'row' },
         h('span', { class: 'grow', text: t('resumeLocal') + ' · ' + gameName(gameOf(local)) }),
-        h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => enterEngine('local', local, 'me') }),
+        h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: async () => { if (await needGame(gameOf(local))) enterEngine('local', local, 'me'); } }),
         h('button', { type: 'button', class: 'btn small ghost', text: t('discard'), onclick: () => { store.del('rk.local'); render(); } })));
     }
     const last = store.json('rk.last');
@@ -1297,14 +1325,15 @@
 
   /** The table's rules in the lobby: the host changes them, everyone else reads them. */
   function lobbyRules(v, isHost) {
-    if (S.gameId !== 'math') {
+    if (S.gameId === 'rummy') {
       return isHost ? wrapToggle('lobby-wrap', v.rules.wrap, on => { Host.setWrap(S.G, on); S.prefs.wrap = on; Prefs.save(storageAdapter, S.prefs); engineChanged(); })
         : h('p', { class: 'note', text: t(v.rules.wrap ? 'wrapOn' : 'wrapOff') });
     }
     const r = v.rules;
     if (!isHost) return h('p', { class: 'note', text: (r.turnSec ? t('mTimerOn', { n: r.turnSec }) : t('mTimerOff')) + ' · ' + t('mBotIs', { l: t('bot_' + r.botLevel) }) });
-    return h('div', { class: 'lobby-rules' }, timerSeg('lobby-timer', r.turnSec, n => { MH.setTurnSec(S.G, n); S.prefs.mathTimer = n; Prefs.save(storageAdapter, S.prefs); engineChanged(); }),
-      botLevelSeg('lobby-bot', r.botLevel, l => { MH.setBotLevel(S.G, l); S.prefs.mathBot = l; Prefs.save(storageAdapter, S.prefs); engineChanged(); }));
+    const gid = S.gameId;
+    return h('div', { class: 'lobby-rules' }, timerSeg('lobby-timer', r.turnSec, n => { GH().setTurnSec(S.G, n); S.prefs[prefKey(gid, 'timer')] = n; Prefs.save(storageAdapter, S.prefs); engineChanged(); }),
+      botLevelSeg('lobby-bot', r.botLevel, l => { GH().setBotLevel(S.G, l); S.prefs[prefKey(gid, 'bot')] = l; Prefs.save(storageAdapter, S.prefs); engineChanged(); }));
   }
   function timerSeg(id, cur, set) {
     return h('div', { class: 'ctl' }, h('span', { class: 'lbl', text: t('mTimer') }),
@@ -1618,10 +1647,13 @@
       h('span', { class: 'lbl', text: gameName('rummy') }), h('label', { class: 'toggle', for: 's-wrap' }, wr, t('wrapRule')),
       h('span', { class: 'lbl', text: gameName('math') }),
       timerSeg('s-mtimer', pr.mathTimer, n => setPref('mathTimer', n, true)),
-      botLevelSeg('s-mbot', pr.mathBot, l => setPref('mathBot', l, true))));
-    const mathGame = S.screen === 'game' && S.gameId === 'math';
-    if (mathGame) {
-      // the rack layout below is Rummy's; the math rack is fixed at 8
+      botLevelSeg('s-mbot', pr.mathBot, l => setPref('mathBot', l, true)),
+      h('span', { class: 'lbl', text: gameName('word') }),
+      timerSeg('s-wtimer', pr.wordTimer, n => setPref('wordTimer', n, true)),
+      botLevelSeg('s-wbot', pr.wordBot, l => setPref('wordBot', l, true))));
+    const crossGame = S.screen === 'game' && S.gameId !== 'rummy';
+    if (crossGame) {
+      // the rack layout below is Rummy's; the crossword racks are fixed (8 and 7)
       const panel0 = h('div', { class: 'settings', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 's-title' },
         h('header', { class: 'settings-head' }, h('h2', { id: 's-title', text: t('sTitle') }), langSeg(),
           h('button', { type: 'button', class: 'btn small ghost', text: t('sCancel'), onclick: closeSettings })),
@@ -1697,7 +1729,7 @@
   }
 
   function settingsHand() {
-    return S.rack && S.screen === 'game' && S.gameId !== 'math' ? Rack.allTiles(S.rack) : null;
+    return S.rack && S.screen === 'game' && S.gameId === 'rummy' ? Rack.allTiles(S.rack) : null;
   }
   function renderSettingsLive() {
     const st = S.settings;
@@ -1788,7 +1820,7 @@
   function applySettings(confirmed) {
     const st = S.settings;
     const cfg = BC.sanitize(st.draft).config;
-    if (S.rack && S.screen === 'game' && S.gameId !== 'math') {
+    if (S.rack && S.screen === 'game' && S.gameId === 'rummy') {
       const impact = Rack.resizeImpact(S.rack, BC.rowLayout(cfg));
       if (impact.toTray > 0 && !confirmed) { st.confirm = impact; renderSettingsLive(); const b = $('#s-confirm-apply'); if (b) b.focus(); return; }
       pushUndo();
@@ -1807,15 +1839,19 @@
   // ---------- keyboard ----------
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && S.settings) { closeSettings(); return; }
-    if (S.screen === 'game' && S.gameId === 'math') { if (MUI.onKey(e)) e.preventDefault(); return; }
+    if (S.screen === 'game' && XUI()) { if (XUI().onKey(e)) e.preventDefault(); return; }
     if (e.key === 'Escape') {
       if (S.sel) { S.sel = null; render(); }
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && S.screen === 'game' && !S.settings && !e.target.closest('input')) { e.preventDefault(); undo(); }
   });
 
-  // ---------- the math crossword screen ----------
-  const MUI = window.RK.MathUI({ S, h, t, store, toast, rand, render, act, engineMode, engineChanged, leaveTable, settingsBtn, langSeg });
+  // ---------- the crossword screens ----------
+  const UI_KIT = { S, h, t, store, toast, rand, render, act, engineMode, engineChanged, leaveTable, settingsBtn, langSeg };
+  const MUI = window.RK.MathUI(UI_KIT);
+  const WUI = window.RK.WordUI(UI_KIT);
+  // the last game you picked was Word Crossword: fetch its word list while you look at the menu
+  if (S.menuGame === 'word') Words.load().catch(() => {});
 
   // ---------- boot ----------
   document.body.append(h('div', { id: 'settings-root' }));
@@ -1827,5 +1863,5 @@
   Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 
   // Handle for automated checks (harmless for players).
-  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl, math: MUI, GAMES };
+  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl, math: MUI, word: WUI, GAMES, needGame };
 })();

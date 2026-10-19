@@ -8,7 +8,7 @@
   const FPS = Object.freeze([30, 60, 90, 120]);
   const MATH_TIMERS = Object.freeze([0, 60, 90, 120, 180]);
   const BOT_LEVELS = Object.freeze(['easy', 'normal', 'hard']);
-  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal' });
+  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal', wordTimer: 0, wordBot: 'normal' });
   const KEY = 'rk.prefs.v1';
 
   function sanitize(input) {
@@ -23,7 +23,9 @@
       fps: FPS.includes(Number(src.fps)) ? Number(src.fps) : DEFAULTS.fps,
       showFps: !!src.showFps,
       mathTimer: MATH_TIMERS.includes(Number(src.mathTimer)) ? Number(src.mathTimer) : DEFAULTS.mathTimer,
-      mathBot: BOT_LEVELS.includes(src.mathBot) ? src.mathBot : DEFAULTS.mathBot
+      mathBot: BOT_LEVELS.includes(src.mathBot) ? src.mathBot : DEFAULTS.mathBot,
+      wordTimer: MATH_TIMERS.includes(Number(src.wordTimer)) ? Number(src.wordTimer) : DEFAULTS.wordTimer,
+      wordBot: BOT_LEVELS.includes(src.wordBot) ? src.wordBot : DEFAULTS.wordBot
     };
   }
 

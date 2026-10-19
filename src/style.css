@@ -601,9 +601,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 }
 
 /* ---------- menu: game picker ---------- */
-.game-pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.game-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .gp-card {
-  display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; min-width: 0; text-align: left;
+  display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 12px 6px 10px; border-radius: 14px; min-width: 0; text-align: center;
   border: 1px solid var(--line); background: var(--panel); color: var(--ink); transition: border-color .15s, background .15s;
 }
 .gp-card[aria-checked="true"] { border-color: var(--brass); background: rgba(220,165,69,.09); box-shadow: inset 0 0 0 1px var(--brass), 0 0 18px rgba(220,165,69,.18); }
@@ -612,9 +612,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   background: linear-gradient(180deg, #fffbf2, #eadcbc); box-shadow: 0 3px 0 #d3c29b; color: #d3122f; font: 800 21px/1 var(--font-display);
 }
 .gp-ico.gp-math { width: 38px; height: 38px; color: #1559c7; }
-.gp-txt { display: grid; gap: 1px; min-width: 0; }
-.gp-txt b { font: 700 15px/1.25 var(--font-body); }
-.gp-txt small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gp-ico.gp-word { position: relative; width: 38px; height: 38px; color: #1b1c22; }
+.gp-ico.gp-word::after { content: '1'; position: absolute; right: 5px; bottom: 4px; font: 700 9px/1 var(--font-mono); opacity: .6; }
+.gp-txt { display: grid; gap: 2px; min-width: 0; justify-items: center; }
+.gp-txt b { font: 700 14px/1.25 var(--font-body); text-wrap: balance; }
+.gp-txt small { font-size: 11.5px; line-height: 1.3; color: var(--muted); text-wrap: balance; }
 .menu-fan .mtile {
   --cs: 58px; position: absolute; left: 50%; bottom: 30px; margin-left: calc(var(--tw) * -.5);
   transform-origin: 50% 100%; transform: translateX(calc(var(--i) * 44px)) rotate(calc(var(--i) * 9deg)) translateY(calc(var(--i) * var(--i) * 5px));
@@ -675,6 +677,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   --mt-ink: #1b1a20; --mt-op: #164fb5; --mt-eq: #c8102e; --mt-font: 'Playfair Display', Georgia, serif;
 }
 
+/* ---------- word crossword: letter tiles ---------- */
+.mtile.s-let .mt-s { font-size: 1.14em; transform: translate(-5%, -4%); letter-spacing: 0; }
+.mtile.k-blank.s-let .mt-s { font-size: 1.04em; }
+.mtile.s-let .mt-p { right: 8%; bottom: 8%; font-size: calc(var(--tw) * .22); }
+
 /* ---------- math crossword: screen ---------- */
 .mgame { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .mgame > * { min-width: 0; }
@@ -718,6 +725,14 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 .mboard.placing.mine .mcell:not(:has(.mtile)) { cursor: pointer; }
 .mboard.placing.mine .mcell:not(:has(.mtile)):hover { box-shadow: inset 0 0 0 2px rgba(220,165,69,.7); }
 .mcell.drop { box-shadow: inset 0 0 0 2px var(--brass); background-color: rgba(220,165,69,.35); }
+/* the typing cursor (Word Crossword with a keyboard) */
+.mcell.cursor { box-shadow: inset 0 0 0 2px #5cc8ff; background-color: rgba(92,200,255,.16); }
+.mcur { position: absolute; z-index: 3; pointer-events: none; display: grid; place-items: center; font: 800 calc(var(--cs) * .5)/1 var(--font-display); color: #8fdcff; text-shadow: 0 0 calc(var(--cs) * .25) rgba(92,200,255,.8); animation: curblink 1.05s steps(2, jump-none) infinite; }
+.mcell:not(:has(.mtile)) .mcur { inset: 0; }
+.mcell:has(.mtile) .mcur { width: calc(var(--cs) * .42); height: calc(var(--cs) * .42); border-radius: 50%; font-size: calc(var(--cs) * .3); background: #5cc8ff; color: #062033; text-shadow: none; }
+.mcell:has(.mtile) .mcur.d0 { right: calc(var(--cs) * -.21); top: 50%; translate: 0 -50%; }
+.mcell:has(.mtile) .mcur.d1 { bottom: calc(var(--cs) * -.21); left: 50%; translate: -50% 0; }
+@keyframes curblink { 50% { opacity: .35; } }
 .mcell.drop-bad { box-shadow: inset 0 0 0 2px var(--bad); }
 .mcell.good::after, .mcell.bad::after { content: ''; position: absolute; inset: 0; border-radius: 3px; pointer-events: none; z-index: 2; }
 .mcell.good::after { box-shadow: inset 0 0 0 2px rgba(99,201,147,.85); background: rgba(99,201,147,.1); }
@@ -725,7 +740,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
 .mdock { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
 .mrack {
-  --rs: clamp(36px, calc((100cqi - 64px) / 8), 58px); --cs: var(--rs);
+  --rs: clamp(36px, calc((100cqi - 64px) / var(--slots, 8)), 58px); --cs: var(--rs);
   display: flex; gap: 6px; padding: 8px 10px; border-radius: 16px; max-width: 100%; box-sizing: border-box;
   background: repeating-linear-gradient(92deg, rgba(0,0,0,.07) 0 3px, transparent 3px 11px), linear-gradient(180deg, #7a4b2a, #4d2e17);
   box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -3px 0 rgba(0,0,0,.35), 0 10px 26px rgba(0,0,0,.4);
@@ -784,5 +799,5 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 /* the board is big enough to read from tablet size up; zoom is for phones */
 @media (min-width: 700px) { .mzoom { display: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .mtimer.low, .mcell.start .star, .mtile.draft.open, .menu-fan .mtile { animation: none !important; }
+  .mtimer.low, .mcell.start .star, .mtile.draft.open, .menu-fan .mtile, .mcur { animation: none !important; }
 }

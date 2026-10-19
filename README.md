@@ -1,6 +1,6 @@
 # Rummy Tiles Club
 
-เกมฝึกสมองแบบกระเบื้อง 2 เกมในเว็บเดียว เล่นออนไลน์กับเพื่อน หรือฝึกกับบอท (ไทย / English) ใช้เซิร์ฟเวอร์ Firebase ชุดเดียวกัน
+เกมฝึกสมองแบบกระเบื้อง 3 เกมในเว็บเดียว เล่นออนไลน์กับเพื่อน หรือฝึกกับบอท (ไทย / English) ใช้เซิร์ฟเวอร์ Firebase ชุดเดียวกัน
 
 **เล่นเลย:** https://nopekka.github.io/rummy-tiles-club/ (เลือกเกมได้ที่หน้าแรก)
 
@@ -25,6 +25,17 @@
 - เปลี่ยนไพ่ได้เมื่อในถุงเหลือ 5 ตัวขึ้นไป ผ่านติดกันครบ 3 รอบจบเกม จบแล้วแต้มที่ค้างรางติดลบ
 - ตั้งเวลาต่อตาได้ (60/90/120/180 วินาที) บอทมี 3 ระดับ (ง่าย/กลาง/ยาก) และนับจำนวนเกมที่ชนะต่อโต๊ะ
 - ลากไพ่ หรือแตะไพ่แล้วแตะช่อง ระหว่างวางจะเห็นทันทีว่าสมการถูกไหม และได้กี่แต้ม บนมือถือกดขยายกระดานได้
+
+### ครอสเวิร์ดคำ (Word Crossword)
+
+ต่อคำศัพท์ภาษาอังกฤษบนกระดาน 15 × 15 ทุกแถวและคอลัมน์ที่ตัวอักษรติดกันต้องเป็นคำที่มีในพจนานุกรม
+
+- พจนานุกรม ENABLE (public domain) คำยาว 2–15 ตัว 168,551 คำ ตรวจคำทันทีระหว่างวาง และโฮสต์ตรวจซ้ำทุกตา
+- ตัวอักษร 100 ตัว (ชุดและแต้มที่ออกแบบเอง) มีตัวว่าง 2 ตัว (เป็นตัวไหนก็ได้ 0 แต้ม) ในรางคนละ 7 ตัว
+- ช่องพิเศษผังของเกมนี้เอง: คำ ×3 (8 ช่อง) คำ ×2 (16 ช่อง + ดาวกลาง) ตัวอักษร ×3 (12) ตัวอักษร ×2 (24)
+- ตาแรกต้องผ่านดาวกลาง ใช้ครบ 7 ตัวในตาเดียว +40 เปลี่ยนตัว/ผ่าน ตั้งเวลา และบอท 3 ระดับเหมือนครอสเวิร์ดเลข
+- ลากตัวอักษร แตะแล้วแตะช่อง หรือ (มีคีย์บอร์ด) คลิกช่องแล้วพิมพ์เลย: คลิกช่องเดิมซ้ำเพื่อเปลี่ยนแนว Backspace ลบ Enter ลง
+- หน้าเว็บบน GitHub Pages โหลดไฟล์คำ (`docs/words.js` ราว 380 KB) เฉพาะตอนเลือกเกมนี้ ส่วน Artifact ฝังไว้ในไฟล์เดียว
 
 ถ้ายังไม่ได้ตั้งค่า Firebase หน้าเว็บก็ยังเล่นกับบอทได้ตามปกติ ปุ่มเล่นออนไลน์จะยังกดไม่ได้
 
@@ -117,8 +128,8 @@ window.RK_FIREBASE = {
 ต้องมี Node 18 ขึ้นไป ไม่ต้องติดตั้งแพ็กเกจเพิ่ม
 
 ```bash
-npm run build   # src/ → docs/index.html (GitHub Pages) และ dist/rummy-tiles.html (Artifact)
-npm test        # unit tests: กติกา, ตารางโต๊ะ, บอร์ด, ตัวตรวจท่า (ต่อ/ขโมย/คอมโบ), ครอสเวิร์ดเลข
+npm run build   # src/ → docs/index.html + docs/words.js (GitHub Pages) และ dist/rummy-tiles.html (Artifact)
+npm test        # unit tests: กติกา, ตารางโต๊ะ, บอร์ด, ตัวตรวจท่า (ต่อ/ขโมย/คอมโบ), ครอสเวิร์ดเลข, ครอสเวิร์ดคำ
 ```
 
 | ไฟล์ | หน้าที่ |
@@ -132,8 +143,14 @@ npm test        # unit tests: กติกา, ตารางโต๊ะ, บ�
 | `src/fx.js`, `src/sfx.js`, `src/skins.js` | เอฟเฟกต์ เสียง สไตล์ไพ่ |
 | `src/mathrules.js` | ครอสเวิร์ดเลข: ไพ่ กระดาน ตรวจสมการ (เศษส่วนแบบตรงเป๊ะ) คิดแต้ม |
 | `src/mathbot.js` | บอทครอสเวิร์ดเลข (ค้นหาเป็นช่วงสั้นๆ จอไม่กระตุก) |
-| `src/mathhost.js` | เอนจินโฮสต์ของครอสเวิร์ดเลข (ตา ถุงไพ่ เปลี่ยน/ผ่าน ตั้งเวลา จบเกม) |
-| `src/mathui.js` | หน้าจอครอสเวิร์ดเลข |
+| `src/crosshost.js` | เอนจินโฮสต์ของเกมครอสเวิร์ดทั้งสอง (ตา ถุงไพ่ เปลี่ยน/ผ่าน ตั้งเวลา จบเกม) |
+| `src/mathhost.js`, `src/wordhost.js` | เอนจินโฮสต์ของแต่ละเกม (crosshost + กติกา + บอทของเกมนั้น) |
+| `src/crossui.js` | หน้าจอกระดานครอสเวิร์ด (ใช้ร่วมกันสองเกม) |
+| `src/mathui.js`, `src/wordui.js` | หน้าตาไพ่ของแต่ละเกม (ครอสเวิร์ดคำพิมพ์จากคีย์บอร์ดได้) |
+| `src/wordrules.js` | ครอสเวิร์ดคำ: ตัวอักษร กระดาน ตรวจคำ คิดแต้ม |
+| `src/wordbot.js` | บอทครอสเวิร์ดคำ (หาท่าจากช่องติดตัวอักษร เดินในพจนานุกรม หยุดพักทุก 4 ms) |
+| `src/words.js` | โหลดพจนานุกรม (gzip ใน base64 ถอดด้วย DecompressionStream) |
+| `data/enable1.txt`, `tools/dawg.cjs` | รายการคำ ENABLE (public domain) และตัวแปลงเป็น DAWG ตอน build |
 | `src/app.js`, `src/style.css` | เมนู ห้องรอ ตั้งค่า ออนไลน์ และหน้าจอ Rummy |
 | `database.rules.json` | กฎความปลอดภัยของ Firebase |
 
@@ -141,4 +158,4 @@ npm test        # unit tests: กติกา, ตารางโต๊ะ, บ�
 
 ### English summary
 
-Two tile games in one page, TH/EN, 2–4 players online or against bots: a Rummikub-style game and Math Crossword (a crossword of true equations on a 15 × 15 board, with bonus squares, choice tiles, blanks, a turn timer and three bot levels). Both share the same online code and Firebase rules. The host's browser is the authority; Firebase Realtime Database only relays messages (anonymous auth + `database.rules.json` stop players writing as someone else or touching the game state). To enable online play on GitHub Pages: create a Firebase project, enable Anonymous sign-in, create a Realtime Database, publish `database.rules.json`, and paste the web app config into `docs/firebase-config.js`.
+Three tile games in one page, TH/EN, 2–4 players online or against bots: a Rummikub-style game, Math Crossword (a crossword of true equations on a 15 × 15 board, with bonus squares, choice tiles, blanks, a turn timer and three bot levels) and Word Crossword (English words checked against the public-domain ENABLE list, 168,551 words of 2–15 letters, packed as a DAWG; its own bonus layout and letter set; typing on a keyboard; the same timer and bot levels). All three share the same online code and Firebase rules. The host's browser is the authority; Firebase Realtime Database only relays messages (anonymous auth + `database.rules.json` stop players writing as someone else or touching the game state). To enable online play on GitHub Pages: create a Firebase project, enable Anonymous sign-in, create a Realtime Database, publish `database.rules.json`, and paste the web app config into `docs/firebase-config.js`.

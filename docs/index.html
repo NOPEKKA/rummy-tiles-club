@@ -1,4 +1,4 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Two tile games for 2–4 players: Rummikub-style Rummy and Math Crossword. Play friends online or practise against bots."><meta name="theme-color" content="#163a33"><style>html{color-scheme:dark}</style></head><body><title>Rummy Tiles Club</title>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Three tile games for 2–4 players: Rummikub-style Rummy, Math Crossword and Word Crossword. Play friends online or practise against bots."><meta name="theme-color" content="#163a33"><style>html{color-scheme:dark}</style></head><body><title>Rummy Tiles Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Cinzel:wght@700;900&family=Playfair+Display:wght@800;900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
@@ -606,9 +606,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 }
 
 /* ---------- menu: game picker ---------- */
-.game-pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.game-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .gp-card {
-  display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; min-width: 0; text-align: left;
+  display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 12px 6px 10px; border-radius: 14px; min-width: 0; text-align: center;
   border: 1px solid var(--line); background: var(--panel); color: var(--ink); transition: border-color .15s, background .15s;
 }
 .gp-card[aria-checked="true"] { border-color: var(--brass); background: rgba(220,165,69,.09); box-shadow: inset 0 0 0 1px var(--brass), 0 0 18px rgba(220,165,69,.18); }
@@ -617,9 +617,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   background: linear-gradient(180deg, #fffbf2, #eadcbc); box-shadow: 0 3px 0 #d3c29b; color: #d3122f; font: 800 21px/1 var(--font-display);
 }
 .gp-ico.gp-math { width: 38px; height: 38px; color: #1559c7; }
-.gp-txt { display: grid; gap: 1px; min-width: 0; }
-.gp-txt b { font: 700 15px/1.25 var(--font-body); }
-.gp-txt small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gp-ico.gp-word { position: relative; width: 38px; height: 38px; color: #1b1c22; }
+.gp-ico.gp-word::after { content: '1'; position: absolute; right: 5px; bottom: 4px; font: 700 9px/1 var(--font-mono); opacity: .6; }
+.gp-txt { display: grid; gap: 2px; min-width: 0; justify-items: center; }
+.gp-txt b { font: 700 14px/1.25 var(--font-body); text-wrap: balance; }
+.gp-txt small { font-size: 11.5px; line-height: 1.3; color: var(--muted); text-wrap: balance; }
 .menu-fan .mtile {
   --cs: 58px; position: absolute; left: 50%; bottom: 30px; margin-left: calc(var(--tw) * -.5);
   transform-origin: 50% 100%; transform: translateX(calc(var(--i) * 44px)) rotate(calc(var(--i) * 9deg)) translateY(calc(var(--i) * var(--i) * 5px));
@@ -680,6 +682,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   --mt-ink: #1b1a20; --mt-op: #164fb5; --mt-eq: #c8102e; --mt-font: 'Playfair Display', Georgia, serif;
 }
 
+/* ---------- word crossword: letter tiles ---------- */
+.mtile.s-let .mt-s { font-size: 1.14em; transform: translate(-5%, -4%); letter-spacing: 0; }
+.mtile.k-blank.s-let .mt-s { font-size: 1.04em; }
+.mtile.s-let .mt-p { right: 8%; bottom: 8%; font-size: calc(var(--tw) * .22); }
+
 /* ---------- math crossword: screen ---------- */
 .mgame { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .mgame > * { min-width: 0; }
@@ -723,6 +730,14 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 .mboard.placing.mine .mcell:not(:has(.mtile)) { cursor: pointer; }
 .mboard.placing.mine .mcell:not(:has(.mtile)):hover { box-shadow: inset 0 0 0 2px rgba(220,165,69,.7); }
 .mcell.drop { box-shadow: inset 0 0 0 2px var(--brass); background-color: rgba(220,165,69,.35); }
+/* the typing cursor (Word Crossword with a keyboard) */
+.mcell.cursor { box-shadow: inset 0 0 0 2px #5cc8ff; background-color: rgba(92,200,255,.16); }
+.mcur { position: absolute; z-index: 3; pointer-events: none; display: grid; place-items: center; font: 800 calc(var(--cs) * .5)/1 var(--font-display); color: #8fdcff; text-shadow: 0 0 calc(var(--cs) * .25) rgba(92,200,255,.8); animation: curblink 1.05s steps(2, jump-none) infinite; }
+.mcell:not(:has(.mtile)) .mcur { inset: 0; }
+.mcell:has(.mtile) .mcur { width: calc(var(--cs) * .42); height: calc(var(--cs) * .42); border-radius: 50%; font-size: calc(var(--cs) * .3); background: #5cc8ff; color: #062033; text-shadow: none; }
+.mcell:has(.mtile) .mcur.d0 { right: calc(var(--cs) * -.21); top: 50%; translate: 0 -50%; }
+.mcell:has(.mtile) .mcur.d1 { bottom: calc(var(--cs) * -.21); left: 50%; translate: -50% 0; }
+@keyframes curblink { 50% { opacity: .35; } }
 .mcell.drop-bad { box-shadow: inset 0 0 0 2px var(--bad); }
 .mcell.good::after, .mcell.bad::after { content: ''; position: absolute; inset: 0; border-radius: 3px; pointer-events: none; z-index: 2; }
 .mcell.good::after { box-shadow: inset 0 0 0 2px rgba(99,201,147,.85); background: rgba(99,201,147,.1); }
@@ -730,7 +745,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
 .mdock { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
 .mrack {
-  --rs: clamp(36px, calc((100cqi - 64px) / 8), 58px); --cs: var(--rs);
+  --rs: clamp(36px, calc((100cqi - 64px) / var(--slots, 8)), 58px); --cs: var(--rs);
   display: flex; gap: 6px; padding: 8px 10px; border-radius: 16px; max-width: 100%; box-sizing: border-box;
   background: repeating-linear-gradient(92deg, rgba(0,0,0,.07) 0 3px, transparent 3px 11px), linear-gradient(180deg, #7a4b2a, #4d2e17);
   box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -3px 0 rgba(0,0,0,.35), 0 10px 26px rgba(0,0,0,.4);
@@ -789,12 +804,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 /* the board is big enough to read from tablet size up; zoom is for phones */
 @media (min-width: 700px) { .mzoom { display: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .mtimer.low, .mcell.start .star, .mtile.draft.open, .menu-fan .mtile { animation: none !important; }
+  .mtimer.low, .mcell.start .star, .mtile.draft.open, .menu-fan .mtile, .mcur { animation: none !important; }
 }
 
 </style>
 <div id="app"></div>
 <script src="firebase-config.js"></script>
+<script>window.RK_WORDS_URL = 'words.js?v=151a1c97fe';</script>
 <script>
 // ---- config.js ----
 // Board configuration: the player's personal rack layout and look.
@@ -1012,7 +1028,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   const FPS = Object.freeze([30, 60, 90, 120]);
   const MATH_TIMERS = Object.freeze([0, 60, 90, 120, 180]);
   const BOT_LEVELS = Object.freeze(['easy', 'normal', 'hard']);
-  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal' });
+  const DEFAULTS = Object.freeze({ skin: 'ivory', fx: 'full', sound: true, volume: 0.7, wrap: true, fps: 120, showFps: false, mathTimer: 0, mathBot: 'normal', wordTimer: 0, wordBot: 'normal' });
   const KEY = 'rk.prefs.v1';
 
   function sanitize(input) {
@@ -1027,7 +1043,9 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       fps: FPS.includes(Number(src.fps)) ? Number(src.fps) : DEFAULTS.fps,
       showFps: !!src.showFps,
       mathTimer: MATH_TIMERS.includes(Number(src.mathTimer)) ? Number(src.mathTimer) : DEFAULTS.mathTimer,
-      mathBot: BOT_LEVELS.includes(src.mathBot) ? src.mathBot : DEFAULTS.mathBot
+      mathBot: BOT_LEVELS.includes(src.mathBot) ? src.mathBot : DEFAULTS.mathBot,
+      wordTimer: MATH_TIMERS.includes(Number(src.wordTimer)) ? Number(src.wordTimer) : DEFAULTS.wordTimer,
+      wordBot: BOT_LEVELS.includes(src.wordBot) ? src.wordBot : DEFAULTS.wordBot
     };
   }
 
@@ -2728,301 +2746,943 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
-// ---- mathhost.js ----
-// Host engine for the math crossword: one table's single source of truth.
-// Same shape as host.js (Rummy), so the app's online code drives both.
+// ---- crosshost.js ----
+// Host engine for the crossword games (math and word): one table's single source of truth.
+// Same shape as host.js (Rummy), so the app's online code drives every game.
+// CrossHost(rules, bot, id) gives one game's host; mathhost.js and wordhost.js call it.
 // Pure apart from the injected rng and clock.
+(function (root) {
+  'use strict';
+  const Host = (root.RK && root.RK.Host) || require('./host.js');
+  const cleanName = Host.cleanName;
+
+  function CrossHost(M, Bot, GAME) {
+    const DEFAULT_RULES = { rack: M.RACK, minPlayers: 2, maxPlayers: 4, turnSec: 0, swapMin: 5, botLevel: 'normal' };
+    const TURN_SECS = [0, 60, 90, 120, 180];
+    const BOT_LEVELS = ['easy', 'normal', 'hard'];
+
+    function createGame(opts) {
+      const rules = Object.assign({}, DEFAULT_RULES, opts.rules || {});
+      if (TURN_SECS.indexOf(rules.turnSec) < 0) rules.turnSec = 0;
+      if (BOT_LEVELS.indexOf(rules.botLevel) < 0) rules.botLevel = 'normal';
+      return {
+        game: GAME,
+        code: opts.code,
+        hostId: opts.hostId,
+        status: 'lobby',
+        players: [{ id: opts.hostId, name: cleanName(opts.hostName), bot: false, hand: [], score: 0, wins: 0 }],
+        bag: [],
+        board: M.emptyBoard(),
+        turn: 0, tn: 0, v: 1, round: 0,
+        scoreless: 0,          // turns in a row without points; a long enough streak ends the game
+        winner: -1,
+        log: [],
+        rules,
+        lastMove: null,
+        turnAt: 0              // host clock when this turn began (for the turn timer)
+      };
+    }
+
+    const idx = (G, id) => G.players.findIndex(p => p.id === id);
+    function bump(G, entry) {
+      G.v++;
+      if (entry) { G.log.push(entry); if (G.log.length > 8) G.log.splice(0, G.log.length - 8); }
+    }
+
+    function addPlayer(G, id, name, bot) {
+      const i = idx(G, id);
+      if (i >= 0) {
+        if (!G.players[i].bot && name) G.players[i].name = cleanName(name);
+        bump(G);
+        return { ok: true, rejoined: true };
+      }
+      if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+      if (G.players.length >= G.rules.maxPlayers) return { ok: false, reason: 'full' };
+      G.players.push({ id, name: cleanName(name), bot: !!bot, hand: [], score: 0, wins: 0 });
+      bump(G, { k: 'join', p: G.players.length - 1 });
+      return { ok: true };
+    }
+    function addBot(G) {
+      let n = 1;
+      while (G.players.some(p => p.id === 'bot' + n)) n++;
+      return addPlayer(G, 'bot' + n, 'Bot ' + n, true);
+    }
+    function removePlayer(G, id) {
+      const i = idx(G, id);
+      if (i < 0 || id === G.hostId) return { ok: false, reason: 'no_player' };
+      if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+      G.players.splice(i, 1);
+      bump(G);
+      return { ok: true };
+    }
+
+    function refill(G, p) {
+      while (p.hand.length < G.rules.rack && G.bag.length) p.hand.push(G.bag.pop());
+    }
+
+    function start(G, rng, now) {
+      if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+      if (G.players.length < G.rules.minPlayers) return { ok: false, reason: 'need_players' };
+      G.bag = M.shuffle(M.fullBag(), rng);
+      G.board = M.emptyBoard();
+      G.players.forEach(p => { p.hand = []; p.score = 0; refill(G, p); });
+      G.round++;
+      G.turn = Math.floor(rng() * G.players.length);
+      G.tn = (G.tn || 0) + 1;
+      G.scoreless = 0;
+      G.winner = -1;
+      G.status = 'playing';
+      G.result = null;
+      G.lastMove = { tn: G.tn, k: 'deal', p: G.turn };
+      G.turnAt = now || 0;
+      G.log = [];
+      bump(G, { k: 'start', p: G.turn });
+      return { ok: true };
+    }
+
+    function nextTurn(G, now) {
+      G.turn = (G.turn + 1) % G.players.length;
+      G.tn++;
+      G.turnAt = now || 0;
+    }
+
+    /** Game over. `out` is the seat that used its last tile (or -1). */
+    function finish(G, out) {
+      G.status = 'ended';
+      const left = G.players.map(p => M.rackValue(p.hand));
+      const delta = G.players.map((p, i) => (i === out ? left.reduce((a, b) => a + b, 0) : -left[i]));
+      G.players.forEach((p, i) => { p.score += delta[i]; });
+      const top = Math.max.apply(null, G.players.map(p => p.score));
+      const leaders = G.players.map((p, i) => (p.score === top ? i : -1)).filter(i => i >= 0);
+      G.winner = leaders.length === 1 ? leaders[0] : -1;      // -1 = a draw
+      if (G.winner >= 0) G.players[G.winner].wins++;
+      G.result = G.players.map((p, i) => ({ left: left[i], delta: delta[i], score: p.score }));
+      bump(G, { k: G.winner >= 0 ? 'win' : 'draw', p: G.winner });
+    }
+
+    /** A turn without points (swap, pass, timeout, skip). Enough of them in a row ends the game. */
+    function scoreless(G, pi, kind, now, extra) {
+      G.lastMove = Object.assign({ tn: G.tn, k: kind, p: pi }, extra || {});
+      G.scoreless++;
+      if (G.scoreless >= G.players.length * 3) {
+        bump(G, Object.assign({ k: kind, p: pi }, extra || {}));
+        finish(G, -1);
+        return { ok: true, ended: true };
+      }
+      nextTurn(G, now);
+      bump(G, Object.assign({ k: kind, p: pi }, extra || {}));
+      return { ok: true };
+    }
+
+    /**
+     * Apply one intent from `playerId`. Everything is checked here.
+     * actions: {t:'play', ps:[{c,id,s}], v} | {t:'swap', ids:[…]} | {t:'pass'} | {t:'skip'} (host only)
+     * now: host clock (turn timer), rng: for reshuffling swapped tiles
+     */
+    function apply(G, playerId, action, now, rng) {
+      if (!action || typeof action !== 'object') return { ok: false, reason: 'malformed' };
+      if (G.status !== 'playing') return { ok: false, reason: 'not_playing' };
+      if (action.t === 'skip') {
+        if (playerId !== G.hostId) return { ok: false, reason: 'host_only' };
+        return scoreless(G, G.turn, 'skip', now);
+      }
+      const pi = idx(G, playerId);
+      if (pi < 0) return { ok: false, reason: 'no_player' };
+      if (pi !== G.turn) return { ok: false, reason: 'not_your_turn' };
+      if (action.v !== undefined && action.v !== G.tn) return { ok: false, reason: 'stale' };
+      const p = G.players[pi];
+      if (action.t === 'pass') return scoreless(G, pi, 'pass', now);
+      if (action.t === 'swap') {
+        const ids = Array.isArray(action.ids) ? action.ids : [];
+        if (!ids.length || new Set(ids).size !== ids.length || !ids.every(id => p.hand.indexOf(id) >= 0)) return { ok: false, reason: 'not_your_tile' };
+        if (G.bag.length < G.rules.swapMin) return { ok: false, reason: 'swap_low' };
+        const gone = new Set(ids);
+        p.hand = p.hand.filter(id => !gone.has(id));
+        refill(G, p);
+        G.bag = M.shuffle(G.bag.concat(ids), rng || Math.random);
+        return scoreless(G, pi, 'swap', now, { n: ids.length });
+      }
+      if (action.t === 'play') {
+        const ps = action.ps;
+        if (!Array.isArray(ps) || !ps.length) return { ok: false, reason: 'no_tiles' };
+        if (!ps.every(x => x && p.hand.indexOf(x.id) >= 0)) return { ok: false, reason: 'not_your_tile' };
+        const res = M.evaluatePlay(G.board, ps);
+        if (!res.ok) return { ok: false, reason: res.reason };
+        ps.forEach(x => { G.board[x.c] = [x.id, x.s]; });
+        const gone = new Set(ps.map(x => x.id));
+        p.hand = p.hand.filter(id => !gone.has(id));
+        p.score += res.score;
+        refill(G, p);
+        G.scoreless = 0;
+        G.lastMove = { tn: G.tn, k: 'play', p: pi, sc: res.score, bg: res.bingo ? 1 : 0, cs: ps.map(x => x.c), eq: res.main, ln: res.lines.length };
+        const entry = { k: 'play', p: pi, sc: res.score, eq: res.main, bg: res.bingo ? 1 : 0 };
+        if (!p.hand.length) { bump(G, entry); finish(G, pi); return { ok: true, ended: true, score: res.score }; }
+        nextTurn(G, now);
+        bump(G, entry);
+        return { ok: true, score: res.score };
+      }
+      return { ok: false, reason: 'malformed' };
+    }
+
+    /** Turn timer: the host calls this; a turn that ran out counts as a pass. */
+    function timeout(G, now) {
+      if (G.status !== 'playing' || !G.rules.turnSec || !G.turnAt) return null;
+      if (now - G.turnAt < G.rules.turnSec * 1000) return null;
+      return scoreless(G, G.turn, 'timeout', now);
+    }
+    function setBotLevel(G, level) {
+      if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+      G.rules.botLevel = BOT_LEVELS.indexOf(level) >= 0 ? level : 'normal';
+      bump(G);
+      return { ok: true };
+    }
+    function setTurnSec(G, sec) {
+      if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
+      G.rules.turnSec = TURN_SECS.indexOf(sec) >= 0 ? sec : 0;
+      bump(G);
+      return { ok: true };
+    }
+
+    /** A slice-able search for the bot whose turn it is: {step(ms) → done, action()}. */
+    function botSearch(G, opts) {
+      const p = G.players[G.turn];
+      if (!p || !p.bot || G.status !== 'playing') return null;
+      const level = (opts && opts.level) || G.rules.botLevel;
+      const job = Bot.create(G.board, p.hand, Object.assign({ level }, opts));
+      return {
+        step: ms => job.step(ms),
+        action: () => {
+          const b = job.pick(level);
+          if (b) return { t: 'play', ps: b.placements, v: G.tn };
+          if (G.bag.length >= G.rules.swapMin) return { t: 'swap', ids: Bot.swapPick(p.hand), v: G.tn };
+          return { t: 'pass', v: G.tn };
+        }
+      };
+    }
+    function botAction(G, opts) {
+      const s = botSearch(G, opts);
+      if (!s) return null;
+      while (!s.step()) { /* run it all */ }
+      return s.action();
+    }
+
+    /** What every seat may see. Racks are never in here. */
+    function publicView(G, online, now) {
+      const mv = G.lastMove ? Object.assign({}, G.lastMove) : null;
+      if (mv && mv.cs) mv.cs = M.encodeIds(mv.cs.map(c => c));   // cells fit in 2 base-36 chars too
+      return {
+        g: GAME,
+        c: G.code, h: G.hostId, s: G.status, v: G.v, r: G.round, t: G.turn, tn: G.tn, w: G.winner,
+        bag: G.bag.length,
+        bd: M.encodeBoard(G.board),
+        ts: G.rules.turnSec || 0,
+        bl: G.rules.botLevel || 'normal',
+        tl: G.status === 'playing' && G.rules.turnSec && G.turnAt && now ? Math.max(0, G.rules.turnSec * 1000 - (now - G.turnAt)) : -1,
+        mv,
+        ps: G.players.map(p => ({ id: p.id, nm: p.name, b: p.bot ? 1 : 0, n: p.hand.length, sc: p.score, wn: p.wins || 0, on: p.bot || !online || online.has(p.id) ? 1 : 0 })),
+        lg: G.log.slice(-6),
+        res: G.status === 'ended' ? G.result : null
+      };
+    }
+
+    function decodeCells(s) {
+      const out = [];
+      if (typeof s !== 'string') return out;
+      for (let i = 0; i + 1 < s.length; i += 2) { const c = parseInt(s.slice(i, i + 2), 36); if (c >= 0 && c < M.CELLS) out.push(c); }
+      return out;
+    }
+    function readView(pv) {
+      const mv = pv.mv && typeof pv.mv === 'object' ? Object.assign({}, pv.mv, { cs: decodeCells(pv.mv.cs) }) : null;
+      return {
+        game: GAME,
+        code: pv.c, hostId: pv.h, status: pv.s, v: pv.v, round: pv.r, turn: pv.t, tn: pv.tn, winner: pv.w,
+        bag: pv.bag, pool: pv.bag, board: M.decodeBoard(pv.bd), timeLeft: typeof pv.tl === 'number' ? pv.tl : -1,
+        rules: { turnSec: pv.ts || 0, botLevel: BOT_LEVELS.indexOf(pv.bl) >= 0 ? pv.bl : 'normal' },
+        players: (pv.ps || []).map(p => ({ id: p.id, name: cleanName(p.nm), bot: !!p.b, count: p.n, score: p.sc, wins: p.wn || 0, online: !!p.on })),
+        log: pv.lg || [], result: pv.res, lastMove: mv
+      };
+    }
+
+    function handOf(G, id) {
+      const p = G.players.find(q => q.id === id);
+      return p ? p.hand.slice() : [];
+    }
+
+    /** Every tile is somewhere, exactly once. */
+    function invariant(G) {
+      if (G.status === 'lobby') return true;
+      const all = G.bag.slice();
+      G.board.forEach(x => { if (x) all.push(x[0]); });
+      G.players.forEach(p => all.push.apply(all, p.hand));
+      return all.length === M.TILE_COUNT && new Set(all).size === M.TILE_COUNT;
+    }
+
+    // network shapes for a move
+    function encodeAct(a) {
+      if (a.t === 'play') return { t: 'play', ps: M.encodePlaced(a.ps), v: a.v };
+      if (a.t === 'swap') return { t: 'swap', ids: M.encodeIds(a.ids), v: a.v };
+      return { t: a.t, v: a.v };
+    }
+    function decodeAct(d) {
+      if (!d || typeof d !== 'object') return null;
+      const v = typeof d.v === 'number' ? d.v : undefined;
+      if (d.t === 'play' && typeof d.ps === 'string') { const ps = M.decodePlaced(d.ps); return ps && ps.length <= M.RACK ? { t: 'play', ps, v } : null; }
+      if (d.t === 'swap' && typeof d.ids === 'string' && d.ids.length <= 2 * M.RACK) return { t: 'swap', ids: M.decodeIds(d.ids), v };
+      if (d.t === 'pass') return { t: 'pass', v };
+      return null;
+    }
+
+    return {
+      DEFAULT_RULES, TURN_SECS, BOT_LEVELS, GAME,
+      createGame, addPlayer, addBot, removePlayer, start, apply, timeout, setTurnSec, setBotLevel,
+      botSearch, botAction, publicView, readView, handOf, invariant, encodeAct, decodeAct, cleanName,
+      encodeHand: M.encodeIds, decodeHand: M.decodeIds
+    };
+  }
+
+  root.RK = root.RK || {};
+  root.RK.CrossHost = CrossHost;
+  if (typeof module !== 'undefined' && module.exports) module.exports = CrossHost;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- mathhost.js ----
+// Host engine for the math crossword: crosshost.js with this game's rules and bot.
 (function (root) {
   'use strict';
   const M = (root.RK && root.RK.MathRules) || require('./mathrules.js');
   const Bot = (root.RK && root.RK.MathBot) || require('./mathbot.js');
-  const Host = (root.RK && root.RK.Host) || require('./host.js');
-  const cleanName = Host.cleanName;
-
-  const DEFAULT_RULES = { rack: M.RACK, minPlayers: 2, maxPlayers: 4, turnSec: 0, swapMin: 5, botLevel: 'normal' };
-  const TURN_SECS = [0, 60, 90, 120, 180];
-  const BOT_LEVELS = ['easy', 'normal', 'hard'];
-
-  function createGame(opts) {
-    const rules = Object.assign({}, DEFAULT_RULES, opts.rules || {});
-    if (TURN_SECS.indexOf(rules.turnSec) < 0) rules.turnSec = 0;
-    if (BOT_LEVELS.indexOf(rules.botLevel) < 0) rules.botLevel = 'normal';
-    return {
-      game: 'math',
-      code: opts.code,
-      hostId: opts.hostId,
-      status: 'lobby',
-      players: [{ id: opts.hostId, name: cleanName(opts.hostName), bot: false, hand: [], score: 0, wins: 0 }],
-      bag: [],
-      board: M.emptyBoard(),
-      turn: 0, tn: 0, v: 1, round: 0,
-      scoreless: 0,          // turns in a row without points; a long enough streak ends the game
-      winner: -1,
-      log: [],
-      rules,
-      lastMove: null,
-      turnAt: 0              // host clock when this turn began (for the turn timer)
-    };
-  }
-
-  const idx = (G, id) => G.players.findIndex(p => p.id === id);
-  function bump(G, entry) {
-    G.v++;
-    if (entry) { G.log.push(entry); if (G.log.length > 8) G.log.splice(0, G.log.length - 8); }
-  }
-
-  function addPlayer(G, id, name, bot) {
-    const i = idx(G, id);
-    if (i >= 0) {
-      if (!G.players[i].bot && name) G.players[i].name = cleanName(name);
-      bump(G);
-      return { ok: true, rejoined: true };
-    }
-    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
-    if (G.players.length >= G.rules.maxPlayers) return { ok: false, reason: 'full' };
-    G.players.push({ id, name: cleanName(name), bot: !!bot, hand: [], score: 0, wins: 0 });
-    bump(G, { k: 'join', p: G.players.length - 1 });
-    return { ok: true };
-  }
-  function addBot(G) {
-    let n = 1;
-    while (G.players.some(p => p.id === 'bot' + n)) n++;
-    return addPlayer(G, 'bot' + n, 'Bot ' + n, true);
-  }
-  function removePlayer(G, id) {
-    const i = idx(G, id);
-    if (i < 0 || id === G.hostId) return { ok: false, reason: 'no_player' };
-    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
-    G.players.splice(i, 1);
-    bump(G);
-    return { ok: true };
-  }
-
-  function refill(G, p) {
-    while (p.hand.length < G.rules.rack && G.bag.length) p.hand.push(G.bag.pop());
-  }
-
-  function start(G, rng, now) {
-    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
-    if (G.players.length < G.rules.minPlayers) return { ok: false, reason: 'need_players' };
-    G.bag = M.shuffle(M.fullBag(), rng);
-    G.board = M.emptyBoard();
-    G.players.forEach(p => { p.hand = []; p.score = 0; refill(G, p); });
-    G.round++;
-    G.turn = Math.floor(rng() * G.players.length);
-    G.tn = (G.tn || 0) + 1;
-    G.scoreless = 0;
-    G.winner = -1;
-    G.status = 'playing';
-    G.result = null;
-    G.lastMove = { tn: G.tn, k: 'deal', p: G.turn };
-    G.turnAt = now || 0;
-    G.log = [];
-    bump(G, { k: 'start', p: G.turn });
-    return { ok: true };
-  }
-
-  function nextTurn(G, now) {
-    G.turn = (G.turn + 1) % G.players.length;
-    G.tn++;
-    G.turnAt = now || 0;
-  }
-
-  /** Game over. `out` is the seat that used its last tile (or -1). */
-  function finish(G, out) {
-    G.status = 'ended';
-    const left = G.players.map(p => M.rackValue(p.hand));
-    const delta = G.players.map((p, i) => (i === out ? left.reduce((a, b) => a + b, 0) : -left[i]));
-    G.players.forEach((p, i) => { p.score += delta[i]; });
-    const top = Math.max.apply(null, G.players.map(p => p.score));
-    const leaders = G.players.map((p, i) => (p.score === top ? i : -1)).filter(i => i >= 0);
-    G.winner = leaders.length === 1 ? leaders[0] : -1;      // -1 = a draw
-    if (G.winner >= 0) G.players[G.winner].wins++;
-    G.result = G.players.map((p, i) => ({ left: left[i], delta: delta[i], score: p.score }));
-    bump(G, { k: G.winner >= 0 ? 'win' : 'draw', p: G.winner });
-  }
-
-  /** A turn without points (swap, pass, timeout, skip). Enough of them in a row ends the game. */
-  function scoreless(G, pi, kind, now, extra) {
-    G.lastMove = Object.assign({ tn: G.tn, k: kind, p: pi }, extra || {});
-    G.scoreless++;
-    if (G.scoreless >= G.players.length * 3) {
-      bump(G, Object.assign({ k: kind, p: pi }, extra || {}));
-      finish(G, -1);
-      return { ok: true, ended: true };
-    }
-    nextTurn(G, now);
-    bump(G, Object.assign({ k: kind, p: pi }, extra || {}));
-    return { ok: true };
-  }
-
-  /**
-   * Apply one intent from `playerId`. Everything is checked here.
-   * actions: {t:'play', ps:[{c,id,s}], v} | {t:'swap', ids:[…]} | {t:'pass'} | {t:'skip'} (host only)
-   * now: host clock (turn timer), rng: for reshuffling swapped tiles
-   */
-  function apply(G, playerId, action, now, rng) {
-    if (!action || typeof action !== 'object') return { ok: false, reason: 'malformed' };
-    if (G.status !== 'playing') return { ok: false, reason: 'not_playing' };
-    if (action.t === 'skip') {
-      if (playerId !== G.hostId) return { ok: false, reason: 'host_only' };
-      return scoreless(G, G.turn, 'skip', now);
-    }
-    const pi = idx(G, playerId);
-    if (pi < 0) return { ok: false, reason: 'no_player' };
-    if (pi !== G.turn) return { ok: false, reason: 'not_your_turn' };
-    if (action.v !== undefined && action.v !== G.tn) return { ok: false, reason: 'stale' };
-    const p = G.players[pi];
-    if (action.t === 'pass') return scoreless(G, pi, 'pass', now);
-    if (action.t === 'swap') {
-      const ids = Array.isArray(action.ids) ? action.ids : [];
-      if (!ids.length || new Set(ids).size !== ids.length || !ids.every(id => p.hand.indexOf(id) >= 0)) return { ok: false, reason: 'not_your_tile' };
-      if (G.bag.length < G.rules.swapMin) return { ok: false, reason: 'swap_low' };
-      const gone = new Set(ids);
-      p.hand = p.hand.filter(id => !gone.has(id));
-      refill(G, p);
-      G.bag = M.shuffle(G.bag.concat(ids), rng || Math.random);
-      return scoreless(G, pi, 'swap', now, { n: ids.length });
-    }
-    if (action.t === 'play') {
-      const ps = action.ps;
-      if (!Array.isArray(ps) || !ps.length) return { ok: false, reason: 'no_tiles' };
-      if (!ps.every(x => x && p.hand.indexOf(x.id) >= 0)) return { ok: false, reason: 'not_your_tile' };
-      const res = M.evaluatePlay(G.board, ps);
-      if (!res.ok) return { ok: false, reason: res.reason };
-      ps.forEach(x => { G.board[x.c] = [x.id, x.s]; });
-      const gone = new Set(ps.map(x => x.id));
-      p.hand = p.hand.filter(id => !gone.has(id));
-      p.score += res.score;
-      refill(G, p);
-      G.scoreless = 0;
-      G.lastMove = { tn: G.tn, k: 'play', p: pi, sc: res.score, bg: res.bingo ? 1 : 0, cs: ps.map(x => x.c), eq: res.main, ln: res.lines.length };
-      const entry = { k: 'play', p: pi, sc: res.score, eq: res.main, bg: res.bingo ? 1 : 0 };
-      if (!p.hand.length) { bump(G, entry); finish(G, pi); return { ok: true, ended: true, score: res.score }; }
-      nextTurn(G, now);
-      bump(G, entry);
-      return { ok: true, score: res.score };
-    }
-    return { ok: false, reason: 'malformed' };
-  }
-
-  /** Turn timer: the host calls this; a turn that ran out counts as a pass. */
-  function timeout(G, now) {
-    if (G.status !== 'playing' || !G.rules.turnSec || !G.turnAt) return null;
-    if (now - G.turnAt < G.rules.turnSec * 1000) return null;
-    return scoreless(G, G.turn, 'timeout', now);
-  }
-  function setBotLevel(G, level) {
-    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
-    G.rules.botLevel = BOT_LEVELS.indexOf(level) >= 0 ? level : 'normal';
-    bump(G);
-    return { ok: true };
-  }
-  function setTurnSec(G, sec) {
-    if (G.status === 'playing') return { ok: false, reason: 'in_progress' };
-    G.rules.turnSec = TURN_SECS.indexOf(sec) >= 0 ? sec : 0;
-    bump(G);
-    return { ok: true };
-  }
-
-  /** A slice-able search for the bot whose turn it is: {step(ms) → done, action()}. */
-  function botSearch(G, opts) {
-    const p = G.players[G.turn];
-    if (!p || !p.bot || G.status !== 'playing') return null;
-    const job = Bot.create(G.board, p.hand, opts);
-    const level = (opts && opts.level) || G.rules.botLevel;
-    return {
-      step: ms => job.step(ms),
-      action: () => {
-        const b = job.pick(level);
-        if (b) return { t: 'play', ps: b.placements, v: G.tn };
-        if (G.bag.length >= G.rules.swapMin) return { t: 'swap', ids: Bot.swapPick(p.hand), v: G.tn };
-        return { t: 'pass', v: G.tn };
-      }
-    };
-  }
-  function botAction(G, opts) {
-    const s = botSearch(G, opts);
-    if (!s) return null;
-    while (!s.step()) { /* run it all */ }
-    return s.action();
-  }
-
-  /** What every seat may see. Racks are never in here. */
-  function publicView(G, online, now) {
-    const mv = G.lastMove ? Object.assign({}, G.lastMove) : null;
-    if (mv && mv.cs) mv.cs = M.encodeIds(mv.cs.map(c => c));   // cells fit in 2 base-36 chars too
-    return {
-      g: 'math',
-      c: G.code, h: G.hostId, s: G.status, v: G.v, r: G.round, t: G.turn, tn: G.tn, w: G.winner,
-      bag: G.bag.length,
-      bd: M.encodeBoard(G.board),
-      ts: G.rules.turnSec || 0,
-      bl: G.rules.botLevel || 'normal',
-      tl: G.status === 'playing' && G.rules.turnSec && G.turnAt && now ? Math.max(0, G.rules.turnSec * 1000 - (now - G.turnAt)) : -1,
-      mv,
-      ps: G.players.map(p => ({ id: p.id, nm: p.name, b: p.bot ? 1 : 0, n: p.hand.length, sc: p.score, wn: p.wins || 0, on: p.bot || !online || online.has(p.id) ? 1 : 0 })),
-      lg: G.log.slice(-6),
-      res: G.status === 'ended' ? G.result : null
-    };
-  }
-
-  function decodeCells(s) {
-    const out = [];
-    if (typeof s !== 'string') return out;
-    for (let i = 0; i + 1 < s.length; i += 2) { const c = parseInt(s.slice(i, i + 2), 36); if (c >= 0 && c < M.CELLS) out.push(c); }
-    return out;
-  }
-  function readView(pv) {
-    const mv = pv.mv && typeof pv.mv === 'object' ? Object.assign({}, pv.mv, { cs: decodeCells(pv.mv.cs) }) : null;
-    return {
-      game: 'math',
-      code: pv.c, hostId: pv.h, status: pv.s, v: pv.v, round: pv.r, turn: pv.t, tn: pv.tn, winner: pv.w,
-      bag: pv.bag, pool: pv.bag, board: M.decodeBoard(pv.bd), timeLeft: typeof pv.tl === 'number' ? pv.tl : -1,
-      rules: { turnSec: pv.ts || 0, botLevel: BOT_LEVELS.indexOf(pv.bl) >= 0 ? pv.bl : 'normal' },
-      players: (pv.ps || []).map(p => ({ id: p.id, name: cleanName(p.nm), bot: !!p.b, count: p.n, score: p.sc, wins: p.wn || 0, online: !!p.on })),
-      log: pv.lg || [], result: pv.res, lastMove: mv
-    };
-  }
-
-  function handOf(G, id) {
-    const p = G.players.find(q => q.id === id);
-    return p ? p.hand.slice() : [];
-  }
-
-  /** Every tile is somewhere, exactly once. */
-  function invariant(G) {
-    if (G.status === 'lobby') return true;
-    const all = G.bag.slice();
-    G.board.forEach(x => { if (x) all.push(x[0]); });
-    G.players.forEach(p => all.push.apply(all, p.hand));
-    return all.length === M.TILE_COUNT && new Set(all).size === M.TILE_COUNT;
-  }
-
-  // network shapes for a move
-  function encodeAct(a) {
-    if (a.t === 'play') return { t: 'play', ps: M.encodePlaced(a.ps), v: a.v };
-    if (a.t === 'swap') return { t: 'swap', ids: M.encodeIds(a.ids), v: a.v };
-    return { t: a.t, v: a.v };
-  }
-  function decodeAct(d) {
-    if (!d || typeof d !== 'object') return null;
-    const v = typeof d.v === 'number' ? d.v : undefined;
-    if (d.t === 'play' && typeof d.ps === 'string') { const ps = M.decodePlaced(d.ps); return ps && ps.length <= M.RACK ? { t: 'play', ps, v } : null; }
-    if (d.t === 'swap' && typeof d.ids === 'string' && d.ids.length <= 2 * M.RACK) return { t: 'swap', ids: M.decodeIds(d.ids), v };
-    if (d.t === 'pass') return { t: 'pass', v };
-    return null;
-  }
-
-  const api = {
-    DEFAULT_RULES, TURN_SECS, BOT_LEVELS,
-    createGame, addPlayer, addBot, removePlayer, start, apply, timeout, setTurnSec, setBotLevel,
-    botSearch, botAction, publicView, readView, handOf, invariant, encodeAct, decodeAct, cleanName,
-    encodeHand: M.encodeIds, decodeHand: M.decodeIds
-  };
+  const CrossHost = (root.RK && root.RK.CrossHost) || require('./crosshost.js');
+  const api = CrossHost(M, Bot, 'math');
   root.RK = root.RK || {};
   root.RK.MathHost = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- wordrules.js ----
+// Word crossword engine: letter tiles, the 15 × 15 board, the word list and scoring.
+// Pure (no DOM). The host uses it to rule on moves, every screen uses it for
+// hints, and the bot uses its word list to search.
+(function (root) {
+  'use strict';
+
+  const SIZE = 15, CELLS = SIZE * SIZE, CENTER = 7 * SIZE + 7, RACK = 7, BINGO = 40;
+
+  // face, points, how many in the bag (100 tiles; ? is a blank)
+  const KINDS = [
+    ['A', 1, 9], ['B', 3, 2], ['C', 3, 3], ['D', 2, 4], ['E', 1, 12], ['F', 4, 2], ['G', 2, 2], ['H', 3, 3], ['I', 1, 8],
+    ['J', 9, 1], ['K', 5, 1], ['L', 1, 4], ['M', 3, 2], ['N', 1, 6], ['O', 1, 8], ['P', 3, 2], ['Q', 10, 1], ['R', 1, 6],
+    ['S', 1, 5], ['T', 1, 7], ['U', 2, 3], ['V', 5, 1], ['W', 4, 2], ['X', 8, 1], ['Y', 3, 2], ['Z', 9, 1], ['?', 0, 2]
+  ];
+  const TILES = [];
+  KINDS.forEach(([face, pts, n]) => { for (let i = 0; i < n; i++) TILES.push({ id: TILES.length, face, pts }); });
+  const TILE_COUNT = TILES.length;
+
+  // A symbol is the letter a tile shows on the board (a blank takes one too).
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const SYM_SET = new Set(LETTERS);
+  const LETTER_PTS = LETTERS.map(l => KINDS.find(k => k[0] === l)[1]);
+
+  const tile = id => TILES[id];
+  /** What a tile may stand for: a letter is itself, a blank any letter. */
+  const options = face => (face === '?' ? LETTERS : [face]);
+  const canBe = (face, sym) => (face === '?' ? SYM_SET.has(sym) : face === sym);
+  const needsChoice = face => face === '?';
+
+  // ---- the board ----
+  // Bonus squares, one quarter (rows/cols 0–7) mirrored to the other three.
+  // W = word ×3, w = word ×2, L = letter ×3, l = letter ×2, * = the centre (word ×2).
+  const QUARTER = [
+    'W...l..W',
+    '.w....L.',
+    '..w..l..',
+    '...L...l',
+    'l....w..',
+    '..l.w...',
+    '.L....l.',
+    'W..l...*'
+  ];
+  const rc = cell => [Math.floor(cell / SIZE), cell % SIZE];
+  const at = (r, c) => r * SIZE + c;
+  function premium(cell) {
+    let [r, c] = rc(cell);
+    if (r > 7) r = 14 - r;
+    if (c > 7) c = 14 - c;
+    const ch = QUARTER[r][c];
+    return ch === '.' ? '' : ch;
+  }
+  const PREMIUM = Array.from({ length: CELLS }, (_, c) => premium(c));
+  /** [letter multiplier, word multiplier] of a square, when a new tile covers it */
+  function mults(cell) {
+    const p = PREMIUM[cell];
+    return p === 'L' ? [3, 1] : p === 'l' ? [2, 1] : p === 'W' ? [1, 3] : p === 'w' || p === '*' ? [1, 2] : [1, 1];
+  }
+  function neighbours(cell) {
+    const [r, c] = rc(cell), out = [];
+    if (r > 0) out.push(cell - SIZE);
+    if (r < SIZE - 1) out.push(cell + SIZE);
+    if (c > 0) out.push(cell - 1);
+    if (c < SIZE - 1) out.push(cell + 1);
+    return out;
+  }
+  const emptyBoard = () => new Array(CELLS).fill(null);
+  const isEmpty = board => board.every(x => !x);
+
+  /** The run of filled cells through `cell` along `dir` (0 = across, 1 = down). */
+  function lineThrough(board, cell, dir) {
+    const [r, c] = rc(cell);
+    const get = k => board[dir ? at(k, c) : at(r, k)];
+    let k0 = dir ? r : c, k1 = k0;
+    while (k0 > 0 && get(k0 - 1)) k0--;
+    while (k1 < SIZE - 1 && get(k1 + 1)) k1++;
+    const out = [];
+    for (let k = k0; k <= k1; k++) out.push(dir ? at(k, c) : at(r, k));
+    return out;
+  }
+
+  // ---- the word list ----
+  // A packed DAWG (see tools/dawg.cjs): word 0 is the root's first edge; each edge holds
+  // letter (bits 0–4), word-ends-here (bit 5), last-edge-of-node (bit 6), child (bits 7–31).
+  let DICT = null;
+  function setDict(d) { DICT = d && d.length > 1 ? d : null; }
+  const hasDict = () => !!DICT;
+  const dict = () => DICT;
+  /** The build ships the DAWG as four byte planes (low bytes first), which packs smaller. */
+  function unpack(bytes) {
+    const n = bytes.length >> 2, out = new Uint32Array(n);
+    for (let i = 0; i < n; i++) out[i] = (bytes[i] | bytes[n + i] << 8 | bytes[2 * n + i] << 16 | bytes[3 * n + i] << 24) >>> 0;
+    return out;
+  }
+  /** Is this a word? Letters in either case (A and a both map to 0). */
+  function isWord(word) {
+    const d = DICT;
+    if (!d || word.length < 2) return false;
+    let i = d[0];
+    for (let k = 0; k < word.length; k++) {
+      if (!i) return false;
+      const l = (word.charCodeAt(k) & 31) - 1;
+      if (l < 0 || l > 25) return false;
+      for (;;) {
+        const e = d[i];
+        if ((e & 31) === l) {
+          if (k === word.length - 1) return (e & 32) !== 0;
+          i = e >>> 7;
+          break;
+        }
+        if (e & 64) return false;
+        i++;
+      }
+    }
+    return false;
+  }
+
+  const bad = (reason, extra) => Object.assign({ ok: false, reason }, extra || {});
+  /** Is this run of letters a word? → {ok, reason?} */
+  function checkLine(syms) {
+    if (!DICT) return bad('no_dict');
+    if (syms.length < 2) return bad('word_short');
+    return isWord(syms.join('')) ? { ok: true } : bad('not_word');
+  }
+  const lineText = syms => syms.join('');
+
+  // ---- a move ----
+  /**
+   * Check a move and score it.
+   * board: CELLS entries of [tileId, letter] or null. placements: [{c: cell, id, s: letter}].
+   * Every line of two or more tiles that the move touches must be a word.
+   * Score per word: letter points (letter bonuses on new tiles) × word bonuses on new tiles;
+   * all seven tiles in one move adds BINGO.
+   */
+  function evaluatePlay(board, placements) {
+    if (!Array.isArray(placements) || !placements.length) return bad('no_tiles');
+    if (placements.length > RACK) return bad('malformed');
+    const cells = new Set(), ids = new Set();
+    for (const p of placements) {
+      if (!p || !Number.isInteger(p.c) || p.c < 0 || p.c >= CELLS || cells.has(p.c)) return bad('malformed');
+      if (!Number.isInteger(p.id) || !TILES[p.id] || ids.has(p.id)) return bad('malformed');
+      if (board[p.c]) return bad('cell_taken');
+      if (!SYM_SET.has(p.s)) return bad('need_choice', { bad: [p.c] });
+      if (!canBe(TILES[p.id].face, p.s)) return bad('malformed');
+      cells.add(p.c); ids.add(p.id);
+    }
+    if (!DICT) return bad('no_dict');
+    const n = placements.length;
+    const rows = new Set(placements.map(p => rc(p.c)[0])), cols = new Set(placements.map(p => rc(p.c)[1]));
+    let dir = -1;
+    if (n > 1) {
+      if (rows.size === 1) dir = 0;
+      else if (cols.size === 1) dir = 1;
+      else return bad('not_line', { bad: [...cells] });
+    }
+    const next = board.slice();
+    placements.forEach(p => { next[p.c] = [p.id, p.s]; });
+    if (dir >= 0) {
+      const ks = placements.map(p => rc(p.c)[dir === 0 ? 1 : 0]);
+      const fixed = rc(placements[0].c)[dir === 0 ? 0 : 1];
+      for (let k = Math.min.apply(null, ks); k <= Math.max.apply(null, ks); k++) {
+        if (!next[dir === 0 ? at(fixed, k) : at(k, fixed)]) return bad('gap', { bad: [...cells] });
+      }
+    }
+    if (isEmpty(board)) { if (!cells.has(CENTER)) return bad('center', { bad: [...cells] }); }
+    else if (!placements.some(p => neighbours(p.c).some(q => board[q]))) return bad('not_connected', { bad: [...cells] });
+
+    const lines = [], seen = new Set();
+    placements.forEach(p => [0, 1].forEach(d => {
+      const L = lineThrough(next, p.c, d);
+      if (L.length < 2 || seen.has(d + ':' + L[0])) return;
+      seen.add(d + ':' + L[0]);
+      lines.push({ d, cells: L, syms: L.map(c => next[c][1]) });
+    }));
+    if (!lines.length) return bad('word_short', { bad: [...cells] });
+    for (const L of lines) {
+      const chk = checkLine(L.syms);
+      if (!chk.ok) return bad(chk.reason, { bad: L.cells, text: lineText(L.syms) });
+    }
+    let score = 0;
+    for (const L of lines) {
+      let pts = 0, mult = 1;
+      for (const c of L.cells) {
+        let v = TILES[next[c][0]].pts;
+        if (cells.has(c)) { const [lm, wm] = mults(c); v *= lm; mult *= wm; }
+        pts += v;
+      }
+      L.mult = mult;
+      L.score = pts * mult;
+      L.text = lineText(L.syms);
+      score += L.score;
+    }
+    const bingo = n === RACK;
+    if (bingo) score += BINGO;
+    // the main word is the one along the move (or the longest, for a single tile)
+    const main = lines.slice().sort((a, b) => (b.d === dir) - (a.d === dir) || b.cells.length - a.cells.length)[0];
+    return { ok: true, score, lines, bingo, dir, main: main.text };
+  }
+
+  // ---- compact text for the network ----
+  const b36 = (n, w) => n.toString(36).padStart(w, '0');
+  const SYM_CH = 'abcdefghijklmnopqrstuvwxyz';
+  /** [[cell, id, letter], …] as 5 characters each */
+  function encodePlaced(list) {
+    return list.map(p => b36(p.c, 2) + b36(p.id, 2) + SYM_CH[LETTERS.indexOf(p.s)]).join('');
+  }
+  function decodePlaced(str) {
+    const out = [];
+    if (typeof str !== 'string' || str.length % 5 || str.length > 5 * CELLS) return null;
+    for (let i = 0; i < str.length; i += 5) {
+      const c = parseInt(str.slice(i, i + 2), 36), id = parseInt(str.slice(i + 2, i + 4), 36), k = SYM_CH.indexOf(str[i + 4]);
+      if (!(c >= 0 && c < CELLS) || !(id >= 0 && id < TILE_COUNT) || k < 0) return null;
+      out.push({ c, id, s: LETTERS[k] });
+    }
+    return out;
+  }
+  function encodeBoard(board) {
+    const list = [];
+    board.forEach((x, c) => { if (x) list.push({ c, id: x[0], s: x[1] }); });
+    return encodePlaced(list);
+  }
+  function decodeBoard(str) {
+    const b = emptyBoard();
+    (decodePlaced(str || '') || []).forEach(p => { b[p.c] = [p.id, p.s]; });
+    return b;
+  }
+  const encodeIds = ids => ids.map(id => b36(id, 2)).join('');
+  function decodeIds(str) {
+    const out = [];
+    if (typeof str !== 'string') return out;
+    for (let i = 0; i + 1 < str.length; i += 2) { const id = parseInt(str.slice(i, i + 2), 36); if (id >= 0 && id < TILE_COUNT) out.push(id); }
+    return out;
+  }
+
+  // ---- bag ----
+  const fullBag = () => TILES.map(t => t.id);
+  function shuffle(a, rng) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  const rackValue = ids => ids.reduce((s, id) => s + TILES[id].pts, 0);
+  /** Rack order: A to Z, blanks last. */
+  const FACE_ORDER = new Map(KINDS.map((k, i) => [k[0], i]));
+  const byFace = (a, b) => FACE_ORDER.get(TILES[a].face) - FACE_ORDER.get(TILES[b].face) || a - b;
+
+  const api = {
+    SIZE, CELLS, CENTER, RACK, BINGO, KINDS, TILE_COUNT, LETTERS, SYMS: LETTERS, LETTER_PTS,
+    tile, options, canBe, needsChoice, premium, mults, neighbours, rc, at, emptyBoard, isEmpty, lineThrough,
+    setDict, hasDict, dict, unpack, isWord, checkLine, lineText, evaluatePlay,
+    encodePlaced, decodePlaced, encodeBoard, decodeBoard, encodeIds, decodeIds,
+    fullBag, shuffle, rackValue, byFace
+  };
+  root.RK = root.RK || {};
+  root.RK.WordRules = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- wordbot.js ----
+// Bot for the word crossword. It finds moves the classic way: for every
+// "anchor" (an empty square next to a tile) it walks the word list from each
+// start square to the left of it, laying rack tiles as it goes and only
+// letters the crossing words allow. The walk keeps its own stack, so it can
+// stop after a few milliseconds and pick up where it was: the page keeps
+// drawing while a bot thinks.
+(function (root) {
+  'use strict';
+  const M = (root.RK && root.RK.WordRules) || require('./wordrules.js');
+  const { SIZE, CELLS, RACK, BINGO, LETTERS, LETTER_PTS } = M;
+  const ALL = (1 << 26) - 1;
+  const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  const ENTER = 0, ITER = 1, DONE = 2;
+
+  // the cells of every row (d = 0) and column (d = 1), left to right / top to bottom
+  const LINES = [0, 1].map(d => Array.from({ length: SIZE }, (_, n) => Int16Array.from({ length: SIZE }, (_, k) => (d === 0 ? M.at(n, k) : M.at(k, n)))));
+  const LM = new Uint8Array(CELLS), WM = new Uint8Array(CELLS);
+  for (let c = 0; c < CELLS; c++) { const [l, w] = M.mults(c); LM[c] = l; WM[c] = w; }
+  // how the levels search: blanks always (with a budget) or only when nothing else works
+  const LEVELS = {
+    easy: { blanks: 'fallback', blankBudget: 400000 },
+    normal: { blanks: 'always', blankBudget: 1500000 },
+    hard: { blanks: 'always', blankBudget: 6000000 }
+  };
+
+  /**
+   * Start a search. board: the host's board, rack: tile ids.
+   * opts: level (easy | normal | hard), rng, budget / blankBudget (edges to try, keeps it bounded).
+   * Returns { step(ms) → done, pick(level), best: {placements, score, main} | null }.
+   */
+  function create(board, rack, opts) {
+    opts = opts || {};
+    const rng = opts.rng || Math.random;
+    const lv = LEVELS[opts.level] || LEVELS.normal;
+    const budget = opts.budget || 8000000;
+    const blankBudget = opts.blankBudget !== undefined ? opts.blankBudget : lv.blankBudget;
+    const D = M.dict();
+    const CAP = 2000;
+
+    // the board as letters (−1 = empty) and tile points
+    const L = new Int8Array(CELLS).fill(-1), P = new Uint8Array(CELLS);
+    board.forEach((x, c) => { if (x) { L[c] = x[1].charCodeAt(0) - 65; P[c] = M.tile(x[0]).pts; } });
+    const empty = board.every(x => !x);
+
+    // the rack: letter counts, blanks, and which ids to hand back
+    const count = new Int8Array(26), idsOf = LETTERS.map(() => []), blankIds = [];
+    rack.forEach(id => {
+      const f = M.tile(id).face;
+      if (f === '?') blankIds.push(id);
+      else { const l = f.charCodeAt(0) - 65; count[l]++; idsOf[l].push(id); }
+    });
+    const blanks0 = blankIds.length, rackN = rack.length;
+    let bl = 0;                     // blanks free to use right now (0 until the blank pass)
+
+    // ---- the word list ----
+    function find(i, l) {           // edge with letter l in the edge list at i, or −1
+      for (;;) {
+        const e = D[i];
+        if ((e & 31) === l) return i;
+        if (e & 64) return -1;
+        i++;
+      }
+    }
+
+    // ---- crossing words ----
+    // For a move along d, a square may only take letters that make its crossing word real.
+    // mask: those letters (ALL when nothing crosses); xs: points already in the crossing word.
+    const mask = [new Int32Array(CELLS), new Int32Array(CELLS)];
+    const xs = [new Int16Array(CELLS), new Int16Array(CELLS)];
+    const hx = [new Uint8Array(CELLS), new Uint8Array(CELLS)];
+    const anchor = new Uint8Array(CELLS);
+    function crossChecks() {
+      for (let c = 0; c < CELLS; c++) {
+        if (L[c] >= 0) continue;
+        anchor[c] = empty ? (c === M.CENTER ? 1 : 0) : M.neighbours(c).some(q => L[q] >= 0) ? 1 : 0;
+      }
+      for (let d = 0; d < 2; d++) {
+        const step = d === 0 ? SIZE : 1;          // the crossing word runs the other way
+        for (let c = 0; c < CELLS; c++) {
+          if (L[c] >= 0) continue;
+          const [r, col] = M.rc(c), k = d === 0 ? r : col;
+          const before = [], after = [];
+          for (let j = k - 1, x = c - step; j >= 0 && L[x] >= 0; j--, x -= step) before.unshift(x);
+          for (let j = k + 1, x = c + step; j < SIZE && L[x] >= 0; j++, x += step) after.push(x);
+          if (!before.length && !after.length) { mask[d][c] = ALL; continue; }
+          hx[d][c] = 1;
+          let sum = 0;
+          before.forEach(x => { sum += P[x]; }); after.forEach(x => { sum += P[x]; });
+          xs[d][c] = sum;
+          let i = D[0], okPrefix = true;
+          for (const x of before) {
+            const e = i ? find(i, L[x]) : -1;
+            if (e < 0) { okPrefix = false; break; }
+            i = D[e] >>> 7;
+          }
+          let m = 0;
+          if (okPrefix && i) {
+            for (let e = i; ; e++) {
+              const ev = D[e];
+              let ok;
+              if (!after.length) ok = (ev & 32) !== 0;
+              else {
+                let j = ev >>> 7;
+                ok = false;
+                for (let t = 0; t < after.length; t++) {
+                  const f = j ? find(j, L[after[t]]) : -1;
+                  if (f < 0) break;
+                  if (t === after.length - 1) ok = (D[f] & 32) !== 0;
+                  else j = D[f] >>> 7;
+                }
+              }
+              if (ok) m |= 1 << (ev & 31);
+              if (ev & 64) break;
+            }
+          }
+          mask[d][c] = m;
+        }
+      }
+    }
+
+    // ---- where to start ----
+    // A unit = (direction, line, start square s, anchor a). Squares between s and a are empty
+    // and cross nothing, so each move is made by exactly one unit.
+    function makeUnits() {
+      const out = [];
+      for (let d = 0; d < 2; d++) for (let n = 0; n < SIZE; n++) {
+        if (empty && (d !== 0 || n !== 7)) continue;     // the empty board is symmetric: across the middle row is enough
+        const lc = LINES[d][n];
+        for (let a = 0; a < SIZE; a++) {
+          if (!anchor[lc[a]]) continue;
+          if (a > 0 && L[lc[a - 1]] >= 0) {
+            let s = a - 1;
+            while (s > 0 && L[lc[s - 1]] >= 0) s--;
+            out.push({ d, n, s, a });
+            continue;
+          }
+          let lim = 0;
+          while (a - lim - 1 >= 0 && L[lc[a - lim - 1]] < 0 && !anchor[lc[a - lim - 1]]) lim++;
+          lim = Math.min(lim, rackN - 1);
+          for (let j = 0; j <= lim; j++) out.push({ d, n, s: a - j, a });
+        }
+      }
+      return out;
+    }
+
+    // ---- the walk, with its own stack (depth k = square s + k) ----
+    const node = new Int32Array(SIZE + 2), term = new Uint8Array(SIZE + 2), st = new Uint8Array(SIZE + 2);
+    const eIdx = new Int32Array(SIZE + 2), vr = new Uint8Array(SIZE + 2), used = new Int8Array(SIZE + 2), lt = new Int8Array(SIZE + 2);
+    const msum = new Int32Array(SIZE + 2), wmul = new Int32Array(SIZE + 2), xtot = new Int32Array(SIZE + 2), placed = new Int8Array(SIZE + 2);
+    let unit = null, lc = null, mk = null, xsd = null, hxd = null, depth = -1;
+    let nodes = 0, found = 0, best = null, blankPass = false;
+    const cands = [];
+
+    function begin(u) {
+      unit = u; lc = LINES[u.d][u.n]; mk = mask[u.d]; xsd = xs[u.d]; hxd = hx[u.d];
+      depth = 0; node[0] = D[0]; term[0] = 0; st[0] = ENTER; msum[0] = 0; wmul[0] = 1; xtot[0] = 0; placed[0] = 0; used[0] = -1;
+    }
+    function down(k, ev, ms, wm, xt, pl) {
+      const j = k + 1;
+      node[j] = ev >>> 7; term[j] = (ev >> 5) & 1; msum[j] = ms; wmul[j] = wm; xtot[j] = xt; placed[j] = pl; st[j] = ENTER; used[j] = -1;
+      depth = j;
+    }
+    function lay(k, ev, v, cell) {
+      const lm = LM[cell], wm = WM[cell];
+      down(k, ev, msum[k] + v * lm, wmul[k] * wm, xtot[k] + (hxd[cell] ? (xsd[cell] + v * lm) * wm : 0), placed[k] + 1);
+    }
+    function record(k) {
+      if (blankPass && bl === blanks0) return;          // no blank used: the first pass has it
+      found++;
+      const score = msum[k] * wmul[k] + xtot[k] + (placed[k] === RACK ? BINGO : 0);
+      const top = !best || score > best.score;
+      let slot = -1;
+      if (cands.length < CAP) slot = cands.length;
+      else { const j = Math.floor(rng() * found); if (j < CAP) slot = j; }
+      if (!top && slot < 0) return;
+      const placements = [], seen = new Int8Array(26);
+      let word = '', nb = 0;
+      for (let i = 0; i < k; i++) {
+        const cell = lc[unit.s + i];
+        if (used[i] < 0) { word += LETTERS[L[cell]]; continue; }
+        const l = lt[i];
+        word += LETTERS[l];
+        placements.push({ c: cell, id: used[i] === 1 ? blankIds[nb++] : idsOf[l][seen[l]++], s: LETTERS[l] });
+      }
+      const mv = { placements, score, main: word };
+      if (top) best = mv;
+      if (slot >= 0) cands[slot] = mv;
+    }
+
+    /** Walk the current unit until it is done (true) or `limit` edges were tried (false). */
+    function walk(limit) {
+      const s = unit.s, a = unit.a;
+      while (depth >= 0) {
+        if (nodes >= limit) return false;
+        const k = depth, p = s + k;
+        if (st[k] === ENTER) {
+          nodes++;
+          if (p > a && placed[k] && term[k] && (p === SIZE || L[lc[p]] < 0)) record(k);
+          if (p === SIZE) { depth--; continue; }
+          const cell = lc[p];
+          if (L[cell] >= 0) {                              // a tile already there: follow it
+            st[k] = DONE;
+            const e = node[k] ? find(node[k], L[cell]) : -1;
+            if (e < 0) { depth--; continue; }
+            down(k, D[e], msum[k] + P[cell], wmul[k], xtot[k], placed[k]);
+            continue;
+          }
+          if (!node[k] || placed[k] >= rackN || !mk[cell]) { depth--; continue; }
+          st[k] = ITER; eIdx[k] = node[k]; vr[k] = 0; used[k] = -1;
+        }
+        if (st[k] === ITER) {
+          if (used[k] >= 0) { if (used[k] === 0) count[lt[k]]++; else bl++; used[k] = -1; }
+          const cell = lc[p], m = mk[cell];
+          let went = false;
+          while (eIdx[k] >= 0) {
+            const ev = D[eIdx[k]], l = ev & 31;
+            if ((m >> l) & 1) {
+              if (vr[k] === 0) {
+                vr[k] = 1;
+                if (count[l] > 0) { count[l]--; used[k] = 0; lt[k] = l; lay(k, ev, LETTER_PTS[l], cell); went = true; break; }
+              }
+              if (vr[k] === 1) {
+                vr[k] = 2;
+                if (bl > 0) { bl--; used[k] = 1; lt[k] = l; lay(k, ev, 0, cell); went = true; break; }
+              }
+            }
+            nodes++;
+            eIdx[k] = ev & 64 ? -1 : eIdx[k] + 1; vr[k] = 0;
+          }
+          if (!went) depth--;
+          continue;
+        }
+        depth--;                                           // DONE
+      }
+      return true;
+    }
+
+    let units = null, ui = 0, passEnd = budget;
+    function step(ms) {
+      if (!D) return true;
+      const end = clock() + (ms === undefined ? Infinity : ms);
+      if (!units) { crossChecks(); units = makeUnits(); ui = 0; if (!units.length) return true; begin(units[0]); }
+      for (;;) {
+        if (ui >= units.length) {
+          // the blank pass: every move again, now letting blanks stand for any letter
+          const wantBlanks = blanks0 > 0 && !blankPass && (lv.blanks === 'always' || !best) && blankBudget > 0;
+          if (!wantBlanks) return true;
+          blankPass = true; bl = blanks0;
+          units = M.shuffle(units.slice(), rng); ui = 0; passEnd = nodes + blankBudget;
+          begin(units[0]);
+        }
+        if (nodes >= passEnd) return true;
+        const done = walk(Math.min(passEnd, nodes + 4096));
+        if (done) { ui++; if (ui < units.length) begin(units[ui]); }
+        if (clock() >= end) return false;
+      }
+    }
+
+    /**
+     * The move for a level: hard = the best found, normal = from the top fifth,
+     * easy = somewhere in the middle (still a real word, just not the cleverest).
+     * Every pick is checked against the rules before it goes out.
+     */
+    function pick(level) {
+      const good = mv => { if (!mv) return null; const r = M.evaluatePlay(board, mv.placements); return r.ok ? Object.assign({}, mv, { score: r.score, main: r.main }) : null; };
+      if (!best) return null;
+      if (level === 'hard' || !level) { const b = good(best); if (b) return b; }
+      const all = cands.slice().sort((a, b) => b.score - a.score);
+      const f = level === 'easy' ? 0.35 + 0.35 * rng() : level === 'normal' ? 0.2 * rng() : 0;
+      for (let i = Math.min(all.length - 1, Math.floor(all.length * f)); i < all.length; i++) { const m = good(all[i]); if (m) return m; }
+      return null;
+    }
+    return { step, pick, moves: () => cands.slice(), get best() { return best; }, get nodes() { return nodes; }, get found() { return found; }, get units() { return units ? units.length : 0; } };
+  }
+
+  /** Run a whole search at once (tests, or when time doesn't matter). */
+  function bestMove(board, rack, opts) {
+    const job = create(board, rack, opts);
+    while (!job.step()) { /* keep going */ }
+    return job.pick(opts && opts.level);
+  }
+
+  /** No move worth making: which tiles to trade back. Keep blanks, one S, two different vowels, two good consonants. */
+  function swapPick(rack) {
+    const keep = new Set();
+    const face = id => M.tile(id).face;
+    const take = (faces, max) => {
+      let n = 0;
+      for (const f of faces) {
+        if (n >= max) break;
+        const id = rack.find(x => !keep.has(x) && face(x) === f);
+        if (id !== undefined) { keep.add(id); n++; }
+      }
+    };
+    rack.filter(id => face(id) === '?').forEach(id => keep.add(id));
+    take(['S'], 1);
+    take(['E', 'A', 'I', 'O'], 2);
+    take(['R', 'T', 'L', 'N', 'D', 'C', 'M', 'H', 'P'], 2);
+    const out = rack.filter(id => !keep.has(id));
+    return out.length ? out : rack.slice();
+  }
+
+  const api = { create, bestMove, swapPick, LEVELS };
+  root.RK = root.RK || {};
+  root.RK.WordBot = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- wordhost.js ----
+// Host engine for the word crossword: crosshost.js with this game's rules and bot.
+(function (root) {
+  'use strict';
+  const M = (root.RK && root.RK.WordRules) || require('./wordrules.js');
+  const Bot = (root.RK && root.RK.WordBot) || require('./wordbot.js');
+  const CrossHost = (root.RK && root.RK.CrossHost) || require('./crosshost.js');
+  const api = CrossHost(M, Bot, 'word');
+  root.RK = root.RK || {};
+  root.RK.WordHost = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- words.js ----
+// Loads Word Crossword's word list, once. The Artifact build carries it inside the
+// page; GitHub Pages keeps it in words.js next to the page and fetches it only
+// when someone plays this game. Either way it is gzip in base64 (see build.mjs).
+(function (root) {
+  'use strict';
+  const W = { state: 'idle', error: null };
+  let job = null;
+
+  function script(url) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = url; s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => { s.remove(); reject(new Error('words_fetch')); };
+      document.head.append(s);
+    });
+  }
+  async function gunzip(bytes) {
+    if (typeof DecompressionStream === 'undefined') throw new Error('words_old');
+    const out = new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')));
+    return new Uint8Array(await out.arrayBuffer());
+  }
+
+  /** Resolves once the word list is in WordRules (straight away if it already is). */
+  W.load = function () {
+    const R = root.RK.WordRules;
+    if (R.hasDict()) { W.state = 'ready'; return Promise.resolve(true); }
+    if (job) return job;
+    W.state = 'loading'; W.error = null;
+    job = (async () => {
+      if (!root.RK.WORDS_B64) await script(root.RK_WORDS_URL || 'words.js');
+      const b64 = root.RK.WORDS_B64;
+      if (!b64) throw new Error('words_fetch');
+      const bin = atob(b64), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      R.setDict(R.unpack(await gunzip(bytes)));
+      root.RK.WORDS_B64 = null;          // the packed list is all we keep
+      W.state = 'ready';
+      return true;
+    })().catch(e => { W.state = 'error'; W.error = (e && e.message) || 'words_fetch'; job = null; throw e; });
+    return job;
+  };
+
+  root.RK = root.RK || {};
+  root.RK.Words = W;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 // ---- i18n.js ----
@@ -3108,7 +3768,28 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       r_eq_none: 'ต้องมี = อย่างน้อย 1 ตัว', r_eq_ops: 'เครื่องหมายวางผิดที่', r_eq_big: 'ไพ่ 10–20 ต้องวางเดี่ยว ห้ามติดเลขอื่น', r_eq_digits: 'ตัวเลขยาวได้ไม่เกิน 3 หลัก',
       r_eq_lead0: 'ตัวเลขห้ามขึ้นต้นด้วย 0', r_eq_neg0: 'ไม่มี −0', r_eq_div0: 'หารด้วยศูนย์ไม่ได้', r_eq_false: 'ไม่เท่ากัน', r_eq_short: 'สมการต้องยาวอย่างน้อย 3 ตัว',
       r_not_line: 'ไพ่ที่ลงต้องอยู่แถวเดียวหรือคอลัมน์เดียว', r_gap: 'ไพ่ที่ลงต้องติดกัน ไม่เว้นช่อง', r_center: 'ตาแรกต้องวางผ่านช่องดาว ★',
-      r_not_connected: 'ต้องต่อกับไพ่ที่อยู่บนกระดาน', r_need_choice: 'เลือกค่าให้ไพ่ตัวเลือกก่อน', r_cell_taken: 'ช่องนี้มีไพ่แล้ว', r_swap_low: 'ในถุงเหลือไม่ถึง 5 ตัว เปลี่ยนไพ่ไม่ได้'
+      r_not_connected: 'ต้องต่อกับไพ่ที่อยู่บนกระดาน', r_need_choice: 'เลือกค่าให้ไพ่ตัวเลือกก่อน', r_cell_taken: 'ช่องนี้มีไพ่แล้ว', r_swap_low: 'ในถุงเหลือไม่ถึง 5 ตัว เปลี่ยนไพ่ไม่ได้',
+      // word crossword ('w…' replaces the math game's 'm…' string of the same name)
+      gWord: 'ครอสเวิร์ดคำ', gWordSub: 'ต่อคำศัพท์ภาษาอังกฤษ',
+      wRack: 'รางตัวอักษรของคุณ', wEq: 'คำ', wTileShort: 'ตัว', wBag: 'ตัวอักษรในถุง',
+      wLegE3: 'คำ ×3', wLegE2: 'คำ ×2', wLegT3: 'ตัวอักษร ×3', wLegT2: 'ตัวอักษร ×2',
+      wRule1: 'ทุกแถวและคอลัมน์ที่ตัวอักษรติดกันต้องเป็นคำภาษาอังกฤษในพจนานุกรม (ENABLE ราว 170,000 คำ) ยาว 2 ตัวขึ้นไป',
+      wRule2: 'ตาแรกต้องวางผ่านดาว ★ ตรงกลาง (ดาวคูณคำ ×2) · ตาต่อไปต้องต่อกับตัวที่อยู่บนกระดาน',
+      wRule3: 'คะแนน = แต้มตัวอักษร × ช่องตัวอักษร แล้ว × ช่องคำ · ช่องพิเศษนับเฉพาะตาที่วางทับครั้งแรก',
+      wRule4: 'ลงครบ 7 ตัวในตาเดียว +40 · ตัวว่างเป็นตัวอะไรก็ได้ (0 แต้ม) · มีคีย์บอร์ด: คลิกช่องแล้วพิมพ์ได้เลย',
+      wSwap: 'เปลี่ยนตัว', wSwapHint: 'แตะตัวที่จะเปลี่ยน แล้วกดยืนยัน (ใช้ตานี้)',
+      wHintEmpty: 'วางตัวอักษรจากรางลงกระดานให้เป็นคำ', wHintFirst: 'ตาแรก: วางคำผ่านช่องดาว ★ ตรงกลาง',
+      wHintType: 'พิมพ์ตัวอักษรได้เลย · Backspace ลบ · คลิกช่องเดิมเพื่อเปลี่ยนแนว', wHintChoice: 'แตะตัวว่างเพื่อเลือกตัวอักษร',
+      wOkLines: '{n} คำ', wPickBlank: 'ตัวว่าง: เลือกตัวอักษร (0 แต้ม)',
+      wTileLabel: 'ตัว {s}, {p} แต้ม', wBlankLabel: 'ตัวว่าง', wBlankAs: 'ตัวว่าง เป็น {s}', wNoTile: 'ไม่มีตัว {s} ในราง',
+      wTurnSub: 'วางคำ เปลี่ยนตัว หรือผ่าน',
+      wlog_bingo: '{name} ลงครบ 7 ตัว! {eq} +{n}', wlog_swap: '{name} เปลี่ยนตัวอักษร {n} ตัว',
+      wfxBingo: 'บิงโก! ลงครบ 7 ตัว', wfxCross: 'ไขว้ {n} คำ!',
+      wLoading: 'กำลังโหลดคำศัพท์…', wLoadFail: 'โหลดคำศัพท์ไม่สำเร็จ ลองใหม่อีกครั้ง', wLoadOld: 'เบราว์เซอร์นี้เก่าเกินไปสำหรับเกมคำ ลองอัปเดตเบราว์เซอร์',
+      r_not_word: 'ไม่มีคำนี้ในพจนานุกรม', r_word_short: 'คำต้องยาวอย่างน้อย 2 ตัว', r_no_dict: 'ยังโหลดคำศัพท์ไม่เสร็จ',
+      wcellTaken: 'ช่องนี้มีตัวอักษรแล้ว เลือกช่องว่าง', wr_not_line: 'ตัวที่ลงต้องอยู่แถวเดียวหรือคอลัมน์เดียว', wr_gap: 'ตัวที่ลงต้องติดกัน ไม่เว้นช่อง',
+      wr_not_connected: 'ต้องต่อกับตัวอักษรที่อยู่บนกระดาน', wr_need_choice: 'เลือกตัวอักษรให้ตัวว่างก่อน', wr_cell_taken: 'ช่องนี้มีตัวอักษรแล้ว',
+      wr_swap_low: 'ในถุงเหลือไม่ถึง 5 ตัว เปลี่ยนตัวไม่ได้', wr_no_tiles: 'ต้องลงตัวอักษรอย่างน้อย 1 ตัว', wr_not_your_tile: 'มีตัวอักษรที่ไม่ใช่ของคุณ'
     },
     en: {
       tagline: 'Rummikub-style number tiles for 2–4 players. Open a table for friends online, or practise against bots.',
@@ -3186,7 +3867,27 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       r_eq_none: 'Needs at least one =', r_eq_ops: 'A sign is in the wrong place', r_eq_big: 'A 10–20 tile must stand alone', r_eq_digits: 'Numbers have at most 3 digits',
       r_eq_lead0: 'A number can\'t start with 0', r_eq_neg0: 'There is no −0', r_eq_div0: 'Can\'t divide by zero', r_eq_false: 'not equal', r_eq_short: 'An equation needs at least 3 tiles',
       r_not_line: 'Your tiles must be in one row or one column', r_gap: 'Your tiles must touch, no gaps', r_center: 'The first move must cover the ★',
-      r_not_connected: 'Must join the tiles on the board', r_need_choice: 'Choose a value for the open tile first', r_cell_taken: 'That square is taken', r_swap_low: 'Fewer than 5 tiles in the bag: no swapping'
+      r_not_connected: 'Must join the tiles on the board', r_need_choice: 'Choose a value for the open tile first', r_cell_taken: 'That square is taken', r_swap_low: 'Fewer than 5 tiles in the bag: no swapping',
+      gWord: 'Word Crossword', gWordSub: 'Build English words',
+      wRack: 'Your rack', wEq: 'word', wTileShort: 'letter', wBag: 'Letters in the bag',
+      wLegE3: 'Word ×3', wLegE2: 'Word ×2', wLegT3: 'Letter ×3', wLegT2: 'Letter ×2',
+      wRule1: 'Every row or column of touching letters must be an English word from the word list (ENABLE, about 170,000 words), 2 letters or more',
+      wRule2: 'The first word covers the ★ in the middle (it doubles that word) · later words join the tiles on the board',
+      wRule3: 'Score = letter points × letter bonus, then × word bonus · a bonus square counts only for the tile first put on it',
+      wRule4: 'All 7 tiles in one move: +40 · a blank is any letter (0 points) · with a keyboard, click a square and type',
+      wSwap: 'Swap', wSwapHint: 'Tap the letters to trade back, then confirm (uses your turn)',
+      wHintEmpty: 'Put letters from your rack on the board to make a word', wHintFirst: 'First move: run your word through the ★ in the middle',
+      wHintType: 'Type letters · Backspace takes one back · click the square again to turn', wHintChoice: 'Tap the blank to choose its letter',
+      wOkLines: '{n} words', wPickBlank: 'Blank: choose a letter (0 points)',
+      wTileLabel: 'Letter {s}, {p} points', wBlankLabel: 'Blank tile', wBlankAs: 'Blank as {s}', wNoTile: 'No {s} on your rack',
+      wTurnSub: 'Play a word, swap, or pass',
+      wlog_bingo: '{name} used all 7! {eq} +{n}', wlog_swap: '{name} swapped {n} letters',
+      wfxBingo: 'Bingo! All 7 tiles', wfxCross: '{n} words at once!',
+      wLoading: 'Loading the word list…', wLoadFail: 'Could not load the word list. Try again.', wLoadOld: 'This browser is too old for the word game. Please update it.',
+      r_not_word: 'not in the word list', r_word_short: 'A word needs at least 2 letters', r_no_dict: 'The word list is still loading',
+      wcellTaken: 'That square is taken. Pick an empty one.', wr_not_line: 'Your letters must be in one row or one column', wr_gap: 'Your letters must touch, no gaps',
+      wr_not_connected: 'Must join the letters on the board', wr_need_choice: 'Choose a letter for the blank first', wr_cell_taken: 'That square is taken',
+      wr_swap_low: 'Fewer than 5 tiles in the bag: no swapping', wr_no_tiles: 'Play at least one letter', wr_not_your_tile: 'One of those letters isn’t yours'
     }
   };
   root.RK = root.RK || {};
@@ -3863,7 +4564,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
           ch.peers.forEach(p => {
             const pr = p.presence || {};
             if (typeof pr.tbl === 'string' && /^[a-z0-9]{4}$/.test(pr.tbl) && !p.sameTab) {
-              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby', g: pr.g === 'math' ? 'math' : 'rummy' });
+              seen.set(pr.tbl, { code: pr.tbl, host: String(pr.hn || '').slice(0, 16), n: Number(pr.n) || 1, st: pr.st === 'playing' ? 'playing' : pr.st === 'ended' ? 'ended' : 'lobby', g: pr.g === 'math' || pr.g === 'word' ? pr.g : 'rummy' });
             }
           });
           this.lobby = [...seen.values()];
@@ -4012,7 +4713,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         const x = all[code];
         if (!CODE_RE.test(code) || !x || x.uid === uid) return;
         if (typeof x.ts === 'number' && now - x.ts > 6 * 3600e3) return;   // forgotten tables
-        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby', g: x.g === 'math' ? 'math' : 'rummy' });
+        list.push({ code, host: String(x.host || '').slice(0, 16), n: Number(x.n) || 1, st: x.st === 'playing' ? 'playing' : x.st === 'ended' ? 'ended' : 'lobby', g: x.g === 'math' || x.g === 'word' ? x.g : 'rummy' });
       });
       Net.lobby = list;
       onChange();
@@ -4034,7 +4735,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       try {
         const r = R('lobby/' + info.code);
         if (!lobbyOn) { lobbyOn = true; fb.onDisconnect(r).remove(); }
-        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, g: info.g === 'math' ? 'math' : 'rummy', ts: fb.serverTimestamp() });
+        await fb.set(r, { uid, host: String(info.host || '').slice(0, 16), n: info.n, st: info.st, g: info.g === 'math' || info.g === 'word' ? info.g : 'rummy', ts: fb.serverTimestamp() });
       } catch (e) { /* the lobby is best-effort */ }
     };
 
@@ -4134,46 +4835,52 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   root.RK.NetFB = { attach, hasConfig, SDK_VERSION };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
-// ---- mathui.js ----
-// Math crossword screen: the 15 × 15 board, your rack, placing tiles, effects.
-// app.js owns the menu, lobby, settings and the network; it hands this module
-// what it needs (A) and calls onState / renderGame / afterRender.
+// ---- crossui.js ----
+// Crossword screen, shared by Math Crossword and Word Crossword: the 15 × 15 board,
+// your rack, placing tiles, effects. app.js owns the menu, lobby, settings and the
+// network; it hands this module what it needs (A) and calls onState / renderGame /
+// afterRender. K is the game: its rules (M), host (MH) and how its tiles look
+// (mathui.js and wordui.js build it).
 (function (root) {
   'use strict';
   root.RK = root.RK || {};
-  root.RK.MathUI = function (A) {
-    const M = root.RK.MathRules, MH = root.RK.MathHost, FX = root.RK.FX, SFX = root.RK.SFX;
+  root.RK.CrossUI = function (A, K) {
+    const M = K.M, MH = K.MH, FX = root.RK.FX, SFX = root.RK.SFX, STR = root.RK.STR;
     const { S, h, t } = A;
     const $ = (sel, el) => (el || document).querySelector(sel);
-    const SHOW = s => (s === '*' ? '×' : s === '/' ? '÷' : s === '-' ? '−' : s);
-    const FACE = f => (f === '+-' ? '+/−' : f === '*/' ? '×/÷' : f === '?' ? '' : SHOW(f));
-    const PREM = { E: 'pe3', e: 'pe2', T: 'pt3', t: 'pt2', '*': 'pstar' };
+    // the game's own wording when it has one: in Word Crossword 'mHintOk' reads 'wHintOk', 'r_gap' reads 'wr_gap'
+    const own = k => {
+      if (K.pre === 'm') return k;
+      const o = k[0] === 'm' ? K.pre + k.slice(1) : K.pre + k;
+      return STR.en[o] !== undefined ? o : k;
+    };
+    const T = (k, v) => t(own(k), v);
+    const canHover = () => !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
 
     // this screen's own state; S (shared) holds the view, hand, mode and ids
     const U = {
       turnKey: null, draft: [], order: [], orderKey: null, prevHand: null,
-      sel: null, swap: null, picker: null, passArm: 0, zoom: 1,
+      sel: null, swap: null, picker: null, passArm: 0, zoom: 1, cursor: null,
       mvSeen: null, bannerKey: null, pendingMove: null, pendingBanner: false, dealing: false,
       lastCells: new Set(), flyIds: null, flyBoard: null, flyFrom: -1, dragFrom: null,
       deadline: 0, deadlineTn: null, endAt: 0, endClosed: null, scroll: null, ro: null, ticker: null
     };
 
-    const me = () => (S.view && S.meIdx >= 0 ? S.view.players[S.meIdx] : null);
     const isMyTurn = () => !!(S.view && S.view.status === 'playing' && S.meIdx >= 0 && S.view.turn === S.meIdx);
-    const active = () => S.screen === 'game' && S.gameId === 'math' && !!S.view && !S.settings;
+    const active = () => S.screen === 'game' && S.gameId === K.id && !!S.view && !S.settings;
 
     // ---------- rack order (kept per game, survives reloads) ----------
     function loadOrder(key) {
-      const o = A.store.json('rk.mrack');
+      const o = A.store.json(K.store);
       return o && o.k === key && Array.isArray(o.order) ? o.order.filter(Number.isInteger) : null;
     }
-    const saveOrder = () => A.store.set('rk.mrack', JSON.stringify({ k: U.orderKey, order: U.order }));
+    const saveOrder = () => A.store.set(K.store, JSON.stringify({ k: U.orderKey, order: U.order }));
     const draftIds = () => new Set(U.draft.map(p => p.id));
     const rackIds = () => { const d = draftIds(); return U.order.filter(id => !d.has(id)); };
 
     // ---------- state from the host ----------
     function reset() {
-      Object.assign(U, { turnKey: null, draft: [], sel: null, swap: null, picker: null, mvSeen: null, bannerKey: null, pendingMove: null, pendingBanner: false, dealing: false, lastCells: new Set(), flyIds: null, flyBoard: null, prevHand: null, endAt: 0, endClosed: null, deadline: 0, deadlineTn: null, scroll: null });
+      Object.assign(U, { turnKey: null, draft: [], sel: null, swap: null, picker: null, cursor: null, mvSeen: null, bannerKey: null, pendingMove: null, pendingBanner: false, dealing: false, lastCells: new Set(), flyIds: null, flyBoard: null, prevHand: null, endAt: 0, endClosed: null, deadline: 0, deadlineTn: null, scroll: null });
       stopTicker();
     }
 
@@ -4197,7 +4904,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
       // a new turn starts with an empty draft; the same turn keeps it (minus anything gone)
       const turnKey = v.code + ':' + v.round + ':' + v.tn;
-      if (U.turnKey !== turnKey) { U.turnKey = turnKey; U.draft = []; U.sel = null; U.swap = null; U.picker = null; U.passArm = 0; S.pending = false; }
+      if (U.turnKey !== turnKey) { U.turnKey = turnKey; U.draft = []; U.sel = null; U.swap = null; U.picker = null; U.cursor = null; U.passArm = 0; S.pending = false; }
       else U.draft = U.draft.filter(p => inHand.has(p.id) && !v.board[p.c]);
 
       const mv = v.lastMove;
@@ -4235,10 +4942,10 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       if (open.length) return { ok: false, reason: 'need_choice', bad: open.map(p => p.c) };
       return M.evaluatePlay(S.view.board, U.draft);
     }
-    function place(id, c) {
+    function place(id, c, sym) {
       if (!isMyTurn()) { A.toast(t('notYourTurn'), true); return false; }
       if (S.pending) return false;
-      if (S.view.board[c]) { A.toast(t('cellTaken'), true); return false; }
+      if (S.view.board[c]) { A.toast(T('cellTaken'), true); return false; }
       const moving = U.draft.find(p => p.id === id);
       const other = U.draft.find(p => p.c === c);
       if (other && other.id !== id) {
@@ -4246,7 +4953,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         else U.draft = U.draft.filter(p => p !== other);      // a rack tile replaces it; that one goes back
       }
       if (moving) moving.c = c;
-      else { const f = M.tile(id).face; U.draft.push({ c, id, s: M.needsChoice(f) ? null : f }); }
+      else { const f = M.tile(id).face; U.draft.push({ c, id, s: sym || (M.needsChoice(f) ? null : f) }); }
       U.sel = null; U.swap = null;
       const d = U.draft.find(p => p.id === id);
       U.picker = d.s === null ? c : null;
@@ -4285,12 +4992,12 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     function play() {
       const ev = evalDraft();
       if (!ev || !ev.ok || S.pending || !isMyTurn()) return;
-      U.picker = null;
+      U.picker = null; U.cursor = null;
       A.act({ t: 'play', ps: U.draft.map(p => ({ c: p.c, id: p.id, s: p.s })), v: S.view.tn });
     }
     function startSwap() {
       if (!isMyTurn() || S.view.bag < MH.DEFAULT_RULES.swapMin) return;
-      U.draft = []; U.picker = null; U.sel = null; U.swap = new Set();
+      U.draft = []; U.picker = null; U.sel = null; U.cursor = null; U.swap = new Set();
       A.render();
     }
     function doSwap() {
@@ -4313,21 +5020,69 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       FX.deny(els);
     }
 
-    // ---------- drawing ----------
-    function tileLabel(id, sym) {
-      const tl = M.tile(id);
-      if (tl.face === '?' && !sym) return t('mBlankLabel');
-      return t('mTileLabel', { s: sym ? SHOW(sym) : FACE(tl.face), p: tl.pts });
+    // ---------- typing (Word Crossword on a keyboard) ----------
+    // Click an empty square for a cursor (click again to turn it), type letters, Backspace takes one back.
+    function inLine(c, d, k) {
+      const [r, col] = M.rc(c);
+      const r2 = d ? r + k : r, c2 = d ? col : col + k;
+      return r2 >= 0 && r2 < M.SIZE && c2 >= 0 && c2 < M.SIZE ? M.at(r2, c2) : -1;
     }
+    /** From c, the first square along d without a board tile (c itself counts), or −1 off the edge. */
+    function freeFrom(c, d, dirSign) {
+      while (c >= 0 && S.view.board[c]) c = inLine(c, d, dirSign);
+      return c;
+    }
+    function setCursor(c) {
+      if (U.cursor && U.cursor.c === c) U.cursor = { c, d: 1 - U.cursor.d };
+      else U.cursor = { c, d: U.cursor ? U.cursor.d : 0 };
+      U.sel = null; U.picker = null;
+      A.render();
+    }
+    function typeLetter(ch) {
+      if (S.pending) return;
+      const cur = U.cursor;
+      const c = freeFrom(cur.c, cur.d, 1);
+      if (c < 0) return;
+      const under = U.draft.find(p => p.c === c);
+      if (under && cur.end) return;                          // the line is full
+      const nxt = inLine(c, cur.d, 1), nf = nxt >= 0 ? freeFrom(nxt, cur.d, 1) : -1;
+      const advance = () => { U.cursor = nf >= 0 ? { c: nf, d: cur.d } : { c, d: cur.d, end: true }; };
+      if (under && under.s === ch) { advance(); A.render(); return; }   // typing over the same letter just moves on
+      const ids = rackIds();
+      let id = ids.find(x => M.tile(x).face === ch), sym;
+      if (id === undefined) { id = ids.find(x => M.needsChoice(M.tile(x).face)); sym = ch; }
+      if (id === undefined) { A.toast(T('mNoTile', { s: ch }), true); return; }
+      if (under) U.draft = U.draft.filter(p => p !== under);   // the one typed over goes back to the rack
+      advance();
+      place(id, c, sym);
+    }
+    function typeBack() {
+      const cur = U.cursor;
+      // the tile just before the cursor (skipping board tiles); at the end of a line, the one under it
+      let c;
+      if (cur.end && U.draft.some(p => p.c === cur.c)) c = cur.c;
+      else { c = inLine(cur.c, cur.d, -1); while (c >= 0 && S.view.board[c]) c = inLine(c, cur.d, -1); }
+      const d = c >= 0 ? U.draft.find(p => p.c === c) : null;
+      if (!d) { if (U.draft.length) toRack(U.draft[U.draft.length - 1].id); return; }
+      U.cursor = { c, d: cur.d };
+      toRack(d.id);
+    }
+    function moveCursor(dr, dc) {
+      const cur = U.cursor;
+      const d = dr ? 1 : 0;
+      const [r, c] = M.rc(cur.c);
+      const r2 = Math.max(0, Math.min(M.SIZE - 1, r + dr)), c2 = Math.max(0, Math.min(M.SIZE - 1, c + dc));
+      U.cursor = { c: cur.d === d ? M.at(r2, c2) : cur.c, d };
+      A.render();
+    }
+
+    // ---------- drawing ----------
     function tileEl(id, sym, cls, src) {
-      const tl = M.tile(id), f = tl.face;
-      const text = sym ? SHOW(sym) : FACE(f);
-      const kind = f === '?' ? 'blank' : f === '+-' || f === '*/' ? 'dual' : f === '=' ? 'eq' : M.isNumFace(f) ? 'num' : 'op';
-      const sk = sym ? (sym === '=' ? 'eq' : M.NUMS.indexOf(sym) >= 0 ? 'num' : 'op') : kind;
+      const tl = M.tile(id), look = K.tile(id, sym);
       const el = h('div', {
-        class: 'mtile k-' + kind + ' s-' + sk + (text.length >= 3 ? ' w3' : text.length === 2 ? ' w2' : '') + (cls ? ' ' + cls : ''),
-        'data-mt': id, role: 'img', 'aria-label': tileLabel(id, sym)
-      }, h('span', { class: 'mt-s', text }), tl.pts ? h('span', { class: 'mt-p', text: String(tl.pts) }) : null);
+        class: 'mtile ' + look.cls + (look.text.length >= 3 ? ' w3' : look.text.length === 2 ? ' w2' : '') + (cls ? ' ' + cls : ''),
+        'data-mt': id, role: 'img', 'aria-label': look.label
+      }, h('span', { class: 'mt-s', text: look.text }), tl.pts ? h('span', { class: 'mt-p', text: String(tl.pts) }) : null);
       if (src) el.dataset.src = src;
       return el;
     }
@@ -4339,19 +5094,21 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       const bad = new Set(ev && !ev.ok && ev.bad ? ev.bad : []);
       const good = new Set();
       if (ev && ev.ok) ev.lines.forEach(L => L.cells.forEach(c => good.add(c)));
-      const g = h('div', { class: 'mboard' + (my ? ' mine' : '') + (U.sel ? ' placing' : '') + (U.cs >= 38 ? ' roomy' : ''), role: 'grid', 'aria-label': t('mBoard'), style: U.cs ? { '--cs': U.cs + 'px' } : null });
+      const cur = my && U.cursor ? U.cursor : null;
+      const g = h('div', { class: 'mboard' + (my ? ' mine' : '') + (U.sel || (K.typing && canHover()) ? ' placing' : '') + (U.cs >= 38 ? ' roomy' : ''), role: 'grid', 'aria-label': T('mBoard'), style: U.cs ? { '--cs': U.cs + 'px' } : null });
       const empty = M.isEmpty(v.board);
       for (let c = 0; c < M.CELLS; c++) {
-        const pr = M.premium(c);
+        const pr = M.premium(c), pk = pr ? K.PREM[pr] : null;
         const b = v.board[c], d = draftAt.get(c);
         const cell = h('div', {
-          class: 'mcell' + (pr ? ' ' + PREM[pr] : '') + (bad.has(c) ? ' bad' : good.has(c) ? ' good' : '') + (pr === '*' && empty ? ' start' : ''),
+          class: 'mcell' + (pk ? ' ' + pk[0] : '') + (bad.has(c) ? ' bad' : good.has(c) ? ' good' : '') + (pr === '*' && empty ? ' start' : '') + (cur && cur.c === c ? ' cursor' : ''),
           'data-mc': c, role: 'gridcell'
         });
         if (b) cell.append(tileEl(b[0], b[1], 'onb' + (U.lastCells.has(c) ? ' last' : '')));
         else if (d) cell.append(tileEl(d.id, d.s, 'draft' + (d.s ? '' : ' open') + (U.picker === c ? ' picking' : ''), 'draft'));
         else if (pr === '*') cell.append(h('span', { class: 'pl star', 'aria-hidden': 'true', text: '★' }));
-        else if (pr) cell.append(h('span', { class: 'pl', 'aria-hidden': 'true' }, h('b', { text: '×' + (pr === 'E' || pr === 'T' ? 3 : 2) }), h('small', { text: pr === 'E' || pr === 'e' ? t('mEq') : t('mTileShort') })));
+        else if (pk) cell.append(h('span', { class: 'pl', 'aria-hidden': 'true' }, h('b', { text: '×' + pk[1] }), h('small', { text: pk[2] ? T('mEq') : T('mTileShort') })));
+        if (cur && cur.c === c) cell.append(h('span', { class: 'mcur d' + cur.d, 'aria-hidden': 'true', text: cur.d ? '↓' : '→' }));
         g.append(cell);
       }
       return g;
@@ -4359,7 +5116,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
     function renderRack() {
       const ids = rackIds();
-      const rack = h('div', { class: 'mrack' + (U.swap ? ' swapping' : ''), 'data-rack': '1', 'aria-label': t('mRack') });
+      const rack = h('div', { class: 'mrack' + (U.swap ? ' swapping' : ''), 'data-rack': '1', 'aria-label': T('mRack'), style: { '--slots': String(M.RACK) } });
       for (let i = 0; i < M.RACK; i++) {
         const id = ids[i];
         const slot = h('div', { class: 'mslot', 'data-ms': i });
@@ -4373,8 +5130,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       const v = S.view;
       const p = v.players[e.p];
       const name = p ? (p.id === S.myId ? t('you') : p.name) : '';
-      if (e.k === 'play') return t(e.bg ? 'mlog_bingo' : 'mlog_play', { name, eq: e.eq || '', n: e.sc });
-      return t('mlog_' + e.k, { name, n: e.n || 0 });
+      if (e.k === 'play') return T(e.bg ? 'mlog_bingo' : 'mlog_play', { name, eq: e.eq || '', n: e.sc });
+      return T('mlog_' + e.k, { name, n: e.n || 0 });
     }
 
     function timerText(ms) {
@@ -4391,17 +5148,18 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
           st.append(h('span', { class: 'turnflag', text: t('yourTurn') }));
           const ev = evalDraft();
           let hint = '', cls = '';
-          if (U.swap) hint = t('mSwapHint');
-          else if (!ev) hint = M.isEmpty(v.board) ? t('mHintFirst') : t('mHintEmpty');
-          else if (ev.ok) { hint = t('mHintOk', { eq: ev.main, n: ev.score }) + (ev.lines.length > 1 ? ' · ' + t('mOkLines', { n: ev.lines.length }) : '') + (ev.bingo ? ' · BINGO' : ''); cls = ' ok'; }
-          else if (ev.reason === 'need_choice') hint = t('mHintChoice');
+          if (K.ready && !K.ready()) hint = T('mLoading');
+          else if (U.swap) hint = T('mSwapHint');
+          else if (!ev) hint = M.isEmpty(v.board) ? T('mHintFirst') : U.cursor ? T('mHintType') : T('mHintEmpty');
+          else if (ev.ok) { hint = T('mHintOk', { eq: ev.main, n: ev.score }) + (ev.lines.length > 1 ? ' · ' + T('mOkLines', { n: ev.lines.length }) : '') + (ev.bingo ? ' · BINGO' : ''); cls = ' ok'; }
+          else if (ev.reason === 'need_choice') hint = T('mHintChoice');
           else {
-            hint = (ev.text ? ev.text + ' — ' : '') + t('r_' + ev.reason) + (ev.reason === 'eq_false' && ev.values ? ' (' + ev.values.join(' ≠ ') + ')' : '');
+            hint = (ev.text ? ev.text + ' — ' : '') + T('r_' + ev.reason) + (ev.reason === 'eq_false' && ev.values ? ' (' + ev.values.join(' ≠ ') + ')' : '');
             cls = ' bad';
           }
           st.append(h('span', { class: 'mcheck' + cls, id: 'm-check', text: hint }));
         } else if (cur) {
-          st.append(h('span', { text: cur.bot ? t('mThinking', { name: cur.name }) : t('waitingFor', { name: cur.name }) }));
+          st.append(h('span', { text: cur.bot ? T('mThinking', { name: cur.name }) : t('waitingFor', { name: cur.name }) }));
           const last = v.log[v.log.length - 1];
           if (last) st.append(h('span', { class: 'logline', text: '· ' + logText(last) }));
         }
@@ -4416,13 +5174,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
     function renderSide() {
       const v = S.view;
-      const log = h('ol', { class: 'mlog', 'aria-label': t('mLog') }, v.log.slice().reverse().map(e => h('li', { class: e.bg ? 'bingo' : '', text: logText(e) })));
+      const log = h('ol', { class: 'mlog', 'aria-label': T('mLog') }, v.log.slice().reverse().map(e => h('li', { class: e.bg ? 'bingo' : '', text: logText(e) })));
       const legend = h('div', { class: 'mlegend' },
-        [['pe3', 'mLegE3'], ['pe2', 'mLegE2'], ['pt3', 'mLegT3'], ['pt2', 'mLegT2']].map(([c, k]) => h('span', { class: 'lg' }, h('i', { class: c }), t(k))));
-      const rules = h('ul', { class: 'mrules' }, ['mRule1', 'mRule2', 'mRule3', 'mRule4'].map(k => h('li', { text: t(k) })));
+        [['pe3', 'mLegE3'], ['pe2', 'mLegE2'], ['pt3', 'mLegT3'], ['pt2', 'mLegT2']].map(([c, k]) => h('span', { class: 'lg' }, h('i', { class: c }), T(k))));
+      const rules = h('ul', { class: 'mrules' }, ['mRule1', 'mRule2', 'mRule3', 'mRule4'].map(k => h('li', { text: T(k) })));
       return h('aside', { class: 'mside' },
-        h('section', { class: 'mcard' }, h('span', { class: 'label', text: t('mLog') }), v.log.length ? log : h('p', { class: 'note', text: '—' })),
-        h('section', { class: 'mcard' }, h('span', { class: 'label', text: t('mLegend') }), legend, rules));
+        h('section', { class: 'mcard' }, h('span', { class: 'label', text: T('mLog') }), v.log.length ? log : h('p', { class: 'note', text: '—' })),
+        h('section', { class: 'mcard' }, h('span', { class: 'label', text: T('mLegend') }), legend, rules));
     }
 
     function renderDock() {
@@ -4433,33 +5191,33 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       let actions;
       if (U.swap) {
         actions = h('div', { class: 'actions' },
-          h('button', { type: 'button', class: 'btn', id: 'm-swap-cancel', text: t('mSwapCancel'), onclick: () => { U.swap = null; A.render(); } }),
-          h('button', { type: 'button', class: 'btn primary', id: 'm-swap-go', disabled: !U.swap.size, text: t('mSwapGo', { n: U.swap.size }), onclick: doSwap }));
+          h('button', { type: 'button', class: 'btn', id: 'm-swap-cancel', text: T('mSwapCancel'), onclick: () => { U.swap = null; A.render(); } }),
+          h('button', { type: 'button', class: 'btn primary', id: 'm-swap-go', disabled: !U.swap.size, text: T('mSwapGo', { n: U.swap.size }), onclick: doSwap }));
       } else {
         const armed = U.passArm && Date.now() - U.passArm < 3000;
         actions = h('div', { class: 'actions' },
           h('span', { class: 'agroup' },
-            h('button', { type: 'button', class: 'btn small', id: 'm-recall', disabled: !U.draft.length, text: t('mRecall'), onclick: recall }),
-            h('button', { type: 'button', class: 'btn small', id: 'm-shuffle', text: t('mShuffle'), onclick: shuffle }),
-            h('button', { type: 'button', class: 'btn small', id: 'm-sort', text: t('mSort'), onclick: sortRack })),
+            h('button', { type: 'button', class: 'btn small', id: 'm-recall', disabled: !U.draft.length, text: T('mRecall'), onclick: recall }),
+            h('button', { type: 'button', class: 'btn small', id: 'm-shuffle', text: T('mShuffle'), onclick: shuffle }),
+            h('button', { type: 'button', class: 'btn small', id: 'm-sort', text: T('mSort'), onclick: sortRack })),
           h('span', { class: 'agroup main' },
-            h('button', { type: 'button', class: 'btn', id: 'm-swap', disabled: !my || S.pending || bagLow, title: bagLow ? t('r_swap_low') : null, text: t('mSwap'), onclick: startSwap }),
-            h('button', { type: 'button', class: 'btn' + (armed ? ' armed' : ''), id: 'm-pass', disabled: !my || S.pending, text: armed ? t('mPassArm') : t('mPass'), onclick: pass }),
-            h('button', { type: 'button', class: 'btn primary', id: 'm-play', disabled: !my || !canPlay, text: canPlay ? t('mPlayPts', { n: ev.score }) : t('mPlay'), onclick: play })));
+            h('button', { type: 'button', class: 'btn', id: 'm-swap', disabled: !my || S.pending || bagLow, title: bagLow ? T('r_swap_low') : null, text: T('mSwap'), onclick: startSwap }),
+            h('button', { type: 'button', class: 'btn' + (armed ? ' armed' : ''), id: 'm-pass', disabled: !my || S.pending, text: armed ? T('mPassArm') : T('mPass'), onclick: pass }),
+            h('button', { type: 'button', class: 'btn primary', id: 'm-play', disabled: !my || !canPlay, text: canPlay ? T('mPlayPts', { n: ev.score }) : T('mPlay'), onclick: play })));
       }
-      return h('section', { class: 'mdock', 'aria-label': t('mRack') }, renderRack(), actions,
+      return h('section', { class: 'mdock', 'aria-label': T('mRack') }, renderRack(), actions,
         h('p', { class: 'note dock-hint', 'aria-live': 'polite', text: S.pending ? t('sent') : '' }));
     }
 
     function renderPicker() {
       const d = U.draft.find(p => p.c === U.picker);
       if (!d) { U.picker = null; return null; }
-      const f = M.tile(d.id).face;
-      return h('div', { class: 'mpicker' + (f === '?' ? ' blank' : ''), role: 'dialog', 'aria-label': t(f === '?' ? 'mPickBlank' : 'mPickDual') },
-        h('div', { class: 'mp-head' }, h('span', { text: t(f === '?' ? 'mPickBlank' : 'mPickDual') }),
-          h('button', { type: 'button', class: 'btn small ghost', id: 'm-pick-back', text: t('mBackToRack'), onclick: () => toRack(d.id) })),
+      const f = M.tile(d.id).face, blank = f === '?';
+      return h('div', { class: 'mpicker' + (blank ? ' blank' : ''), role: 'dialog', 'aria-label': T(blank ? 'mPickBlank' : 'mPickDual') },
+        h('div', { class: 'mp-head' }, h('span', { text: T(blank ? 'mPickBlank' : 'mPickDual') }),
+          h('button', { type: 'button', class: 'btn small ghost', id: 'm-pick-back', text: T('mBackToRack'), onclick: () => toRack(d.id) })),
         h('div', { class: 'mp-grid' }, M.options(f).map(s => h('button', {
-          type: 'button', class: 'mp-opt' + (d.s === s ? ' on' : '') + (M.NUMS.indexOf(s) < 0 ? ' op' : ''), 'data-sym': s, text: SHOW(s),
+          type: 'button', class: 'mp-opt' + (d.s === s ? ' on' : '') + K.optCls(s), 'data-sym': s, text: K.show(s),
           onclick: () => { d.s = s; U.picker = null; SFX.pluck(3); A.render(); }
         }))));
     }
@@ -4476,13 +5234,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       const host = A.engineMode();
       return h('div', { class: 'overlay', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'end-title' },
         h('div', { class: 'dialog' },
-          h('span', { class: 'label', text: t('mGameOver', { r: v.round }) }),
-          h('h2', { id: 'end-title', text: v.winner < 0 ? t('mDraw') : w && w.id === S.myId ? t('mYouWon') : t('winnerIs', { name: w ? w.name : '?' }) }),
+          h('span', { class: 'label', text: T('mGameOver', { r: v.round }) }),
+          h('h2', { id: 'end-title', text: v.winner < 0 ? T('mDraw') : w && w.id === S.myId ? T('mYouWon') : t('winnerIs', { name: w ? w.name : '?' }) }),
           h('div', { style: { overflowX: 'auto' } }, h('table', { class: 'scores' },
-            h('thead', null, h('tr', null, h('th', { text: t('colPlayer') }), h('th', { class: 'num', text: t('mColLeft') }), h('th', { class: 'num', text: t('mColAdj') }), h('th', { class: 'num', text: t('mColScore') }), h('th', { class: 'num', text: t('mColWins') }))),
+            h('thead', null, h('tr', null, h('th', { text: t('colPlayer') }), h('th', { class: 'num', text: T('mColLeft') }), h('th', { class: 'num', text: T('mColAdj') }), h('th', { class: 'num', text: T('mColScore') }), h('th', { class: 'num', text: T('mColWins') }))),
             h('tbody', null, rows))),
           h('div', { class: 'row' },
-            host ? h('button', { type: 'button', class: 'btn primary', id: 'm-rematch', text: t('mRematch'), onclick: () => { MH.start(S.G, A.rand, Date.now()); A.engineChanged(); } }) : h('span', { class: 'note', text: t('waitHost') }),
+            host ? h('button', { type: 'button', class: 'btn primary', id: 'm-rematch', text: T('mRematch'), onclick: () => { MH.start(S.G, A.rand, Date.now()); A.engineChanged(); } }) : h('span', { class: 'note', text: t('waitHost') }),
             h('span', { class: 'grow' }),
             h('button', { type: 'button', class: 'btn ghost', text: t('close'), onclick: () => { U.endClosed = v.round; A.render(); } }),
             h('button', { type: 'button', class: 'btn ghost', text: t('backHome'), onclick: () => { if (S.mode === 'local') A.store.del('rk.local'); A.leaveTable(); } }))));
@@ -4492,25 +5250,25 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       const v = S.view;
       const wrap = $('.mboard-wrap');
       if (wrap) U.scroll = { l: wrap.scrollLeft, t: wrap.scrollTop };
-      const game = h('div', { class: 'mgame game-math' });
+      const game = h('div', { class: 'mgame game-' + K.id });
       const players = h('div', { class: 'players' });
       v.players.forEach((q, i) => players.append(h('div', { class: 'pchip' + (i === v.turn && v.status === 'playing' ? ' turn' : '') + (q.id === S.myId ? ' me' : ''), 'data-p': i },
         h('span', { class: 'dot' + (q.online ? '' : ' off') }),
         h('span', { class: 'nm', text: q.name }),
         q.id === S.myId ? h('span', { class: 'chip', text: t('you') }) : null,
         h('span', { class: 'ct score', text: String(q.score) }),
-        q.wins ? h('span', { class: 'ct wins', title: t('mWins', { n: q.wins }), text: '★' + q.wins }) : null)));
+        q.wins ? h('span', { class: 'ct wins', title: T('mWins', { n: q.wins }), text: '★' + q.wins }) : null)));
       const sb = A.settingsBtn(true); sb.querySelector('span').textContent = t('settings');
       game.append(h('header', { class: 'topbar' },
-        h('span', { class: 'mark', html: 'Math <em>Cross</em>' }),
+        h('span', { class: 'mark', html: K.mark }),
         S.mode !== 'local' ? h('span', { class: 'code', text: v.code }) : null,
         players,
-        h('span', { class: 'pool', title: t('mBag') }, h('span', { class: 'bagicon', 'aria-hidden': 'true' }), String(v.bag)),
+        h('span', { class: 'pool', title: T('mBag') }, h('span', { class: 'bagicon', 'aria-hidden': 'true' }), String(v.bag)),
         sb, A.langSeg(),
         h('button', { type: 'button', class: 'btn small ghost', text: t('leave'), onclick: A.leaveTable })));
 
       const boardWrap = h('div', { class: 'mboard-wrap' }, renderBoard());
-      const zoomBtn = h('button', { type: 'button', class: 'btn small mzoom', id: 'm-zoom', 'aria-label': t('mZoom'), text: U.zoom === 1 ? '⤢' : U.zoom + '×', onclick: () => { U.zoom = U.zoom === 1 ? 1.5 : U.zoom === 1.5 ? 2 : 1; A.render(); } });
+      const zoomBtn = h('button', { type: 'button', class: 'btn small mzoom', id: 'm-zoom', 'aria-label': T('mZoom'), text: U.zoom === 1 ? '⤢' : U.zoom + '×', onclick: () => { U.zoom = U.zoom === 1 ? 1.5 : U.zoom === 1.5 ? 2 : 1; A.render(); } });
       const playCol = h('div', { class: 'mplay' }, statusLine(), h('div', { class: 'mboard-box' }, boardWrap, zoomBtn), S.meIdx >= 0 ? renderDock() : null);
       game.append(h('div', { class: 'mmain' }, playCol, renderSide()));
       const pk = U.picker !== null && isMyTurn() ? renderPicker() : null;
@@ -4613,17 +5371,17 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         setTimeout(() => { scorePop(mv.cs, mv.sc, mv.sc >= 40 || mv.bg); SFX.chime(Math.min(6, mv.cs.length + 1)); }, done);
         const eq = mv.eq || '';
         if (mv.bg) setTimeout(() => {
-          FX.card(t('mfxBingo'), '+' + M.BINGO + ' · ' + eq, 'gold', 'win', anchor(), true);
+          FX.card(T('mfxBingo'), '+' + M.BINGO + ' · ' + eq, 'gold', 'win', anchor(), true);
           SFX.fanfare();
           const r = boardRect(); if (r) FX.P.confetti({ left: r.left, right: r.right, top: r.top }, 90);
         }, done + 150);
-        else if (mv.sc >= 40) setTimeout(() => { FX.card(t('mfxBig', { n: mv.sc }), eq, 'violet', 'combo', anchor()); SFX.sparkle(); }, done + 150);
-        else if (mv.ln >= 2) setTimeout(() => FX.card(t('mfxCross', { n: mv.ln }), '+' + mv.sc + ' · ' + eq, 'cyan', 'group4', anchor()), done + 150);
+        else if (mv.sc >= 40) setTimeout(() => { FX.card(T('mfxBig', { n: mv.sc }), eq, 'violet', 'combo', anchor()); SFX.sparkle(); }, done + 150);
+        else if (mv.ln >= K.crossMin) setTimeout(() => FX.card(T('mfxCross', { n: mv.ln }), '+' + mv.sc + ' · ' + eq, 'cyan', 'group4', anchor()), done + 150);
         FX.hold(done + 700);
         return done + 500;
       }
       if (mv.k === 'timeout') {
-        FX.card(t('mfxTimeout'), who ? (mine ? t('you') : who.name) : '', 'rose', 'wrap', anchor());
+        FX.card(T('mfxTimeout'), who ? (mine ? t('you') : who.name) : '', 'rose', 'wrap', anchor());
         SFX.buzz();
         return 800;
       }
@@ -4648,7 +5406,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       }
       if (U.pendingBanner) {
         U.pendingBanner = false;
-        setTimeout(() => { if (isMyTurn()) FX.turnBanner(t('turnBanner'), t('mTurnSub')); }, Math.max(wait, FX.busyFor()));
+        setTimeout(() => { if (isMyTurn()) FX.turnBanner(t('turnBanner'), T('mTurnSub')); }, Math.max(wait, FX.busyFor()));
       }
       const v = S.view;
       if (v.status === 'ended' && !U.wonShown && Date.now() >= U.endAt && U.endClosed !== v.round) {
@@ -4752,7 +5510,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       if (src === 'rack') {
         if (U.swap) { if (U.swap.has(id)) U.swap.delete(id); else U.swap.add(id); SFX.pick(); A.render(); return; }
         U.sel = U.sel && U.sel.id === id ? null : { id };
-        if (U.sel) SFX.pick();
+        if (U.sel) { SFX.pick(); U.cursor = null; }
         A.render();
         return;
       }
@@ -4812,6 +5570,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       if (!active() || e.target.closest('.mtile, button, .mpicker') || Date.now() - (D.dropAt || 0) < 350) return;
       const cell = e.target.closest('.mcell[data-mc]');
       if (cell && U.sel) { place(U.sel.id, +cell.dataset.mc); return; }
+      if (cell && K.typing && isMyTurn() && !U.swap && !S.view.board[+cell.dataset.mc] && canHover()) { setCursor(+cell.dataset.mc); return; }
       const slot = e.target.closest('.mslot[data-ms]');
       if (slot && U.sel) { moveInRack(U.sel.id, +slot.dataset.ms); U.sel = null; A.render(); return; }
       if (U.picker !== null && !e.target.closest('.mpicker')) { U.picker = null; A.render(); }
@@ -4823,27 +5582,96 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         if (U.picker !== null) U.picker = null;
         else if (U.swap) U.swap = null;
         else if (U.sel) U.sel = null;
+        else if (U.cursor) U.cursor = null;
         else return true;
         A.render();
         return true;
       }
       if (e.target && e.target.closest && e.target.closest('input, button, textarea, select')) return false;   // Enter on a button is that button's
+      if (K.typing && isMyTurn() && !U.swap && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const ch = e.key && e.key.length === 1 ? e.key.toUpperCase() : '';
+        const open = U.picker !== null ? U.draft.find(p => p.c === U.picker) : null;
+        if (open && ch >= 'A' && ch <= 'Z') { open.s = ch; U.picker = null; SFX.pluck(3); A.render(); return true; }
+        if (U.cursor) {
+          if (ch >= 'A' && ch <= 'Z') { typeLetter(ch); return true; }
+          if (e.key === 'Backspace') { typeBack(); return true; }
+          const arrows = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] };
+          if (arrows[e.key]) { moveCursor(arrows[e.key][0], arrows[e.key][1]); return true; }
+        }
+      }
       if (e.key === 'Enter' && !e.repeat) { if (U.swap) doSwap(); else play(); return true; }
       if (e.key === 'Backspace' && U.draft.length) { toRack(U.draft[U.draft.length - 1].id); return true; }
       return false;
     }
 
-    // ---------- menu art: a little equation fanned out ----------
+    // ---------- menu art: a few tiles fanned out ----------
     function menuFan() {
       const pick = f => { for (let i = 0; i < M.TILE_COUNT; i++) if (M.tile(i).face === f) return i; return 0; };
-      return h('div', { class: 'menu-fan mfan', 'aria-hidden': 'true' }, ['12', '/', '4', '=', '3'].map((f, i) => {
+      return h('div', { class: 'menu-fan mfan', 'aria-hidden': 'true' }, K.fan.map((f, i) => {
         const e = tileEl(pick(f), f, 'static');
-        e.style.setProperty('--i', String(i - 2));
+        e.style.setProperty('--i', String(i - (K.fan.length - 1) / 2));
         return e;
       }));
     }
 
-    return { onState, renderGame, afterRender, snap, reset, deny, onKey, menuFan, tileEl, evalDraft, place, toRack, play, U };
+    return { onState, renderGame, afterRender, snap, reset, deny, onKey, menuFan, tileEl, evalDraft, place, toRack, play, setCursor, U };
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- mathui.js ----
+// Math crossword screen: crossui.js with number and sign tiles.
+(function (root) {
+  'use strict';
+  root.RK = root.RK || {};
+  root.RK.MathUI = function (A) {
+    const M = root.RK.MathRules, t = A.t;
+    const SHOW = s => (s === '*' ? '×' : s === '/' ? '÷' : s === '-' ? '−' : s);
+    const FACE = f => (f === '+-' ? '+/−' : f === '*/' ? '×/÷' : f === '?' ? '' : SHOW(f));
+    const symKind = s => (s === '=' ? 'eq' : M.NUMS.indexOf(s) >= 0 ? 'num' : 'op');
+    return root.RK.CrossUI(A, {
+      id: 'math', M, MH: root.RK.MathHost, pre: 'm', store: 'rk.mrack', mark: 'Math <em>Cross</em>', crossMin: 2, typing: false,
+      // bonus code → [square class, multiplier, multiplies the whole equation]
+      PREM: { E: ['pe3', 3, true], e: ['pe2', 2, true], T: ['pt3', 3, false], t: ['pt2', 2, false], '*': ['pstar', 0, false] },
+      tile(id, sym) {
+        const tl = M.tile(id), f = tl.face;
+        const kind = f === '?' ? 'blank' : f === '+-' || f === '*/' ? 'dual' : f === '=' ? 'eq' : M.isNumFace(f) ? 'num' : 'op';
+        return {
+          cls: 'k-' + kind + ' s-' + (sym ? symKind(sym) : kind),
+          text: sym ? SHOW(sym) : FACE(f),
+          label: f === '?' && !sym ? t('mBlankLabel') : t('mTileLabel', { s: sym ? SHOW(sym) : FACE(f), p: tl.pts })
+        };
+      },
+      show: SHOW,
+      optCls: s => (M.NUMS.indexOf(s) < 0 ? ' op' : ''),
+      fan: ['12', '/', '4', '=', '3']
+    });
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+// ---- wordui.js ----
+// Word crossword screen: crossui.js with letter tiles, and typing on a keyboard.
+(function (root) {
+  'use strict';
+  root.RK = root.RK || {};
+  root.RK.WordUI = function (A) {
+    const M = root.RK.WordRules, t = A.t;
+    return root.RK.CrossUI(A, {
+      id: 'word', M, MH: root.RK.WordHost, pre: 'w', store: 'rk.wrack', mark: 'Word <em>Cross</em>', crossMin: 3, typing: true,
+      // bonus code → [square class, multiplier, multiplies the whole word]
+      PREM: { W: ['pe3', 3, true], w: ['pe2', 2, true], L: ['pt3', 3, false], l: ['pt2', 2, false], '*': ['pstar', 0, false] },
+      ready: () => M.hasDict(),
+      tile(id, sym) {
+        const tl = M.tile(id), blank = tl.face === '?';
+        return {
+          cls: blank ? 'k-blank s-let' : 'k-let s-let',
+          text: sym || (blank ? '' : tl.face),
+          label: blank ? (sym ? t('wBlankAs', { s: sym }) : t('wBlankLabel')) : t('wTileLabel', { s: tl.face, p: tl.pts })
+        };
+      },
+      show: s => s,
+      optCls: () => '',
+      fan: ['W', 'O', 'R', 'D', 'S']
+    });
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
@@ -4851,7 +5679,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 // UI: screens, your board (rack), the shared table, drag and drop, settings.
 (function () {
   'use strict';
-  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins, MathHost: MH } = window.RK;
+  const { BoardConfig: BC, Rack, Rules, Host, Net, STR, TableGrid: TG, Prefs, FX, SFX, Skins, MathHost: MH, WordHost: WH, WordRules: WR, Words } = window.RK;
 
   // ---------- small helpers ----------
   const $ = (sel, el) => (el || document).querySelector(sel);
@@ -4901,7 +5729,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     config: BC.load(storageAdapter),
     screen: 'home', bots: 2, code: '',
     gameId: 'rummy',                                   // the game at the table you are in
-    menuGame: store.get('rk.game') === 'math' ? 'math' : 'rummy',   // the game picked on the menu
+    menuGame: ['math', 'word'].indexOf(store.get('rk.game')) >= 0 ? store.get('rk.game') : 'rummy',   // the game picked on the menu
     mode: null, G: null, view: null, hand: [], myId: null, hostId: null, meIdx: -1,
     rack: null, rackRound: null, draft: null, draftKey: null, undo: [], sel: null, tnSeen: null,
     zoomUser: 1, settings: null, online: new Set(), pks: new Map(), gotHand: false, hostSeen: true,
@@ -4918,7 +5746,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     if (vars && typeof s === 'string') s = s.replace(/\{(\w+)\}/g, (m, k) => vars[k] !== undefined ? vars[k] : m);
     return s;
   }
-  function reasonText(res) { return t('r_' + (res.reason || 'malformed'), { min: res.meldMin || (S.view && S.view.meldMin) || 30 }); }
+  function reasonText(res) {
+    const k = 'r_' + (res.reason || 'malformed');
+    // Word Crossword has its own wording for some (letters, not tiles)
+    return t(S.gameId === 'word' && STR.en['w' + k] !== undefined ? 'w' + k : k, { min: res.meldMin || (S.view && S.view.meldMin) || 30 });
+  }
 
   // ---------- toasts ----------
   function toast(msg, bad) {
@@ -4969,14 +5801,31 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
         return d.t === 'draw' ? { t: 'draw' } : null;
       }
     },
-    math: { Host: MH, encodeHand: MH.encodeHand, decodeHand: MH.decodeHand, encodeAct: MH.encodeAct, decodeAct: MH.decodeAct }
+    math: { Host: MH, encodeHand: MH.encodeHand, decodeHand: MH.decodeHand, encodeAct: MH.encodeAct, decodeAct: MH.decodeAct },
+    // Word Crossword needs its word list before anyone can play (ready)
+    word: { Host: WH, encodeHand: WH.encodeHand, decodeHand: WH.decodeHand, encodeAct: WH.encodeAct, decodeAct: WH.decodeAct, ready: () => Words.load(), isReady: () => WR.hasDict() }
   };
-  const gameOf = G => (G && G.game === 'math' ? 'math' : 'rummy');
+  const GAME_IDS = ['rummy', 'math', 'word'];
+  const gameOf = G => (G && (G.game === 'math' || G.game === 'word') ? G.game : 'rummy');
   const GM = () => GAMES[S.gameId] || GAMES.rummy;
   const GH = () => GM().Host;
-  const gameName = id => t(id === 'math' ? 'gMath' : 'gRummy');
+  const gameName = id => t({ math: 'gMath', word: 'gWord' }[id] || 'gRummy');
+  /** The crossword games keep their timer and bot level per game; Rummy has the 13 → 1 rule. */
+  const prefKey = (gid, what) => gid + (what === 'timer' ? 'Timer' : 'Bot');
   /** Rules for a new table of this game, from your settings. */
-  const newRules = gid => (gid === 'math' ? { turnSec: S.prefs.mathTimer, botLevel: S.prefs.mathBot } : { wrap: S.prefs.wrap });
+  const newRules = gid => (gid === 'rummy' ? { wrap: S.prefs.wrap } : { turnSec: S.prefs[prefKey(gid, 'timer')], botLevel: S.prefs[prefKey(gid, 'bot')] });
+  /** The crossword screen for the table you are at (null for Rummy). */
+  const XUI = () => (S.gameId === 'math' ? MUI : S.gameId === 'word' ? WUI : null);
+  function resetUIs() { MUI.reset(); WUI.reset(); }
+  /** Get a game ready to play (Word Crossword loads its word list once). false = it couldn't. */
+  async function needGame(gid) {
+    const g = GAMES[gid];
+    if (!g || !g.ready) return true;
+    const slow = setTimeout(() => toast(t('wLoading')), 300);
+    try { await g.ready(); return true; }
+    catch (e) { toast(t(e && e.message === 'words_old' ? 'wLoadOld' : 'wLoadFail'), true); return false; }
+    finally { clearTimeout(slow); }
+  }
   // The table during your turn is a grid (S.draft); sets are read off it.
   function viewGrid() {
     const v = S.view;
@@ -5029,7 +5878,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
 
   // Called whenever S.view / S.hand change, in every mode.
-  function onState() { if (S.gameId === 'math') MUI.onState(); else rummyOnState(); }
+  function onState() { const X = XUI(); if (X) X.onState(); else rummyOnState(); }
   function rummyOnState() {
     const v = S.view;
     if (!v) { render(); return; }
@@ -5074,8 +5923,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   let botTimer = null;
   function enterEngine(mode, G, myId) {
     S.mode = mode; S.G = G; S.myId = myId; S.hostId = G.hostId;
-    S.gameId = gameOf(G); MUI.reset();
-    if (S.gameId === 'math' && G.status === 'playing') G.turnAt = Date.now();   // a resumed game gets a fresh turn clock
+    S.gameId = gameOf(G); resetUIs();
+    if (S.gameId !== 'rummy' && G.status === 'playing') G.turnAt = Date.now();   // a resumed game gets a fresh turn clock
     S.rack = null; S.rackRound = null; S.draft = null; S.draftKey = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     engineChanged();
@@ -5090,14 +5939,15 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     scheduleBot();
     armTurnTimer();
   }
-  // math crossword: the host passes a turn that runs out of time
+  // crossword games: the host passes a turn that runs out of time
   let turnTimer = null;
   function armTurnTimer() {
     clearTimeout(turnTimer);
     const G = S.G;
-    if (!G || gameOf(G) !== 'math' || G.status !== 'playing' || !G.rules.turnSec || !engineMode()) return;
+    if (!G || gameOf(G) === 'rummy' || G.status !== 'playing' || !G.rules.turnSec || !engineMode()) return;
+    const H = GAMES[gameOf(G)].Host;
     const left = G.rules.turnSec * 1000 - (Date.now() - G.turnAt);
-    turnTimer = setTimeout(() => { if (S.G !== G) return; if (MH.timeout(G, Date.now())) engineChanged(); else armTurnTimer(); }, Math.max(50, left + 30));
+    turnTimer = setTimeout(() => { if (S.G !== G) return; if (H.timeout(G, Date.now())) engineChanged(); else armTurnTimer(); }, Math.max(50, left + 30));
   }
   let botJob = null;
   function scheduleBot() {
@@ -5105,7 +5955,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     if (botJob) { botJob.cancel = true; botJob = null; }
     const G = S.G;
     if (!G || G.status !== 'playing' || !G.players[G.turn] || !G.players[G.turn].bot) return;
-    if (gameOf(G) === 'math') { mathBot(G); return; }
+    if (gameOf(G) !== 'rummy') { crossBot(G); return; }
     botTimer = setTimeout(() => {
       if (S.G !== G || G.status !== 'playing' || !G.players[G.turn].bot) return;
       const pid = G.players[G.turn].id;
@@ -5114,11 +5964,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       engineChanged();
     }, S.fastBots ? 20 : 850 + rand() * 600 + FX.busyFor());
   }
-  /** A math bot thinks in 4 ms slices, so the page keeps drawing at full frame rate (even 120 Hz) while it searches. */
-  function mathBot(G) {
-    const tn = G.tn, job = { cancel: false };
+  /** A crossword bot thinks in 4 ms slices, so the page keeps drawing at full frame rate (even 120 Hz) while it searches. */
+  function crossBot(G) {
+    const tn = G.tn, job = { cancel: false }, H = GAMES[gameOf(G)].Host;
     botJob = job;
-    const search = MH.botSearch(G, { rng: rand });
+    const search = H.botSearch(G, { rng: rand });
     const readyAt = Date.now() + (S.fastBots ? 0 : 900 + rand() * 700);
     const tick = () => {
       if (job.cancel || S.G !== G || G.tn !== tn || G.status !== 'playing') return;
@@ -5126,8 +5976,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       const wait = S.fastBots ? 0 : Math.max(readyAt - Date.now(), FX.busyFor());
       if (wait > 0) { botTimer = setTimeout(tick, wait); return; }
       const pid = G.players[G.turn].id;
-      const res = MH.apply(G, pid, search.action(), Date.now(), rand);
-      if (!res.ok) MH.apply(G, pid, { t: 'pass' }, Date.now(), rand);
+      const res = H.apply(G, pid, search.action(), Date.now(), rand);
+      if (!res.ok) H.apply(G, pid, { t: 'pass' }, Date.now(), rand);
       engineChanged();
     };
     botTimer = setTimeout(tick, 0);
@@ -5136,6 +5986,8 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   function myName() { return S.name.trim() || (S.lang === 'th' ? 'ผู้เล่น' : 'Player'); }
 
   function startLocal() {
+    // a game still loading (the word list) starts once it has loaded
+    if (GAMES[S.menuGame].isReady && !GAMES[S.menuGame].isReady()) { needGame(S.menuGame).then(ok => { if (ok) startLocal(); }); return; }
     const H = GAMES[S.menuGame].Host;
     const G = H.createGame({ code: 'solo', hostId: 'me', hostName: myName(), rules: newRules(S.menuGame) });
     for (let i = 0; i < S.bots; i++) H.addBot(G);
@@ -5157,7 +6009,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     } catch (e) { netError(e); return false; }
   }
   /** The move was refused: the wrong sets / lines give a short shake. */
-  function denied() { if (S.gameId === 'math') MUI.deny(); else FX.deny([...document.querySelectorAll('.tset.bad')]); }
+  function denied() { const X = XUI(); if (X) X.deny(); else FX.deny([...document.querySelectorAll('.tset.bad')]); }
   function netError(e) {
     const code = e && e.code;
     toast(code === 'not_permitted' ? t('r_not_permitted') : code === 'taken' ? t('r_taken') : t('r_no_room'), true);
@@ -5167,6 +6019,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   let heartbeat = null, bcTimer = null;
   async function hostOnline(resumeG) {
     if (Net.state !== 'on') { toast(t('r_no_room'), true); return; }
+    if (!(await needGame(resumeG ? gameOf(resumeG) : S.menuGame))) return;
     S.screen = 'connecting'; render();
     const myId = await waitFor(() => Net.selfId(), 4000);
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
@@ -5256,7 +6109,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     const myId = await waitFor(() => Net.selfId(), 4000);
     if (!myId) { S.screen = 'home'; render(); toast(t('r_no_room'), true); return; }
     S.mode = 'client'; S.myId = myId; S.view = null; S.hostId = null; S.code = code; S.gotHand = false;
-    MUI.reset();
+    resetUIs();
     S.rack = null; S.rackRound = null; S.tnSeen = null; S.endClosed = null;
     S.mvSeen = null; S.bannerKey = null; S.endAt = 0; S.lastStateKey = null;
     try {
@@ -5293,8 +6146,10 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     if (S.hostId && S.hostId !== sender) return;
     if (S.view && d.v < S.view.v) return;
     S.hostId = sender; S.hostSeen = true;
-    const gid = d.g === 'math' ? 'math' : 'rummy';
+    const gid = d.g === 'math' || d.g === 'word' ? d.g : 'rummy';
     if (S.gameId !== gid) { S.gameId = gid; S.lastStateKey = null; }
+    // a guest checks words locally for hints; the host still rules on every move
+    if (gid === 'word' && !WR.hasDict() && Words.state !== 'loading') needGame('word').then(ok => { if (ok) { S.lastStateKey = null; render(); } });
     let hand = S.hand;
     const box = d.hx && d.hx[S.myId];
     if (box) {
@@ -5311,7 +6166,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   async function leaveTable() {
     clearInterval(heartbeat); clearInterval(helloTimer); clearTimeout(botTimer); clearTimeout(joinWatch); clearTimeout(turnTimer);
     if (botJob) { botJob.cancel = true; botJob = null; }
-    MUI.reset();
+    resetUIs();
     if (S.mode === 'client' && S.view && S.view.status !== 'playing') Net.send('act', { t: 'leave' }).catch(() => {});
     if (S.mode === 'host') Net.announceTable(null);
     if (S.mode === 'host' || S.mode === 'client') await Net.leaveTable();
@@ -5958,7 +6813,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
   function updateTitle() {
     const mine = S.screen === 'game' && isMyTurn() && S.mode !== 'local';
-    const brand = S.screen === 'game' && S.gameId === 'math' ? gameName('math') : 'Rummy Tiles Club';
+    const brand = S.screen === 'game' && XUI() ? gameName(S.gameId) : 'Rummy Tiles Club';
     const title = mine ? '● ' + t('yourTurn') + ' · ' + brand : brand;
     if (document.title !== title) document.title = title;
   }
@@ -5974,10 +6829,11 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
   function renderNow() {
     document.documentElement.lang = S.lang;
-    if (S.screen === 'game' && S.view && S.gameId === 'math') {
-      const before = FX.tier() > 0 ? MUI.snap() : new Map();
-      root.replaceChildren(MUI.renderGame());
-      MUI.afterRender(before);
+    const X = XUI();
+    if (S.screen === 'game' && S.view && X) {
+      const before = FX.tier() > 0 ? X.snap() : new Map();
+      root.replaceChildren(X.renderGame());
+      X.afterRender(before);
       if (S.settings) renderSettingsLive();
       updateTitle();
       return;
@@ -6016,19 +6872,19 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
   function renderHome() {
     const T = (c, n) => c * 13 + (n - 1);
-    const math = S.menuGame === 'math';
-    const fan = math ? MUI.menuFan() : h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
+    const mg = S.menuGame;
+    const fan = mg === 'math' ? MUI.menuFan() : mg === 'word' ? WUI.menuFan() : h('div', { class: 'menu-fan', 'aria-hidden': 'true' },
       [T(0, 11), T(2, 1), 104, T(1, 13), T(3, 7)].map((id, i) => {
         const e = tileEl(id, 'static');
         e.style.setProperty('--i', String(i - 2));
         return e;
       }));
     const picker = h('div', { class: 'game-pick', role: 'radiogroup', 'aria-label': t('gameLabel'), id: 'game-pick' },
-      ['rummy', 'math'].map(g => h('button', {
+      GAME_IDS.map(g => h('button', {
         type: 'button', class: 'gp-card', role: 'radio', 'aria-checked': S.menuGame === g ? 'true' : 'false', 'data-game': g,
-        onclick: () => { S.menuGame = g; store.set('rk.game', g); render(); }
-      }, h('span', { class: 'gp-ico gp-' + g, 'aria-hidden': 'true', text: g === 'math' ? '÷' : '7' }),
-        h('span', { class: 'gp-txt' }, h('b', { text: gameName(g) }), h('small', { text: t(g === 'math' ? 'gMathSub' : 'gRummySub') })))));
+        onclick: () => { S.menuGame = g; store.set('rk.game', g); if (g === 'word') Words.load().catch(() => {}); render(); }
+      }, h('span', { class: 'gp-ico gp-' + g, 'aria-hidden': 'true', text: { rummy: '7', math: '÷', word: 'A' }[g] }),
+        h('span', { class: 'gp-txt' }, h('b', { text: gameName(g) }), h('small', { text: t({ rummy: 'gRummySub', math: 'gMathSub', word: 'gWordSub' }[g]) })))));
     const nameIn = h('input', { class: 'input', id: 'name', maxlength: '16', autocomplete: 'nickname', placeholder: t('namePh'), value: S.name });
     nameIn.addEventListener('input', () => { S.name = nameIn.value.slice(0, 16); store.set('rk.name', S.name); });
     const codeIn = h('input', { class: 'input code', id: 'join-code', maxlength: '4', placeholder: t('codePh'), autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': t('codePh') });
@@ -6064,7 +6920,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     return h('div', { class: 'menu' },
       h('div', { class: 'menu-motes', 'aria-hidden': 'true' }, Array.from({ length: 16 }, (_, i) => h('i', { style: { '--k': String(i) } }))),
       h('div', { class: 'menu-top' }, langSeg()),
-      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: math ? 'Math Crossword<small>Tiles Club</small>' : 'Rummy Tiles<small>Club</small>' })),
+      h('header', { class: 'menu-crest' }, fan, h('h1', { class: 'menu-title', html: { math: 'Math Crossword<small>Tiles Club</small>', word: 'Word Crossword<small>Tiles Club</small>' }[mg] || 'Rummy Tiles<small>Club</small>' })),
       panel, tables);
   }
 
@@ -6080,7 +6936,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
     if (local && local.status === 'playing' && Array.isArray(local.players)) {
       out.push(h('div', { class: 'row' },
         h('span', { class: 'grow', text: t('resumeLocal') + ' · ' + gameName(gameOf(local)) }),
-        h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: () => enterEngine('local', local, 'me') }),
+        h('button', { type: 'button', class: 'btn small primary', text: t('resume'), onclick: async () => { if (await needGame(gameOf(local))) enterEngine('local', local, 'me'); } }),
         h('button', { type: 'button', class: 'btn small ghost', text: t('discard'), onclick: () => { store.del('rk.local'); render(); } })));
     }
     const last = store.json('rk.last');
@@ -6147,14 +7003,15 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
 
   /** The table's rules in the lobby: the host changes them, everyone else reads them. */
   function lobbyRules(v, isHost) {
-    if (S.gameId !== 'math') {
+    if (S.gameId === 'rummy') {
       return isHost ? wrapToggle('lobby-wrap', v.rules.wrap, on => { Host.setWrap(S.G, on); S.prefs.wrap = on; Prefs.save(storageAdapter, S.prefs); engineChanged(); })
         : h('p', { class: 'note', text: t(v.rules.wrap ? 'wrapOn' : 'wrapOff') });
     }
     const r = v.rules;
     if (!isHost) return h('p', { class: 'note', text: (r.turnSec ? t('mTimerOn', { n: r.turnSec }) : t('mTimerOff')) + ' · ' + t('mBotIs', { l: t('bot_' + r.botLevel) }) });
-    return h('div', { class: 'lobby-rules' }, timerSeg('lobby-timer', r.turnSec, n => { MH.setTurnSec(S.G, n); S.prefs.mathTimer = n; Prefs.save(storageAdapter, S.prefs); engineChanged(); }),
-      botLevelSeg('lobby-bot', r.botLevel, l => { MH.setBotLevel(S.G, l); S.prefs.mathBot = l; Prefs.save(storageAdapter, S.prefs); engineChanged(); }));
+    const gid = S.gameId;
+    return h('div', { class: 'lobby-rules' }, timerSeg('lobby-timer', r.turnSec, n => { GH().setTurnSec(S.G, n); S.prefs[prefKey(gid, 'timer')] = n; Prefs.save(storageAdapter, S.prefs); engineChanged(); }),
+      botLevelSeg('lobby-bot', r.botLevel, l => { GH().setBotLevel(S.G, l); S.prefs[prefKey(gid, 'bot')] = l; Prefs.save(storageAdapter, S.prefs); engineChanged(); }));
   }
   function timerSeg(id, cur, set) {
     return h('div', { class: 'ctl' }, h('span', { class: 'lbl', text: t('mTimer') }),
@@ -6468,10 +7325,13 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
       h('span', { class: 'lbl', text: gameName('rummy') }), h('label', { class: 'toggle', for: 's-wrap' }, wr, t('wrapRule')),
       h('span', { class: 'lbl', text: gameName('math') }),
       timerSeg('s-mtimer', pr.mathTimer, n => setPref('mathTimer', n, true)),
-      botLevelSeg('s-mbot', pr.mathBot, l => setPref('mathBot', l, true))));
-    const mathGame = S.screen === 'game' && S.gameId === 'math';
-    if (mathGame) {
-      // the rack layout below is Rummy's; the math rack is fixed at 8
+      botLevelSeg('s-mbot', pr.mathBot, l => setPref('mathBot', l, true)),
+      h('span', { class: 'lbl', text: gameName('word') }),
+      timerSeg('s-wtimer', pr.wordTimer, n => setPref('wordTimer', n, true)),
+      botLevelSeg('s-wbot', pr.wordBot, l => setPref('wordBot', l, true))));
+    const crossGame = S.screen === 'game' && S.gameId !== 'rummy';
+    if (crossGame) {
+      // the rack layout below is Rummy's; the crossword racks are fixed (8 and 7)
       const panel0 = h('div', { class: 'settings', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 's-title' },
         h('header', { class: 'settings-head' }, h('h2', { id: 's-title', text: t('sTitle') }), langSeg(),
           h('button', { type: 'button', class: 'btn small ghost', text: t('sCancel'), onclick: closeSettings })),
@@ -6547,7 +7407,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   }
 
   function settingsHand() {
-    return S.rack && S.screen === 'game' && S.gameId !== 'math' ? Rack.allTiles(S.rack) : null;
+    return S.rack && S.screen === 'game' && S.gameId === 'rummy' ? Rack.allTiles(S.rack) : null;
   }
   function renderSettingsLive() {
     const st = S.settings;
@@ -6638,7 +7498,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   function applySettings(confirmed) {
     const st = S.settings;
     const cfg = BC.sanitize(st.draft).config;
-    if (S.rack && S.screen === 'game' && S.gameId !== 'math') {
+    if (S.rack && S.screen === 'game' && S.gameId === 'rummy') {
       const impact = Rack.resizeImpact(S.rack, BC.rowLayout(cfg));
       if (impact.toTray > 0 && !confirmed) { st.confirm = impact; renderSettingsLive(); const b = $('#s-confirm-apply'); if (b) b.focus(); return; }
       pushUndo();
@@ -6657,15 +7517,19 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   // ---------- keyboard ----------
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && S.settings) { closeSettings(); return; }
-    if (S.screen === 'game' && S.gameId === 'math') { if (MUI.onKey(e)) e.preventDefault(); return; }
+    if (S.screen === 'game' && XUI()) { if (XUI().onKey(e)) e.preventDefault(); return; }
     if (e.key === 'Escape') {
       if (S.sel) { S.sel = null; render(); }
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && S.screen === 'game' && !S.settings && !e.target.closest('input')) { e.preventDefault(); undo(); }
   });
 
-  // ---------- the math crossword screen ----------
-  const MUI = window.RK.MathUI({ S, h, t, store, toast, rand, render, act, engineMode, engineChanged, leaveTable, settingsBtn, langSeg });
+  // ---------- the crossword screens ----------
+  const UI_KIT = { S, h, t, store, toast, rand, render, act, engineMode, engineChanged, leaveTable, settingsBtn, langSeg };
+  const MUI = window.RK.MathUI(UI_KIT);
+  const WUI = window.RK.WordUI(UI_KIT);
+  // the last game you picked was Word Crossword: fetch its word list while you look at the menu
+  if (S.menuGame === 'word') Words.load().catch(() => {});
 
   // ---------- boot ----------
   document.body.append(h('div', { id: 'settings-root' }));
@@ -6677,7 +7541,7 @@ button, .btn, .mbtn, .seg button, .swatch, .skin-card { touch-action: manipulati
   Net.init(() => { if (S.screen === 'home' || S.screen === 'connecting') render(); });
 
   // Handle for automated checks (harmless for players).
-  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl, math: MUI, GAMES };
+  window.RKApp = { S, act, startLocal, performDrop, openSettings, applySettings, setDraft, setPref, renderNow, mountBoard, dropTargetAt, engineChanged, applyPrefs, tileEl, math: MUI, word: WUI, GAMES, needGame };
 })();
 
 </script>
